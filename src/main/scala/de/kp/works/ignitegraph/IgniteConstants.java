@@ -25,19 +25,10 @@ public class IgniteConstants {
      */
     public static final String EDGES          = "edges";
     public static final String VERTICES       = "vertices";
-    public static final String EDGE_INDICES   = "edge_indices";
-    public static final String VERTEX_INDICES = "vertex_indices";
-
-/*
-    public static final String INDEX_METADATA = "indexMetadata";
-    public static final String LABEL_METADATA = "labelMetadata";
-    public static final String LABEL_CONNECTIONS = "labelConnections";
-*/
 
     /**
      * Internal keys
      */
-    public static final String BYTE_COL_TYPE    = "BYTE";
     public static final String LONG_COL_TYPE    = "LONG";
     public static final String STRING_COL_TYPE  = "STRING";
 
@@ -58,4 +49,13 @@ public class IgniteConstants {
     public static final String PROPERTY_TYPE_COL_NAME = "property_type";
     public static final String PROPERTY_VALUE_COL_NAME = "property_value";
     public static final String BYTE_BUFFER_COL_NAME = "byte_buffer";
+
+    public static final String INCLUSIVE_FROM_VALUE = "inclusive_from_value";
+    public static final String EXCLUSIVE_TO_VALUE = "inclusive_to_value";
+
+    public static final String LIMIT_VALUE = "limit_value";
+    public static final String FROM_VALUE = "from_value";
+
+    public static final String REVERSED_VALUE = "reversed_value";
+
 }
