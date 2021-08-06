@@ -18,27 +18,50 @@ package de.kp.works.ignite.client.query;
  *
  */
 
+import com.google.common.collect.Streams;
 import de.kp.works.ignite.client.IgniteContext;
 import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class IgniteGetQuery extends IgniteQuery {
     /**
      * Retrieve the element (edge or vertex) that refers
      * to the provided identifier
      */
-    public IgniteGetQuery(String name, IgniteContext context, Object id) {
-        super(name, context);
+    public IgniteGetQuery(String cacheName, IgniteContext context, Object id) {
+        super(cacheName, context);
+        /*
+         * Transform the provided properties into fields
+         */
+        HashMap<String, String> fields = new HashMap<>();
+
+        fields.put(IgniteConstants.ID_COL_NAME, id.toString());
+        createSql(fields);
+
     }
     /**
      * Retrieve all elements (edges or vertices) that refer
      * to the provided list of identifiers
      */
-    public IgniteGetQuery(String name, IgniteContext context, List<Object> ids) {
-        super(name, context);
+    public IgniteGetQuery(String cacheName, IgniteContext context, List<Object> ids) {
+        super(cacheName, context);
+        /*
+         * Transform the provided properties into fields
+         */
+        HashMap<String, String> fields = new HashMap<>();
+        fields.put(IgniteConstants.ID_COL_NAME, String.join(",",
+                ids.stream().map(id -> id.toString()).collect(Collectors.toList())));
+
+        createSql(fields);
+
+
     }
 
     @Override
@@ -60,7 +83,29 @@ public class IgniteGetQuery extends IgniteQuery {
     }
 
     @Override
-    protected void createSql(String cacheName, Map<String, String> fields) {
+    protected void createSql(Map<String, String> fields) {
+        try {
+            buildSelectPart();
+            /*
+             * Build the `where` clause and thereby distinguish
+             * between a single or multiple identifier values
+             */
+            sqlStatement += " where " + IgniteConstants.ID_COL_NAME;
+            String ids = fields.get(IgniteConstants.ID_COL_NAME);
+
+            String[] tokens = ids.split(",");
+            if (tokens.length == 1) {
+                sqlStatement += " = '" + tokens[0] + "'";
+            } else {
+                List<String> inPart = Stream.of(tokens)
+                        .map(token -> "'" + token + "'").collect(Collectors.toList());
+
+                sqlStatement += " in(" + String.join(",", inPart) + ")";
+            }
+
+        } catch (Exception e) {
+            sqlStatement = null;
+        }
 
     }
 }

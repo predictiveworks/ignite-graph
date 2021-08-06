@@ -20,16 +20,31 @@ package de.kp.works.ignite.client.query;
 
 import de.kp.works.ignite.client.IgniteContext;
 import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class IgniteRangeQuery extends IgniteQuery {
 
-    public IgniteRangeQuery(String name, IgniteContext context,
-                            String label, String key, Object inclusiveFrom, Object exclusiveTo) {
-        super(name, context);
+    public IgniteRangeQuery(String cacheName, IgniteContext context,
+                            String label, String key, Object inclusiveFromValue, Object exclusiveToValue) {
+        super(cacheName, context);
+        /*
+         * Transform the provided properties into fields
+         */
+        HashMap<String, String> fields = new HashMap<>();
+
+        fields.put(IgniteConstants.LABEL_COL_NAME, label);
+        fields.put(IgniteConstants.PROPERTY_KEY_COL_NAME, key);
+
+        fields.put(IgniteConstants.INCLUSIVE_FROM_VALUE, inclusiveFromValue.toString());
+        fields.put(IgniteConstants.EXCLUSIVE_TO_VALUE, exclusiveToValue.toString());
+
+        createSql(fields);
+
     }
 
     @Override
@@ -51,7 +66,15 @@ public class IgniteRangeQuery extends IgniteQuery {
     }
 
     @Override
-    protected void createSql(String cacheName, Map<String, String> fields) {
+    protected void createSql(Map<String, String> fields) {
+        try {
+            buildSelectPart();
+
+            // TODO
+
+        } catch (Exception e) {
+            sqlStatement = null;
+        }
 
     }
 }

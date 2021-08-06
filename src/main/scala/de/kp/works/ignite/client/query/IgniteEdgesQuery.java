@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class IgniteEdgesQuery extends IgniteQuery {
 
@@ -40,7 +42,7 @@ public class IgniteEdgesQuery extends IgniteQuery {
         vertexToFields(vertex, direction, fields);
 
         fields.put(IgniteConstants.LABEL_COL_NAME, String.join(",", labels));
-        createSql(cacheName, fields);
+        createSql(fields);
 
     }
 
@@ -58,7 +60,7 @@ public class IgniteEdgesQuery extends IgniteQuery {
         fields.put(IgniteConstants.PROPERTY_KEY_COL_NAME, key);
         fields.put(IgniteConstants.PROPERTY_VALUE_COL_NAME, value.toString());
 
-        createSql(cacheName, fields);
+        createSql(fields);
 
     }
 
@@ -82,7 +84,53 @@ public class IgniteEdgesQuery extends IgniteQuery {
     }
 
     @Override
-    protected void createSql(String cacheName, Map<String, String> fields) {
+    protected void createSql(Map<String, String> fields) {
+        try {
+            buildSelectPart();
+            /*
+             * Build `where` clause and thereby distinguish
+             * between a single or multiple label values
+             */
+            if (fields.containsKey(IgniteConstants.TO_COL_NAME)) {
+                sqlStatement += " where " + IgniteConstants.TO_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.TO_COL_NAME) + "'";
+            }
+            if (fields.containsKey(IgniteConstants.FROM_COL_NAME)) {
+                sqlStatement += " where " + IgniteConstants.FROM_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.FROM_COL_NAME) + "'";
+            }
+
+            if (fields.containsKey(IgniteConstants.PROPERTY_KEY_COL_NAME)) {
+                sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
+
+                sqlStatement += " and " + IgniteConstants.PROPERTY_VALUE_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_VALUE_COL_NAME) + "'";
+
+                sqlStatement += " and " + IgniteConstants.LABEL_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
+
+            }
+            else {
+                sqlStatement += " and " + IgniteConstants.LABEL_COL_NAME;
+                String labels = fields.get(IgniteConstants.LABEL_COL_NAME);
+
+                String[] tokens = labels.split(",");
+                if (tokens.length == 1) {
+                    sqlStatement += " = '" + tokens[0] + "'";
+                } else {
+                    List<String> inPart = Stream.of(tokens)
+                            .map(token -> "'" + token + "'").collect(Collectors.toList());
+
+                    sqlStatement += " in(" + String.join(",", inPart) + ")";
+                }
+
+            }
+
+
+        } catch (Exception e) {
+            sqlStatement = null;
+        }
 
     }
 }

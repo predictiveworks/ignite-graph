@@ -26,6 +26,7 @@ import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public abstract class IgniteQuery {
 
     }
 
-    public void vertexToFields(Object vertex, Direction direction, HashMap<String, String> fields) {
+    protected void vertexToFields(Object vertex, Direction direction, HashMap<String, String> fields) {
         /*
          * An Edge links two Vertex objects. The Direction determines
          * which Vertex is the tail Vertex (out Vertex) and which Vertex
@@ -69,11 +70,128 @@ public abstract class IgniteQuery {
     }
     public abstract List<IgniteResult> getResult();
 
-    protected abstract void createSql(String cacheName, Map<String, String> fields);
+    protected abstract void createSql(Map<String, String> fields);
 
     protected List<List<?>> getSqlResult() {
         SqlFieldsQuery sqlQuery = new SqlFieldsQuery(sqlStatement);
         return cache.query(sqlQuery).getAll();
     }
 
+    protected void buildSelectPart() throws Exception {
+
+        if (cache == null)
+            throw new Exception("Cache is not initialized.");
+
+        List<String> columns = getColumns();
+
+        sqlStatement = "select";
+
+        sqlStatement += " " + String.join(",", columns);
+        sqlStatement += " from " + cache.getName();
+
+    }
+    /**
+     * This method retrieves the `select` columns
+     * of the respective cache.
+     */
+    protected List<String> getColumns() throws Exception {
+
+        List<String> columns = new ArrayList<>();
+        if (cache == null)
+            throw new Exception("Cache is not initialized.");
+
+        String cacheName = cache.getName();
+        if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.EDGES)) {
+            /*
+             * The edge identifier used by TinkerPop to
+             * identify an equivalent of a data row
+             */
+            columns.add(IgniteConstants.ID_COL_NAME);
+            /*
+             * The edge identifier type to reconstruct the
+             * respective value. IgniteGraph supports [Long]
+             * as well as [String] as identifier.
+             */
+            columns.add(IgniteConstants.ID_TYPE_COL_NAME);
+            /*
+             * The edge label used by TinkerPop and IgniteGraph
+             */
+            columns.add(IgniteConstants.LABEL_COL_NAME);
+            /*
+             * The `TO` vertex description
+             */
+            columns.add(IgniteConstants.TO_COL_NAME);
+            columns.add(IgniteConstants.TO_TYPE_COL_NAME);
+            /*
+             * The `FROM` vertex description
+             */
+            columns.add(IgniteConstants.FROM_COL_NAME);
+            columns.add(IgniteConstants.FROM_TYPE_COL_NAME);
+            /*
+             * The timestamp this cache entry has been created.
+             */
+            columns.add(IgniteConstants.CREATED_AT_COL_NAME);
+            /*
+             * The timestamp this cache entry has been updated.
+             */
+            columns.add(IgniteConstants.UPDATED_AT_COL_NAME);
+            /*
+             * The property section of this cache entry
+             */
+            columns.add(IgniteConstants.PROPERTY_KEY_COL_NAME);
+            columns.add(IgniteConstants.PROPERTY_TYPE_COL_NAME);
+            /*
+             * The serialized property value
+             */
+            columns.add(IgniteConstants.PROPERTY_VALUE_COL_NAME);
+            /*
+             * The [ByteBuffer] representation for the
+             * property value is an internal field and
+             * not exposed to queries
+             */
+            return columns;
+        }
+        if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.VERTICES)) {
+            /*
+             * The vertex identifier used by TinkerPop to identify
+             * an equivalent of a data row
+             */
+            columns.add(IgniteConstants.ID_COL_NAME);
+            /*
+             * The vertex identifier type to reconstruct the
+             * respective value. IgniteGraph supports [Long]
+             * as well as [String] as identifier.
+             */
+            columns.add(IgniteConstants.ID_TYPE_COL_NAME);
+            /*
+             * The vertex label used by TinkerPop and IgniteGraph
+             */
+            columns.add(IgniteConstants.LABEL_COL_NAME);
+            /*
+             * The timestamp this cache entry has been created.
+             */
+            columns.add(IgniteConstants.CREATED_AT_COL_NAME);
+            /*
+             * The timestamp this cache entry has been updated.
+             */
+            columns.add(IgniteConstants.UPDATED_AT_COL_NAME);
+            /*
+             * The property section of this cache entry
+             */
+            columns.add(IgniteConstants.PROPERTY_KEY_COL_NAME);
+            columns.add(IgniteConstants.PROPERTY_TYPE_COL_NAME);
+            /*
+             * The serialized property value
+             */
+            columns.add(IgniteConstants.PROPERTY_VALUE_COL_NAME);
+            /*
+             * The [ByteBuffer] representation for the
+             * property value is an internal field and
+             * not exposed to queries
+             */
+            return columns;
+       }
+        throw new Exception("Cache '" + cacheName +  "' is not supported.");
+
+    }
 }

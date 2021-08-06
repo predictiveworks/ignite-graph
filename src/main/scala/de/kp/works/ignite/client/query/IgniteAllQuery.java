@@ -37,7 +37,7 @@ public class IgniteAllQuery extends IgniteQuery {
          * This query does not take fields
          */
         Map<String, String> fields = new HashMap<>();
-        createSql(cacheName, fields);
+        createSql(fields);
     }
 
     @Override
@@ -59,7 +59,17 @@ public class IgniteAllQuery extends IgniteQuery {
     }
 
     @Override
-    protected void createSql(String cacheName, Map<String,String> fields) {
+    protected void createSql(Map<String,String> fields) {
+        try {
+            /*
+             * This query does not have a `where` clause
+             * and just contains the `select` part
+             */
+            buildSelectPart();
+
+        } catch (Exception e) {
+            sqlStatement = null;
+        }
 
     }
 

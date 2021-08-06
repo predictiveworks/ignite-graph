@@ -20,8 +20,10 @@ package de.kp.works.ignite.client.query;
 
 import de.kp.works.ignite.client.IgniteContext;
 import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +32,16 @@ public class IgniteLabelQuery extends IgniteQuery {
      * Retrieve all elements that refer to the provided
      * label, either edges or vertices.
      */
-    public IgniteLabelQuery(String name, IgniteContext context, String label) {
-        super(name, context);
+    public IgniteLabelQuery(String cacheName, IgniteContext context, String label) {
+        super(cacheName, context);
+        /*
+         * Transform the provided properties into fields
+         */
+        HashMap<String, String> fields = new HashMap<>();
+
+        fields.put(IgniteConstants.LABEL_COL_NAME, label);
+        createSql(fields);
+
     }
 
     @Override
@@ -53,7 +63,19 @@ public class IgniteLabelQuery extends IgniteQuery {
     }
 
     @Override
-    protected void createSql(String cacheName, Map<String, String> fields) {
+    protected void createSql(Map<String, String> fields) {
+        try {
+            buildSelectPart();
+            /*
+             * Build the `clause` of the SQL statement
+             * from the provided fields
+             */
+            sqlStatement += " where " + IgniteConstants.LABEL_COL_NAME;
+            sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
+
+        } catch (Exception e) {
+            sqlStatement = null;
+        }
 
     }
 }

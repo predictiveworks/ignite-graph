@@ -20,8 +20,10 @@ package de.kp.works.ignite.client.query;
 
 import de.kp.works.ignite.client.IgniteContext;
 import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,17 +33,46 @@ public class IgniteLimitQuery extends IgniteQuery {
      * from the beginning of the cache. Note, this query
      * is restricted to elements with a numeric identifier.
      */
-    public IgniteLimitQuery(String name, IgniteContext context, int limit) {
-        super(name, context);
+    public IgniteLimitQuery(String cacheName, IgniteContext context, int limit) {
+        super(cacheName, context);
+        /*
+         * Transform the provided properties into fields
+         */
+        HashMap<String, String> fields = new HashMap<>();
+
+        fields.put(IgniteConstants.LIMIT_VALUE, String.valueOf(limit));
+        createSql(fields);
     }
 
-    public IgniteLimitQuery(String name, IgniteContext context, Object fromId, int limit) {
-        super(name, context);
+    public IgniteLimitQuery(String cacheName, IgniteContext context, Object fromId, int limit) {
+        super(cacheName, context);
+        /*
+         * Transform the provided properties into fields
+         */
+        HashMap<String, String> fields = new HashMap<>();
+
+        fields.put(IgniteConstants.FROM_ID_VALUE, fromId.toString());
+        fields.put(IgniteConstants.LIMIT_VALUE, String.valueOf(limit));
+
+        createSql(fields);
     }
 
-    public IgniteLimitQuery(String name, IgniteContext context,
+    public IgniteLimitQuery(String cacheName, IgniteContext context,
                             String label, String key, Object inclusiveFrom, int limit, boolean reversed) {
-        super(name, context);
+        super(cacheName, context);
+        /*
+         * Transform the provided properties into fields
+         */
+        HashMap<String, String> fields = new HashMap<>();
+
+        fields.put(IgniteConstants.LABEL_COL_NAME, label);
+        fields.put(IgniteConstants.PROPERTY_KEY_COL_NAME, key);
+
+        fields.put(IgniteConstants.INCLUSIVE_FROM_VALUE, inclusiveFrom.toString());
+        fields.put(IgniteConstants.LIMIT_VALUE, String.valueOf(limit));
+
+        fields.put(IgniteConstants.REVERSED_VALUE, String.valueOf(reversed));
+        createSql(fields);
     }
 
     @Override
@@ -63,7 +94,15 @@ public class IgniteLimitQuery extends IgniteQuery {
     }
 
     @Override
-    protected void createSql(String cacheName, Map<String, String> fields) {
+    protected void createSql(Map<String, String> fields) {
+        try {
+            buildSelectPart();
+
+            // TODO
+
+        } catch (Exception e) {
+            sqlStatement = null;
+        }
 
     }
 }

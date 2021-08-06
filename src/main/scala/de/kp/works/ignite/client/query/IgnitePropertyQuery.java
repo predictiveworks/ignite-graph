@@ -20,8 +20,10 @@ package de.kp.works.ignite.client.query;
 
 import de.kp.works.ignite.client.IgniteContext;
 import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +33,20 @@ public class IgnitePropertyQuery extends IgniteQuery {
      * a certain label and share a certain property
      * key and value
      */
-    public IgnitePropertyQuery(String name, IgniteContext context, String label, String key, Object value) {
-        super(name, context);
+    public IgnitePropertyQuery(String cacheName, IgniteContext context, String label, String key, Object value) {
+        super(cacheName, context);
+        /*
+         * Transform the provided properties into fields
+         */
+        HashMap<String, String> fields = new HashMap<>();
+
+        fields.put(IgniteConstants.LABEL_COL_NAME, label);
+        
+        fields.put(IgniteConstants.PROPERTY_KEY_COL_NAME, key);
+        fields.put(IgniteConstants.PROPERTY_VALUE_COL_NAME, value.toString());
+
+        createSql(fields);
+
     }
 
     @Override
@@ -54,7 +68,23 @@ public class IgnitePropertyQuery extends IgniteQuery {
     }
 
     @Override
-    protected void createSql(String cacheName, Map<String, String> fields) {
+    protected void createSql(Map<String, String> fields) {
+        try {
+
+            buildSelectPart();
+            /*
+             * Build the `clause` of the SQL statement
+             * from the provided fields
+             */
+            sqlStatement += " where " + IgniteConstants.LABEL_COL_NAME;
+            sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
+
+            sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
+            sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_VALUE_COL_NAME) + "'";
+
+        } catch (Exception e) {
+            sqlStatement = null;
+        }
 
     }
 }

@@ -47,7 +47,7 @@ public class IgniteEdgesWithLimitQuery extends IgniteQuery {
         fields.put(IgniteConstants.LIMIT_VALUE, String.valueOf(limit));
 
         fields.put(IgniteConstants.REVERSED_VALUE, String.valueOf(reversed));
-        createSql(cacheName, fields);
+        createSql(fields);
 
     }
 
@@ -70,7 +70,30 @@ public class IgniteEdgesWithLimitQuery extends IgniteQuery {
     }
 
     @Override
-    protected void createSql(String cacheName, Map<String, String> fields) {
+    protected void createSql(Map<String, String> fields) {
+        try {
+            buildSelectPart();
+            /*
+             * Build `where` clause and thereby distinguish
+             * between a single or multiple label values
+             */
+            if (fields.containsKey(IgniteConstants.TO_COL_NAME)) {
+                sqlStatement += " where " + IgniteConstants.TO_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.TO_COL_NAME) + "'";
+            }
+            if (fields.containsKey(IgniteConstants.FROM_COL_NAME)) {
+                sqlStatement += " where " + IgniteConstants.FROM_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.FROM_COL_NAME) + "'";
+            }
+
+            sqlStatement += " and " + IgniteConstants.LABEL_COL_NAME;
+            sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
+
+            // TODO
+
+        } catch (Exception e) {
+            sqlStatement = null;
+        }
 
     }
 }
