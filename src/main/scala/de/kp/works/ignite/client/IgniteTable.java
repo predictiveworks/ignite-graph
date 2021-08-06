@@ -18,10 +18,7 @@ package de.kp.works.ignite.client;
  *
  */
 
-import de.kp.works.ignite.client.query.IgniteAllQuery;
-import de.kp.works.ignite.client.query.IgniteGetQuery;
-import de.kp.works.ignite.client.query.IgniteLabelQuery;
-import de.kp.works.ignite.client.query.IgniteQuery;
+import de.kp.works.ignite.client.query.*;
 import de.kp.works.ignitegraph.IgniteConstants;
 import de.kp.works.ignitegraph.IgniteVertex;
 import org.apache.ignite.IgniteCache;
@@ -432,27 +429,22 @@ public class IgniteTable {
      * of the cache
      */
     public IgniteQuery getLimitQuery(int limit) {
-        // TODO
-        return null;
+        return new IgniteLimitQuery(name, context, limit);
     }
 
     public IgniteQuery getLimitQuery(Object fromId, int limit) {
-        // TODO
-        return null;
+        return new IgniteLimitQuery(name, context, fromId, limit);
     }
 
     public IgniteQuery getLimitQuery(String label, String key, Object inclusiveFrom, int limit, boolean reversed) {
-        // TODO
-        return null;
-    }
+        return new IgniteLimitQuery(name, context, label, key, inclusiveFrom, limit, reversed);    }
     /**
      * Returns an [IgniteQuery] to retrieve all elements
      * that are referenced by a certain label and share
      * a certain property key and value
      */
     public IgniteQuery getPropertyQuery(String label, String key, Object value) {
-        // TODO
-        return null;
+        return new IgnitePropertyQuery(name, context, label, key, value);
     }
     /**
      * Returns an [IgniteQuery] to retrieve all elements
@@ -460,8 +452,7 @@ public class IgniteTable {
      * a certain property key and value range
      */
     public IgniteQuery getRangeQuery(String label, String key, Object inclusiveFrom, Object exclusiveTo) {
-        // TODO
-        return null;
+        return new IgniteRangeQuery(name, context, label, key, inclusiveFrom, exclusiveTo);
     }
 
     /** EDGE READ SUPPORT **/
@@ -471,8 +462,7 @@ public class IgniteTable {
      * vertex that match direction and the provided labels
      */
     public IgniteQuery getEdgesQuery(IgniteVertex vertex, Direction direction, String... labels) {
-        // TODO
-        return null;
+        return new IgniteEdgesQuery(name, context, vertex.id(), direction, labels);
     }
     /**
      * Method to retrieve all edges that refer to the provided
@@ -481,8 +471,7 @@ public class IgniteTable {
      */
     public IgniteQuery getEdgesQuery(IgniteVertex vertex, Direction direction, String label,
                                      String key, Object value) {
-        // TODO
-        return null;
+        return new IgniteEdgesQuery(name, context, vertex.id(), direction, label, key, value);
     }
     /**
      * Method to retrieve all edges that refer to the provided
@@ -491,14 +480,14 @@ public class IgniteTable {
      */
     public IgniteQuery getEdgesInRangeQuery(IgniteVertex vertex, Direction direction, String label,
                                        String key, Object inclusiveFromValue, Object exclusiveToValue) {
-        // TODO
-        return null;
+        return new IgniteEdgesInRangeQuery(name, context, vertex.id(), direction, label,
+                key, inclusiveFromValue, exclusiveToValue);
     }
 
     public IgniteQuery getEdgesWithLimitQuery(IgniteVertex vertex, Direction direction, String label,
                                       String key, Object fromValue, int limit, boolean reversed) {
-        // TODO
-        return null;
+         return new IgniteEdgesWithLimitQuery(name, context, vertex.id(), direction, label,
+                key, fromValue, limit, reversed);
 
     }
 }
