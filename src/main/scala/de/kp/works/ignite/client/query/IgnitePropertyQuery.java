@@ -80,6 +80,11 @@ public class IgnitePropertyQuery extends IgniteQuery {
             sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
 
             sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
+            sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
+            /*
+             * The value column must match the provided value
+             */
+            sqlStatement += " and " + IgniteConstants.PROPERTY_VALUE_COL_NAME;
             sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_VALUE_COL_NAME) + "'";
 
         } catch (Exception e) {

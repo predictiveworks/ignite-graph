@@ -91,7 +91,19 @@ public class IgniteEdgesInRangeQuery extends IgniteQuery {
             sqlStatement += " and " + IgniteConstants.LABEL_COL_NAME;
             sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
 
-            // TODO
+            sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
+            sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
+            /*
+             * The value of the value column must in the range of
+             * INCLUSIVE_FROM_VALUE >= PROPERTY_VALUE_COL_NAME < EXCLUSIVE_TO_VALUE
+             */
+            sqlStatement += " and " + IgniteConstants.PROPERTY_VALUE_COL_NAME;
+            sqlStatement += " >= '" + fields.get(IgniteConstants.INCLUSIVE_FROM_VALUE) + "'";
+
+            sqlStatement += " and " + IgniteConstants.PROPERTY_VALUE_COL_NAME;
+            sqlStatement += " < '" + fields.get(IgniteConstants.EXCLUSIVE_TO_VALUE) + "'";
+
+            sqlStatement += " order by " + IgniteConstants.PROPERTY_VALUE_COL_NAME + " ASC";
 
         } catch (Exception e) {
             sqlStatement = null;

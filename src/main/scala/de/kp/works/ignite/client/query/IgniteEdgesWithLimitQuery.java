@@ -89,6 +89,9 @@ public class IgniteEdgesWithLimitQuery extends IgniteQuery {
             sqlStatement += " and " + IgniteConstants.LABEL_COL_NAME;
             sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
 
+            sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
+            sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
+
             // TODO
 
         } catch (Exception e) {

@@ -97,6 +97,15 @@ public class IgniteLimitQuery extends IgniteQuery {
     protected void createSql(Map<String, String> fields) {
         try {
             buildSelectPart();
+            /*
+             * Build the `clause` of the SQL statement
+             * from the provided fields
+             */
+            sqlStatement += " where " + IgniteConstants.LABEL_COL_NAME;
+            sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
+
+            sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
+            sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
 
             // TODO
 

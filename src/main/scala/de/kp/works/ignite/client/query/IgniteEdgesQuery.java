@@ -99,8 +99,12 @@ public class IgniteEdgesQuery extends IgniteQuery {
                 sqlStatement += " where " + IgniteConstants.FROM_COL_NAME;
                 sqlStatement += " = '" + fields.get(IgniteConstants.FROM_COL_NAME) + "'";
             }
-
             if (fields.containsKey(IgniteConstants.PROPERTY_KEY_COL_NAME)) {
+                /*
+                 * A query for those edges of a certain vertex that
+                 * match a specific label and value of the selected
+                 * property.
+                 */
                 sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
                 sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
 
