@@ -102,8 +102,14 @@ public class EdgeModel extends ElementModel {
          * queries to vertices.
          */
         final EdgeReader parser = new EdgeReader(graph);
-        // TODO Cave direction
-        return null;
+        /*
+         * The query is responsible for retrieving the
+         * requested vertices from the Ignite cache.
+         */
+        IgniteQuery igniteQuery = table.getEdgesQuery(vertex, direction, labels);
+
+        return igniteQuery.getResult().stream()
+                .map(parser::parse).iterator();
     }
     /**
      * Method to retrieve all edges that refer to the provided
@@ -117,8 +123,14 @@ public class EdgeModel extends ElementModel {
          * queries to vertices.
          */
         final EdgeReader parser = new EdgeReader(graph);
-        // TODO Cave direction
-        return null;
+        /*
+         * The query is responsible for retrieving the
+         * requested vertices from the Ignite cache.
+         */
+        IgniteQuery igniteQuery = table.getEdgesQuery(vertex, direction, label, key, value);
+
+        return igniteQuery.getResult().stream()
+                .map(parser::parse).iterator();
     }
 
     /**
@@ -133,8 +145,15 @@ public class EdgeModel extends ElementModel {
          * queries to vertices.
          */
         final EdgeReader parser = new EdgeReader(graph);
-        // TODO Cave direction
-        return null;
+        /*
+         * The query is responsible for retrieving the
+         * requested vertices from the Ignite cache.
+         */
+        IgniteQuery igniteQuery = table.getEdgesInRangeQuery(vertex, direction, label, key,
+                inclusiveFromValue, exclusiveToValue);
+
+        return igniteQuery.getResult().stream()
+                .map(parser::parse).iterator();
     }
     /**
      * Method to retrieve all edges that refer to the provided
@@ -148,8 +167,15 @@ public class EdgeModel extends ElementModel {
          * queries to vertices.
          */
         final EdgeReader parser = new EdgeReader(graph);
-        // TODO Cave direction
-        return null;
+        /*
+         * The query is responsible for retrieving the
+         * requested vertices from the Ignite cache.
+         */
+        IgniteQuery igniteQuery = table.getEdgesWithLimitQuery(vertex, direction, label, key,
+                fromValue, limit, reversed);
+
+        return igniteQuery.getResult().stream()
+                .map(parser::parse).iterator();
     }
     /**
      * Method to retrieve all vertices that refer to the provided

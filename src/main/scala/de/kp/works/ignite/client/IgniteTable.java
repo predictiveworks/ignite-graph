@@ -19,9 +19,12 @@ package de.kp.works.ignite.client;
  */
 
 import de.kp.works.ignitegraph.IgniteConstants;
+import de.kp.works.ignitegraph.IgniteVertex;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.binary.BinaryObjectBuilder;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -447,15 +450,41 @@ public class IgniteTable {
         return null;
     }
 
-    public void clear() {
-        /**
-         * TODO Clear the content of the Ignite cache
-         */
+    /** EDGE READ SUPPORT **/
+
+    /**
+     * Method to find all edges that refer to the provided
+     * vertex that match direction and the provided labels
+     */
+    public IgniteQuery getEdgesQuery(IgniteVertex vertex, Direction direction, String... labels) {
+        // TODO
+        return null;
     }
-    public void close() {
-        /**
-         * TODO Close the Ignite cache
-         */
+    /**
+     * Method to retrieve all edges that refer to the provided
+     * vertex and match direction, label, and a property with
+     * a specific value
+     */
+    public IgniteQuery getEdgesQuery(IgniteVertex vertex, Direction direction, String label,
+                                     String key, Object value) {
+        // TODO
+        return null;
+    }
+    /**
+     * Method to retrieve all edges that refer to the provided
+     * vertex and match direction, label, property and a range
+     * of property values
+     */
+    public IgniteQuery getEdgesInRangeQuery(IgniteVertex vertex, Direction direction, String label,
+                                       String key, Object inclusiveFromValue, Object exclusiveToValue) {
+        // TODO
+        return null;
     }
 
+    public IgniteQuery getEdgesWithLimitQuery(IgniteVertex vertex, Direction direction, String label,
+                                      String key, Object fromValue, int limit, boolean reversed) {
+        // TODO
+        return null;
+
+    }
 }

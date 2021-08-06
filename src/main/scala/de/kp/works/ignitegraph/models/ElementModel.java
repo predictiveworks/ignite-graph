@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("rawtypes")
 public abstract class ElementModel extends BaseModel {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ElementModel.class);

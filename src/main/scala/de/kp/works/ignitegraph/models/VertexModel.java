@@ -25,14 +25,10 @@ import de.kp.works.ignitegraph.mutators.*;
 import de.kp.works.ignitegraph.readers.VertexReader;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
 public class VertexModel extends ElementModel {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VertexModel.class);
 
     public VertexModel(IgniteGraph graph, IgniteTable table) {
         super(graph, table);

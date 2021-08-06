@@ -18,11 +18,10 @@ package de.kp.works.ignitegraph.models;
  *
  */
 
-import com.google.common.annotations.VisibleForTesting;
 import de.kp.works.ignite.client.IgniteTable;
 import de.kp.works.ignitegraph.IgniteGraph;
 
-public abstract class BaseModel implements AutoCloseable {
+public abstract class BaseModel {
 
     protected final IgniteGraph graph;
     protected final IgniteTable table;
@@ -40,17 +39,4 @@ public abstract class BaseModel implements AutoCloseable {
         return table;
     }
 
-    public void close() {
-        close(false);
-    }
-
-    @VisibleForTesting
-    public void close(boolean clear) {
-        if (clear) clear();
-        table.close();
-    }
-
-    private void clear() {
-        table.clear();
-    }
 }

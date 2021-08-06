@@ -506,20 +506,7 @@ public class IgniteGraph implements Graph {
 
     @Override
     public void close() {
-        close(false);
+        /* Do nothing */
     }
 
-    @VisibleForTesting
-    protected void close(boolean clear) {
-        //executor.shutdown();
-        this.edgeModel.close(clear);
-        this.vertexModel.close(clear);
-    }
-
-    public void dump() {
-        System.out.println("Vertices:");
-        vertices().forEachRemaining(System.out::println);
-        System.out.println("Edges:");
-        edges().forEachRemaining(System.out::println);
-    }
 }
