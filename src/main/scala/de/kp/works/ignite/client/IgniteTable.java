@@ -18,13 +18,16 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignite.client.query.IgniteAllQuery;
+import de.kp.works.ignite.client.query.IgniteGetQuery;
+import de.kp.works.ignite.client.query.IgniteLabelQuery;
+import de.kp.works.ignite.client.query.IgniteQuery;
 import de.kp.works.ignitegraph.IgniteConstants;
 import de.kp.works.ignitegraph.IgniteVertex;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.binary.BinaryObjectBuilder;
 import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -387,21 +390,33 @@ public class IgniteTable {
         // TODO
     }
 
+    /**
+     * Retrieve all elements (edges or vertices) that refer
+     * to the provided list of identifiers
+     */
     public IgniteResult[] get(List<Object> ids) {
-        // TODO
-        return null;
+        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, context, ids);
+
+        List<IgniteResult> result = igniteQuery.getResult();
+        return result.toArray(new IgniteResult[0]);
     }
+    /**
+     * Retrieve the element (edge or vertex) that refers
+     * to the provided identifier
+     */
     public IgniteResult get(Object id) {
-        // TODO
-        return null;
+        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, context, id);
+
+        List<IgniteResult> result = igniteQuery.getResult();
+        if (result.isEmpty()) return null;
+        return result.get(0);
     }
 
     /**
      * Returns an [IgniteQuery] to retrieve all elements
      */
     public IgniteQuery getAllQuery() {
-        // TODO
-        return null;
+        return new IgniteAllQuery(name, context);
     }
 
     /**
@@ -409,8 +424,7 @@ public class IgniteTable {
      * that are referenced by a certain label
      */
     public IgniteQuery getLabelQuery(String label) {
-        // TODO
-        return null;
+        return new IgniteLabelQuery(name, context, label);
     }
     /**
      * Returns an [IgniteQuery] to retrieve a specified

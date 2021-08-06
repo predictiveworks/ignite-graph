@@ -1,4 +1,4 @@
-package de.kp.works.ignite.client;
+package de.kp.works.ignite.client.query;
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,10 +18,13 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignite.client.IgniteContext;
+import de.kp.works.ignite.client.IgniteResult;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class IgniteQuery {
+public abstract class IgniteQuery {
 
     private String name;
     private IgniteContext context;
@@ -31,10 +34,6 @@ public class IgniteQuery {
         this.context = context;
     }
 
-    public List<IgniteResult> getResult() {
+    public abstract List<IgniteResult> getResult();
 
-        List<IgniteResult> result = new ArrayList<>();
-        return result;
-
-    }
 }

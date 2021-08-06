@@ -19,7 +19,7 @@ package de.kp.works.ignitegraph.models;
  */
 
 import com.google.common.collect.Streams;
-import de.kp.works.ignite.client.IgniteQuery;
+import de.kp.works.ignite.client.query.IgniteQuery;
 import de.kp.works.ignite.client.IgniteTable;
 import de.kp.works.ignitegraph.IgniteGraph;
 import de.kp.works.ignitegraph.IgniteVertex;
