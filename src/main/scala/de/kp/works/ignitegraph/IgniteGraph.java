@@ -118,11 +118,11 @@ public class IgniteGraph implements Graph {
         this(new IgniteGraphConfiguration(properties));
     }
 
-    public IgniteGraph(IgniteGraphConfiguration config) {
+    public IgniteGraph(IgniteGraphConfiguration config) throws IgniteGraphException {
         this(config, IgniteGraphUtils.getConnection(config));
     }
 
-    public IgniteGraph(IgniteGraphConfiguration config, IgniteConnection connection) {
+    public IgniteGraph(IgniteGraphConfiguration config, IgniteConnection connection) throws IgniteGraphException {
 
         this.config = config;
         this.admin = connection.getAdmin();
@@ -132,7 +132,11 @@ public class IgniteGraph implements Graph {
          * Create the Ignite caches that are used as the
          * backed for this graph implementation
          */
-        IgniteGraphUtils.createTables(config, admin);
+        try {
+            IgniteGraphUtils.createTables(config, admin);
+        } catch (Exception e) {
+            throw new IgniteGraphException(e);
+        }
 
         /* Edge & Vertex models */
         this.edgeModel = new EdgeModel(this,

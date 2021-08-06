@@ -25,9 +25,6 @@ import org.slf4j.LoggerFactory;
 public class IgniteConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IgniteConnection.class);
-
-    private IgniteConfiguration config;
-    private IgniteClient client;
     /*
      * [IgniteAdmin] is an API access class that hides
      * the functionality of the [Ignite] client
@@ -37,7 +34,7 @@ public class IgniteConnection {
 
         try {
             /* Initialize Ignite Client and its admin interface */
-            client = IgniteClient.getInstance(configuration, namespace);
+            IgniteClient client = IgniteClient.getInstance(configuration, namespace);
             admin = new IgniteAdmin(client);
 
         } catch (Exception e) {

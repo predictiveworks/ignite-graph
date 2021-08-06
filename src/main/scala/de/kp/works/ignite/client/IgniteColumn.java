@@ -20,7 +20,7 @@ package de.kp.works.ignite.client;
 
 public class IgniteColumn {
 
-    private String colName;
+    private final String colName;
     private String colType;
 
     private Object colValue;

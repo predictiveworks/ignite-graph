@@ -58,27 +58,27 @@ public final class IgniteGraphUtils {
      * of the [IgniteGraph] and creates the respective
      * Ignite caches.
       */
-    public static void createTables(IgniteGraphConfiguration config, IgniteAdmin admin) {
+    public static void createTables(IgniteGraphConfiguration config, IgniteAdmin admin) throws Exception {
         createTable(admin, getTableName(config, IgniteConstants.EDGES));
         createTable(admin, getTableName(config, IgniteConstants.VERTICES));
     }
 
-    private static void createTable(IgniteAdmin admin, String name)  {
+    private static void createTable(IgniteAdmin admin, String name) throws Exception {
         if (admin.tableExists(name)) return;
         admin.createTable(name);
     }
 
-    public static void dropTables(IgniteGraphConfiguration config, IgniteConnection conn) {
+    public static void dropTables(IgniteGraphConfiguration config, IgniteConnection conn) throws Exception {
         IgniteAdmin admin = conn.getAdmin();
         dropTables(config,admin);
     }
 
-    private static void dropTables(IgniteGraphConfiguration config, IgniteAdmin admin) {
+    private static void dropTables(IgniteGraphConfiguration config, IgniteAdmin admin) throws Exception {
         dropTable(admin, getTableName(config, IgniteConstants.EDGES));
         dropTable(admin, getTableName(config, IgniteConstants.VERTICES));
     }
 
-    private static void dropTable(IgniteAdmin admin, String name) {
+    private static void dropTable(IgniteAdmin admin, String name) throws Exception {
         if (!admin.tableExists(name)) return;
         admin.dropTable(name);
     }

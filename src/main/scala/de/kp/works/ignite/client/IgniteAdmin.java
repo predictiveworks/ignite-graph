@@ -24,21 +24,38 @@ import org.slf4j.LoggerFactory;
 public class IgniteAdmin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IgniteAdmin.class);
-    private IgniteClient client;
+    private final IgniteClient client;
+
+    private final String NO_CLIENT_INITIALIZATION = "IgniteClient is not initialized.";
 
     public IgniteAdmin(IgniteClient client) {
         this.client = client;
     }
 
-    public boolean tableExists(String name) {
-        return false;
+    public boolean tableExists(String name) throws Exception {
+        return client.cacheExists(name);
     }
 
     public void createTable(String name) {
 
+        try {
+
+            if (this.client == null)
+                throw new Exception(NO_CLIENT_INITIALIZATION);
+
+            this.client.createCache(name);
+
+        } catch (Exception e) {
+            LOGGER.error("Cache creation failed.", e);
+        }
     }
 
-    public void dropTable(String name) {
+    public void dropTable(String name) throws Exception {
+
+        if (this.client == null)
+            throw new Exception(NO_CLIENT_INITIALIZATION);
+
+        this.client.deleteCache(name);
 
     }
     /**
@@ -48,22 +65,17 @@ public class IgniteAdmin {
      */
     public IgniteTable getTable(String tableName) {
         if (client == null) {
-            String message = "IgniteClient is not initialized";
-            LOGGER.error(message);
-
+            LOGGER.error(NO_CLIENT_INITIALIZATION);
             return null;
         }
 
         IgniteContext context = client.getContext();
         if (context == null) {
-            String message = "IgniteContext is not initialized";
-            LOGGER.error(message);
-
+            LOGGER.error("IgniteContext is not initialized.");
             return null;
         }
 
-        IgniteTable table = new IgniteTable(tableName, context);
-        return table;
+        return new IgniteTable(tableName, context);
     }
 
 }

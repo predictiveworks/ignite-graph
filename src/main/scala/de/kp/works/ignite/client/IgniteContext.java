@@ -81,6 +81,19 @@ public class IgniteContext {
 
     }
 
+    public boolean cacheExists(String cacheName) throws Exception {
+        if (ignite == null) throw new Exception("Connecting Ignite failed.");
+        return ignite.cacheNames().contains(cacheName);
+    }
+
+    public void deleteCache(String cacheName) throws Exception {
+        if (ignite == null) throw new Exception("Connecting Ignite failed.");
+
+        boolean exists = ignite.cacheNames().contains(cacheName);
+        if (exists)
+            ignite.cache(cacheName).destroy();
+    }
+
     private IgniteCache<String,BinaryObject> createCache(String cacheName) throws Exception {
         return createCache(cacheName, CacheMode.REPLICATED);
     }

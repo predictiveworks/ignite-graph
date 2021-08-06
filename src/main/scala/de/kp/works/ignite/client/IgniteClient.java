@@ -19,6 +19,8 @@ package de.kp.works.ignite.client;
  */
 
 import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
+import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.configuration.IgniteConfiguration;
 
 public class IgniteClient {
@@ -64,13 +66,23 @@ public class IgniteClient {
         return igniteContext.getIgnite();
     }
 
+    public boolean cacheExists(String cacheName) throws Exception {
+        return igniteContext.cacheExists(cacheName);
+    }
+
     public void createCache(String cacheName) throws Exception {
+        IgniteCache<String, BinaryObject> cache = igniteContext.getOrCreateCache(cacheName);
+        if (cache == null)
+            throw new Exception("Connection to Ignited failed. Could not create cache.");
         /*
          * Rebalancing is called here in case of partitioned
          * Apache Ignite caches; the default configuration,
          * however, is to use replicated caches
          */
-        igniteContext.getOrCreateCache(cacheName).rebalance().get();
+        cache.rebalance().get();
     }
 
+    public void deleteCache(String cacheName) throws Exception {
+        igniteContext.deleteCache(cacheName);
+    }
 }
