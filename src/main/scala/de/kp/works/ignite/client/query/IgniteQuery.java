@@ -18,13 +18,14 @@ package de.kp.works.ignite.client.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteContext;
-import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignite.client.*;
 import de.kp.works.ignitegraph.IgniteConstants;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class IgniteQuery {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(IgniteQuery.class);
 
     protected IgniteCache<String, BinaryObject> cache;
     protected String sqlStatement;
@@ -68,7 +71,52 @@ public abstract class IgniteQuery {
 
 
     }
-    public abstract List<IgniteResult> getResult();
+    public List<IgniteResult> getResult() {
+
+        List<IgniteResult> result = new ArrayList<>();
+        /*
+         * An empty result is returned, if the SQL statement
+         * is not defined yet.
+         */
+        if (sqlStatement == null)
+            return result;
+
+        List<List<?>> sqlResult = getSqlResult();
+        try {
+            if (cache == null)
+                throw new Exception("Cache is not initialized.");
+
+            String cacheName = cache.getName();
+            if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.EDGES)) {
+                List<IgniteEdgeEntry> entries = parseEdges(sqlResult);
+
+                // TODO :: Group entries into edge rows
+            }
+            else if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.VERTICES)) {
+                List<IgniteVertexEntry> entries = parseVertices(sqlResult);
+
+                // TODO :: Group entries into edge rows
+
+            }
+            else
+                throw new Exception("Cache '" + cacheName +  "' is not supported.");
+
+        } catch (Exception e) {
+            LOGGER.error("Parsing query result failed.", e);
+        }
+        return result;
+
+    }
+
+    private List<IgniteEdgeEntry> parseEdges(List<List<?>> sqlResult) {
+        // TODO
+        return null;
+    }
+
+    private List<IgniteVertexEntry> parseVertices(List<List<?>> sqlResult) {
+        // TODO
+        return null;
+    }
 
     protected abstract void createSql(Map<String, String> fields);
 
@@ -190,7 +238,7 @@ public abstract class IgniteQuery {
              * not exposed to queries
              */
             return columns;
-       }
+        }
         throw new Exception("Cache '" + cacheName +  "' is not supported.");
 
     }

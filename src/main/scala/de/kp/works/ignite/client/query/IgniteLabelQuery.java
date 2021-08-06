@@ -19,12 +19,9 @@ package de.kp.works.ignite.client.query;
  */
 
 import de.kp.works.ignite.client.IgniteContext;
-import de.kp.works.ignite.client.IgniteResult;
 import de.kp.works.ignitegraph.IgniteConstants;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class IgniteLabelQuery extends IgniteQuery {
@@ -41,24 +38,6 @@ public class IgniteLabelQuery extends IgniteQuery {
 
         fields.put(IgniteConstants.LABEL_COL_NAME, label);
         createSql(fields);
-
-    }
-
-    @Override
-    public List<IgniteResult> getResult() {
-
-        List<IgniteResult> result = new ArrayList<>();
-        /*
-         * An empty result is returned, if the SQL statement
-         * is not defined yet.
-         */
-        if (sqlStatement == null)
-            return result;
-
-        List<List<?>> sqlResult = getSqlResult();
-
-        // TODO
-        return result;
 
     }
 
