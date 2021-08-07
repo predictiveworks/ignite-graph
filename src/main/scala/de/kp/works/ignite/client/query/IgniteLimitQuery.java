@@ -18,7 +18,7 @@ package de.kp.works.ignite.client.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteContext;
+import de.kp.works.ignite.client.IgniteUtils;
 import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.HashMap;
@@ -30,7 +30,7 @@ public class IgniteLimitQuery extends IgniteQuery {
      * from the beginning of the cache. Note, this query
      * is restricted to elements with a numeric identifier.
      */
-    public IgniteLimitQuery(String cacheName, IgniteContext context, int limit) {
+    public IgniteLimitQuery(String cacheName, IgniteUtils context, int limit) {
         super(cacheName, context);
         /*
          * Transform the provided properties into fields
@@ -41,7 +41,7 @@ public class IgniteLimitQuery extends IgniteQuery {
         createSql(fields);
     }
 
-    public IgniteLimitQuery(String cacheName, IgniteContext context, Object fromId, int limit) {
+    public IgniteLimitQuery(String cacheName, IgniteUtils context, Object fromId, int limit) {
         super(cacheName, context);
         /*
          * Transform the provided properties into fields
@@ -54,7 +54,7 @@ public class IgniteLimitQuery extends IgniteQuery {
         createSql(fields);
     }
 
-    public IgniteLimitQuery(String cacheName, IgniteContext context,
+    public IgniteLimitQuery(String cacheName, IgniteUtils context,
                             String label, String key, Object inclusiveFrom, int limit, boolean reversed) {
         super(cacheName, context);
         /*

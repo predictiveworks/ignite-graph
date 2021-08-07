@@ -40,7 +40,7 @@ public abstract class IgniteQuery {
     protected IgniteCache<String, BinaryObject> cache;
     protected String sqlStatement;
 
-    public IgniteQuery(String name, IgniteContext context) {
+    public IgniteQuery(String name, IgniteUtils context) {
 
         try {
             cache = context.getOrCreateCache(name);
@@ -88,7 +88,7 @@ public abstract class IgniteQuery {
                 throw new Exception("Cache is not initialized.");
 
             String cacheName = cache.getName();
-            if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.EDGES)) {
+            if (cacheName.equals(IgniteUtils.namespace + "_" + IgniteConstants.EDGES)) {
                 /*
                  * Parse sql result and extract edge specific entries
                  */
@@ -99,7 +99,7 @@ public abstract class IgniteQuery {
                 return IgniteTransform
                         .transformEdgeEntries(entries);
             }
-            else if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.VERTICES)) {
+            else if (cacheName.equals(IgniteUtils.namespace + "_" + IgniteConstants.VERTICES)) {
                 /*
                  * Parse sql result and extract Vertex specific entries
                  */
@@ -239,7 +239,7 @@ public abstract class IgniteQuery {
             throw new Exception("Cache is not initialized.");
 
         String cacheName = cache.getName();
-        if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.EDGES)) {
+        if (cacheName.equals(IgniteUtils.namespace + "_" + IgniteConstants.EDGES)) {
             /*
              * The edge identifier used by TinkerPop to
              * identify an equivalent of a data row
@@ -289,7 +289,7 @@ public abstract class IgniteQuery {
              */
             return columns;
         }
-        if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.VERTICES)) {
+        if (cacheName.equals(IgniteUtils.namespace + "_" + IgniteConstants.VERTICES)) {
             /*
              * The vertex identifier used by TinkerPop to identify
              * an equivalent of a data row

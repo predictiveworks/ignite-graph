@@ -18,7 +18,7 @@ package de.kp.works.ignite.client.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteContext;
+import de.kp.works.ignite.client.IgniteUtils;
 import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.HashMap;
@@ -32,7 +32,7 @@ public class IgniteGetQuery extends IgniteQuery {
      * Retrieve the element (edge or vertex) that refers
      * to the provided identifier
      */
-    public IgniteGetQuery(String cacheName, IgniteContext context, Object id) {
+    public IgniteGetQuery(String cacheName, IgniteUtils context, Object id) {
         super(cacheName, context);
         /*
          * Transform the provided properties into fields
@@ -47,7 +47,7 @@ public class IgniteGetQuery extends IgniteQuery {
      * Retrieve all elements (edges or vertices) that refer
      * to the provided list of identifiers
      */
-    public IgniteGetQuery(String cacheName, IgniteContext context, List<Object> ids) {
+    public IgniteGetQuery(String cacheName, IgniteUtils context, List<Object> ids) {
         super(cacheName, context);
         /*
          * Transform the provided properties into fields

@@ -18,7 +18,7 @@ package de.kp.works.ignite.client.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteContext;
+import de.kp.works.ignite.client.IgniteUtils;
 import de.kp.works.ignitegraph.IgniteConstants;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 
@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class IgniteEdgesWithLimitQuery extends IgniteQuery {
 
-    public IgniteEdgesWithLimitQuery(String cacheName, IgniteContext context,
+    public IgniteEdgesWithLimitQuery(String cacheName, IgniteUtils context,
                                      Object vertex, Direction direction, String label,
                                      String key, Object InclusiveFromValue, int limit, boolean reversed) {
         super(cacheName, context);

@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
 public class IgniteTable {
 
     private final String name;
-    private final IgniteContext context;
+    private final IgniteUtils context;
 
-    public IgniteTable(String name, IgniteContext context) {
+    public IgniteTable(String name, IgniteUtils context) {
         this.name = name;
         this.context = context;
     }
@@ -69,10 +69,10 @@ public class IgniteTable {
 
     private Map<String,BinaryObject> buildRow(IgnitePut put) throws Exception {
 
-        if (name.equals(IgniteContext.namespace + "_" + IgniteConstants.EDGES)) {
+        if (name.equals(IgniteUtils.namespace + "_" + IgniteConstants.EDGES)) {
             return buildEdgeRow(put);
         }
-        if (name.equals(IgniteContext.namespace + "_" + IgniteConstants.VERTICES)) {
+        if (name.equals(IgniteUtils.namespace + "_" + IgniteConstants.VERTICES)) {
             return buildVertexRow(put);
         }
         throw new Exception("Table '" + name +  "' is not supported.");

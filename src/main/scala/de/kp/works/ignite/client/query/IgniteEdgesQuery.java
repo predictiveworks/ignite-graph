@@ -18,7 +18,7 @@ package de.kp.works.ignite.client.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteContext;
+import de.kp.works.ignite.client.IgniteUtils;
 import de.kp.works.ignitegraph.IgniteConstants;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 
@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 
 public class IgniteEdgesQuery extends IgniteQuery {
 
-    public IgniteEdgesQuery(String cacheName, IgniteContext context,
+    public IgniteEdgesQuery(String cacheName, IgniteUtils context,
                             Object vertex, Direction direction, String... labels) {
         super(cacheName, context);
         /*
@@ -44,7 +44,7 @@ public class IgniteEdgesQuery extends IgniteQuery {
 
     }
 
-    public IgniteEdgesQuery(String cacheName, IgniteContext context,
+    public IgniteEdgesQuery(String cacheName, IgniteUtils context,
                             Object vertex, Direction direction, String label, String key, Object value) {
         super(cacheName, context);
         /*

@@ -28,21 +28,18 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class IgniteContext {
-    /*
-     * Reference to Apache Ignite that is transferred to the key value
-     * store to enable cache operations
-     */
+public class IgniteUtils {
+
     private final Ignite ignite;
     private final IgniteConfiguration config;
 
     public static String namespace;
-    private static IgniteContext instance;
+    private static IgniteUtils instance;
 
-    private IgniteContext(IgniteConfiguration config, String namespace){
+    private IgniteUtils(IgniteConfiguration config, String namespace){
 
         this.config = config;
-        IgniteContext.namespace = namespace;
+        IgniteUtils.namespace = namespace;
 
         if (this.config == null) ignite = Ignition.start();
         else {
@@ -50,12 +47,12 @@ public class IgniteContext {
         }
     }
 
-    public static IgniteContext getInstance(String namespace) {
+    public static IgniteUtils getInstance(String namespace) {
         return getInstance(null, namespace);
     }
 
-    public static IgniteContext getInstance(IgniteConfiguration config, String namespace) {
-        if (instance == null) instance = new IgniteContext(config, namespace);
+    public static IgniteUtils getInstance(IgniteConfiguration config, String namespace) {
+        if (instance == null) instance = new IgniteUtils(config, namespace);
         return instance;
     }
 

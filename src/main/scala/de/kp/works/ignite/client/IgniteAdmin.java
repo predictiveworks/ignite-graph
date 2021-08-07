@@ -69,7 +69,7 @@ public class IgniteAdmin {
             return null;
         }
 
-        IgniteContext context = client.getContext();
+        IgniteUtils context = client.getContext();
         if (context == null) {
             LOGGER.error("IgniteContext is not initialized.");
             return null;
