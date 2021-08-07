@@ -18,24 +18,17 @@ package de.kp.works.ignitegraph.process.step.sideEffect;
  *
  */
 
-import de.kp.works.ignitegraph.*;
-import org.apache.tinkerpop.gremlin.process.traversal.Compare;
+import de.kp.works.ignitegraph.CloseableIteratorUtils;
 import org.apache.tinkerpop.gremlin.process.traversal.Traverser;
 import org.apache.tinkerpop.gremlin.process.traversal.step.HasContainerHolder;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.VertexStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.HasContainer;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Element;
-import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public final class IgniteVertexStep<E extends Element> extends VertexStep<E> implements HasContainerHolder {
 
@@ -64,21 +57,6 @@ public final class IgniteVertexStep<E extends Element> extends VertexStep<E> imp
     }
 
     private Iterator<Edge> lookupEdges(final Traverser.Admin<Vertex> traverser, final List<HasContainer> hasContainers) {
-
-        final IgniteGraph graph = (IgniteGraph) this.getTraversal().getGraph().get();
-        if (getEdgeLabels().length == 1) {
-            final String label = getEdgeLabels()[0];
-            // find an edge by label and key/value
-            for (final HasContainer hasContainer : hasContainers) {
-                if (Compare.eq == hasContainer.getBiPredicate() && !hasContainer.getKey().equals(T.label.getAccessor())) {
-                    if (graph.hasIndex(OperationType.READ, ElementType.EDGE, label, hasContainer.getKey())) {
-                        return IteratorUtils.stream(((IgniteVertex) traverser.get()).edges(getDirection(), label, hasContainer.getKey(), hasContainer.getValue()))
-                                .filter(vertex -> HasContainer.testAll(vertex, hasContainers)).iterator();
-                    }
-                }
-            }
-        }
-
         // linear scan
         return CloseableIteratorUtils.filter(traverser.get().edges(getDirection(), getEdgeLabels()),
                 edge -> HasContainer.testAll(edge, hasContainers));

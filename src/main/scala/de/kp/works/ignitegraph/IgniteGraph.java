@@ -18,14 +18,12 @@ package de.kp.works.ignitegraph;
  *
  */
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
-import de.kp.works.ignite.client.*;
-import de.kp.works.ignitegraph.IndexMetadata.State;
+import de.kp.works.ignite.client.IgniteAdmin;
+import de.kp.works.ignite.client.IgniteConnection;
 import de.kp.works.ignitegraph.exception.IgniteGraphException;
-import de.kp.works.ignitegraph.exception.IgniteGraphNotValidException;
 import de.kp.works.ignitegraph.models.EdgeModel;
 import de.kp.works.ignitegraph.models.VertexModel;
 import de.kp.works.ignitegraph.process.strategy.optimization.IgniteGraphStepStrategy;
@@ -43,8 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -100,11 +98,6 @@ public class IgniteGraph implements Graph {
 
     private Cache<ByteBuffer, Edge> edgeCache;
     private Cache<ByteBuffer, Vertex> vertexCache;
-    private Map<IndexMetadata.Key, IndexMetadata> indices = new ConcurrentHashMap<>();
-    private Map<LabelMetadata.Key, LabelMetadata> labels = new ConcurrentHashMap<>();
-
-    private Set<LabelConnection> labelConnections = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    //private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     /**
      * This method is invoked by Gremlin's GraphFactory
@@ -156,8 +149,6 @@ public class IgniteGraph implements Graph {
                 .expireAfterAccess(config.getElementCacheTtlSecs(), TimeUnit.SECONDS)
                 .removalListener((RemovalListener<ByteBuffer, Vertex>) notif -> ((IgniteVertex) notif.getValue()).setCached(false))
                 .build();
-
-        refreshSchema();
 
     }
 
@@ -404,104 +395,6 @@ public class IgniteGraph implements Graph {
     @Override
     public String toString() {
         return StringFactory.graphString(this, IgniteGraphConfiguration.IGNITE_GRAPH_CLASS.getSimpleName().toLowerCase());
-    }
-
-    @VisibleForTesting
-    protected void refreshSchema() {
-    }
-
-    public boolean hasIndex(OperationType op, ElementType type, String label, String propertyKey) {
-        return false;
-    }
-
-    public Iterator<IndexMetadata> getIndices(OperationType op, ElementType type, String label, Collection<String> propertyKeys) {
-        return indices.values().stream()
-                .filter(index -> isIndexActive(op, index)
-                        && index.type().equals(type)
-                        && index.label().equals(label)
-                        && propertyKeys.contains(index.propertyKey())).iterator();
-    }
-
-    private boolean isIndexActive(OperationType op, IndexMetadata index) {
-        State state = index.state();
-        switch (op) {
-            case READ:
-                return state == State.ACTIVE;
-            case WRITE:
-                return state == State.CREATED || state == State.BUILDING || state == State.ACTIVE;
-            case REMOVE:
-                return state != State.DROPPED;
-        }
-        return false;
-    }
-
-    public LabelMetadata getLabel(ElementType type, String label) {
-        LabelMetadata labelMetadata = labels.get(new LabelMetadata.Key(type, label));
-        if (labelMetadata == null) {
-            throw new IgniteGraphNotValidException(type + " LABEL " + label + " does not exist");
-        }
-        return labelMetadata;
-    }
-
-    public Iterator<LabelMetadata> getLabels(ElementType type) {
-        return labels.values().stream().filter(label -> label.type().equals(type)).iterator();
-    }
-
-    public Iterator<LabelConnection> getLabelConnections() {
-        return labelConnections.iterator();
-    }
-
-    public void validateEdge(String label, Object id, Map<String, Object> properties, Vertex inVertex, Vertex outVertex) {
-        LabelMetadata labelMetadata = getLabel(ElementType.EDGE, label);
-        LabelConnection labelConnection = new LabelConnection(outVertex.label(), label, inVertex.label(), null);
-        if (!labelConnections.contains(labelConnection)) {
-            throw new IgniteGraphNotValidException("Edge label '" + label + "' has not been connected with inVertex '" + inVertex.label()
-                    + "' and outVertex '" + outVertex.label() + "'");
-        }
-        validateTypes(labelMetadata, id, properties);
-    }
-
-    public void validateVertex(String label, Object id, Map<String, Object> properties) {
-        LabelMetadata labelMetadata = getLabel(ElementType.VERTEX, label);
-        validateTypes(labelMetadata, id, properties);
-    }
-
-    private void validateTypes(LabelMetadata labelMetadata, Object id, Map<String, Object> properties) {
-        ValueType idType = labelMetadata.idType();
-        if (idType != ValueType.ANY && idType != ValueUtils.getValueType(id)) {
-            throw new IgniteGraphNotValidException("ID '" + id + "' not of type " + idType);
-        }
-        properties.forEach((key, value) ->
-            getPropertyType(labelMetadata, key, value, true)
-        );
-    }
-
-    public ValueType validateProperty(ElementType type, String label, String propertyKey, Object value) {
-        return getPropertyType(getLabel(type, label), propertyKey, value, true);
-    }
-
-    public ValueType getPropertyType(ElementType type, String label, String propertyKey) {
-        return getPropertyType(getLabel(type, label), propertyKey, null, false);
-    }
-
-    private ValueType getPropertyType(LabelMetadata labelMetadata, String propertyKey, Object value, boolean doValidate) {
-        Map<String, ValueType> propertyTypes = labelMetadata.propertyTypes();
-        if (!Graph.Hidden.isHidden(propertyKey)) {
-            ValueType propertyType = propertyTypes.get(propertyKey);
-            if (doValidate) {
-                if (propertyType == null) {
-                    throw new IgniteGraphNotValidException("Property '" + propertyKey + "' has not been defined");
-                }
-                ValueType valueType = ValueUtils.getValueType(value);
-                if (value != null && propertyType != ValueType.ANY
-                        && (!(propertyType == ValueType.COUNTER && valueType == ValueType.LONG))
-                        && (propertyType != valueType)) {
-                    throw new IgniteGraphNotValidException("Property '" + propertyKey + "' not of type " + propertyType);
-                }
-            }
-            return propertyType;
-        }
-        return null;
     }
 
     @Override

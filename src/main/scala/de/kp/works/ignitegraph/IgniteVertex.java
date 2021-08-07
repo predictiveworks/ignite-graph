@@ -59,9 +59,7 @@ public class IgniteVertex extends IgniteElement implements Vertex {
 
     @Override
     public void validate() {
-        if (graph != null) {
-            graph.validateVertex(label, id, properties);
-        }
+        /* Do nothing */
     }
 
     @Override

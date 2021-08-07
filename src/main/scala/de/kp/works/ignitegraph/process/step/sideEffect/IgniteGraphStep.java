@@ -17,10 +17,9 @@ package de.kp.works.ignitegraph.process.step.sideEffect;
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
+
 import de.kp.works.ignitegraph.CloseableIteratorUtils;
-import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteGraph;
-import de.kp.works.ignitegraph.OperationType;
 import org.apache.tinkerpop.gremlin.process.traversal.Compare;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.step.HasContainerHolder;
@@ -72,15 +71,6 @@ public final class IgniteGraphStep<S, E extends Element> extends GraphStep<S, E>
                 .map(hasContainer -> (String) hasContainer.getValue())
                 .findAny();
         if (label.isPresent()) {
-            // find a vertex by label and key/value
-            for (final HasContainer hasContainer : hasContainers) {
-                if (Compare.eq == hasContainer.getBiPredicate() && !hasContainer.getKey().equals(T.label.getAccessor())) {
-                    if (graph.hasIndex(OperationType.READ, ElementType.VERTEX, label.get(), hasContainer.getKey())) {
-                        return IteratorUtils.stream(graph.verticesByLabel(label.get(), hasContainer.getKey(), hasContainer.getValue()))
-                                .filter(vertex -> HasContainer.testAll(vertex, hasContainers)).iterator();
-                    }
-                }
-            }
             // find a vertex by label
             return IteratorUtils.stream(graph.verticesByLabel(label.get()))
                     .filter(vertex -> HasContainer.testAll(vertex, hasContainers)).iterator();

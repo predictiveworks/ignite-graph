@@ -174,8 +174,6 @@ public abstract class IgniteElement implements Element {
     public void setProperty(String key, Object value) {
         ElementHelper.validateProperty(key, value);
 
-        graph.validateProperty(getElementType(), label, key, value);
-
         getProperties().put(key, value);
         updatedAt(System.currentTimeMillis());
 
@@ -186,8 +184,6 @@ public abstract class IgniteElement implements Element {
     public void incrementProperty(String key, long value) {
 
         ElementHelper.validateProperty(key, value);
-        graph.validateProperty(getElementType(), label, key, value);
-
         updatedAt(System.currentTimeMillis());
 
         Mutator writer = getModel().incrementProperty(this, key, value);

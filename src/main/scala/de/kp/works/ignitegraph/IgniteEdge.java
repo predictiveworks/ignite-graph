@@ -62,9 +62,7 @@ public class IgniteEdge extends IgniteElement implements Edge {
 
     @Override
     public void validate() {
-        if (graph != null) {
-            graph.validateEdge(label, id, properties, inVertex, outVertex);
-        }
+        /* Do nothing */
     }
 
     @Override
