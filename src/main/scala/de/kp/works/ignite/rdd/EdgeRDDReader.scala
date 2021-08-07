@@ -18,14 +18,22 @@ package de.kp.works.ignite.rdd
  *
  */
 
-import de.kp.works.ignitegraph.IgniteConstants
+import de.kp.works.ignitegraph.{IgniteConstants, ValueType}
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.configuration.CacheConfiguration
 import org.apache.ignite.spark.IgniteContext
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions.{col, collect_list, struct, udf}
 
 import scala.collection.mutable.ArrayBuffer
-
+/**
+ * [EdgeRDDReader] retrieves all edges of a
+ * certain graph namespace and transforms them
+ * into a GraphFrame-like format.
+ *
+ * Note, the column names of `from` and `to` columns
+ * must be adapted by the user.
+ */
 class EdgeRDDReader(
    ic:IgniteContext,
    namespace:String,
@@ -40,16 +48,61 @@ class EdgeRDDReader(
      * we want to transform them into an edge compliant
      * format
      */
-    null
+    val aggCols = Seq(
+      IgniteConstants.PROPERTY_KEY_COL_NAME,
+      IgniteConstants.PROPERTY_TYPE_COL_NAME,
+      IgniteConstants.PROPERTY_VALUE_COL_NAME)
+
+    val groupCols = Seq(
+      IgniteConstants.ID_COL_NAME,
+      IgniteConstants.ID_TYPE_COL_NAME,
+      IgniteConstants.LABEL_COL_NAME,
+      IgniteConstants.TO_COL_NAME,
+      IgniteConstants.TO_TYPE_COL_NAME,
+      IgniteConstants.FROM_COL_NAME,
+      IgniteConstants.FROM_TYPE_COL_NAME,
+      IgniteConstants.CREATED_AT_COL_NAME,
+      IgniteConstants.UPDATED_AT_COL_NAME)
+
+    val aggStruct = struct(aggCols.map(col): _*)
+    var output = dataframe
+      .groupBy(groupCols.map(col): _*)
+      .agg(collect_list(aggStruct).as("properties"))
+    /*
+     * As a final step, the `id` columns are transformed
+     * into the right data type
+     */
+    val row = output
+      .select(IgniteConstants.ID_TYPE_COL_NAME, IgniteConstants.TO_TYPE_COL_NAME, IgniteConstants.FROM_TYPE_COL_NAME)
+      .head
+
+    val (idType, toIdType, fromIdType) = (row.getAs[String](0), row.getAs[String](1), row.getAs[String](2))
+
+    val toLong = udf((id:String) => id.toLong)
+    if (idType == ValueType.LONG.name()) {
+      output = output.withColumn(IgniteConstants.ID_COL_NAME, toLong(col(IgniteConstants.ID_COL_NAME)))
+    }
+    if (toIdType == ValueType.LONG.name()) {
+      output = output.withColumn(IgniteConstants.TO_COL_NAME, toLong(col(IgniteConstants.TO_COL_NAME)))
+    }
+    if (fromIdType == ValueType.LONG.name()) {
+      output = output.withColumn(IgniteConstants.FROM_COL_NAME, toLong(col(IgniteConstants.FROM_COL_NAME)))
+    }
+    val dropCols = Seq(
+      IgniteConstants.ID_TYPE_COL_NAME,
+      IgniteConstants.TO_TYPE_COL_NAME,
+      IgniteConstants.FROM_TYPE_COL_NAME)
+
+    output.drop(dropCols: _*)
   }
 
   private def getFields: Seq[String] = {
 
     val fields = ArrayBuffer.empty[String]
     /*
-      * The edge identifier used by TinkerPop to
-      * identify an equivalent of a data row
-      */
+     * The edge identifier used by TinkerPop to
+     * identify an equivalent of a data row
+     */
     fields += IgniteConstants.ID_COL_NAME
     /*
      * The edge identifier type to reconstruct the
