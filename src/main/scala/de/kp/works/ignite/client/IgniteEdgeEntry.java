@@ -19,4 +19,52 @@ package de.kp.works.ignite.client;
  */
 
 public class IgniteEdgeEntry {
+
+    public String id;
+    public String idType;
+    public String label;
+    public String toId;
+    public String toIdType;
+    public String fromId;
+    public String fromIdType;
+    public Long createdAt;
+    public Long updatedAt;
+    public String propKey;
+    public String propType;
+    public String propValue;
+
+    public IgniteEdgeEntry(
+            String id,
+            String idType,
+            String label,
+            String toId,
+            String toIdType,
+            String fromId,
+            String fromIdType,
+            Long createdAt,
+            Long updatedAt,
+            String propKey,
+            String propType,
+            String propValue) {
+
+        this.id = id;
+        this.idType = idType;
+
+        this.label = label;
+
+        this.toId = toId;
+        this.toIdType = toIdType;
+
+        this.fromId = fromId;
+        this.fromIdType = fromIdType;
+
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+
+        this.propKey   = propKey;
+        this.propType  = propType;
+        this.propValue = propValue;
+
+    }
+
 }

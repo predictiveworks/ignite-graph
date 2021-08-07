@@ -85,8 +85,23 @@ public class IgniteLimitQuery extends IgniteQuery {
 
             sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
             sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
+            /*
+             * The value of the value column must in the range of
+             * INCLUSIVE_FROM_VALUE >= PROPERTY_VALUE_COL_NAME
+             */
+            sqlStatement += " and " + IgniteConstants.PROPERTY_VALUE_COL_NAME;
+            sqlStatement += " >= '" + fields.get(IgniteConstants.INCLUSIVE_FROM_VALUE) + "'";
+            /*
+             * Determine sorting order
+             */
+            if (fields.get(IgniteConstants.REVERSED_VALUE).equals("true")) {
+                sqlStatement += " order by " + IgniteConstants.PROPERTY_VALUE_COL_NAME + " DESC";
+            }
+            else {
+                sqlStatement += " order by " + IgniteConstants.PROPERTY_VALUE_COL_NAME + " ASC";
+            }
 
-            // TODO
+            sqlStatement += " limit " + fields.get(IgniteConstants.LIMIT_VALUE);
 
         } catch (Exception e) {
             sqlStatement = null;

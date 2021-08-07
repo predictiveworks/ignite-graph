@@ -19,4 +19,38 @@ package de.kp.works.ignite.client;
  */
 
 public class IgniteVertexEntry {
+
+    public String id;
+    public String idType;
+    public String label;
+    public Long createdAt;
+    public Long updatedAt;
+    public String propKey;
+    public String propType;
+    public String propValue;
+
+    public IgniteVertexEntry(
+            String id,
+            String idType,
+            String label,
+            Long createdAt,
+            Long updatedAt,
+            String propKey,
+            String propType,
+            String propValue) {
+
+        this.id = id;
+        this.idType = idType;
+
+        this.label = label;
+
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+
+        this.propKey   = propKey;
+        this.propType  = propType;
+        this.propValue = propValue;
+    }
+
 }
+

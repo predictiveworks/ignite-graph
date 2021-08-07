@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class IgniteQuery {
 
@@ -88,14 +89,26 @@ public abstract class IgniteQuery {
 
             String cacheName = cache.getName();
             if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.EDGES)) {
+                /*
+                 * Parse sql result and extract edge specific entries
+                 */
                 List<IgniteEdgeEntry> entries = parseEdges(sqlResult);
-
-                // TODO :: Group entries into edge rows
+                /*
+                 * Group edge entries into edge rows
+                 */
+                return IgniteTransform
+                        .transformEdgeEntries(entries);
             }
             else if (cacheName.equals(IgniteContext.namespace + "_" + IgniteConstants.VERTICES)) {
+                /*
+                 * Parse sql result and extract Vertex specific entries
+                 */
                 List<IgniteVertexEntry> entries = parseVertices(sqlResult);
-
-                // TODO :: Group entries into edge rows
+                /*
+                 * Group vertex entries into edge rows
+                 */
+                return IgniteTransform
+                        .transformVertexEntries(entries);
 
             }
             else
@@ -109,13 +122,90 @@ public abstract class IgniteQuery {
     }
 
     private List<IgniteEdgeEntry> parseEdges(List<List<?>> sqlResult) {
-        // TODO
-        return null;
+        /*
+         * 0 : IgniteConstants.ID_COL_NAME (String)
+         * 1 : IgniteConstants.ID_TYPE_COL_NAME (String)
+         * 2 : IgniteConstants.LABEL_COL_NAME (String)
+         * 3 : IgniteConstants.TO_COL_NAME (String)
+         * 4 : IgniteConstants.TO_TYPE_COL_NAME (String)
+         * 5 : IgniteConstants.FROM_COL_NAME (String)
+         * 6 : IgniteConstants.FROM_TYPE_COL_NAME (String)
+         * 7 : IgniteConstants.CREATED_AT_COL_NAME (Long)
+         * 8 : IgniteConstants.UPDATED_AT_COL_NAME (Long)
+         * 9 : IgniteConstants.PROPERTY_KEY_COL_NAME (String)
+         * 10: IgniteConstants.PROPERTY_TYPE_COL_NAME (String)
+         * 11: IgniteConstants.PROPERTY_VALUE_COL_NAME (String)
+         */
+        return sqlResult.stream().map(result -> {
+            String id     = (String)result.get(0);
+            String idType = (String)result.get(1);
+            String label  = (String)result.get(2);
+
+            String toId     = (String)result.get(3);
+            String toIdType = (String)result.get(4);
+
+            String fromId     = (String)result.get(5);
+            String fromIdType = (String)result.get(6);
+
+            Long createdAt  = (Long)result.get(7);
+            Long updatedAt  = (Long)result.get(8);
+
+            String propKey   = (String)result.get(9);
+            String propType  = (String)result.get(10);
+            String propValue = (String)result.get(11);
+
+            return new IgniteEdgeEntry(
+                    id,
+                    idType,
+                    label,
+                    toId,
+                    toIdType,
+                    fromId,
+                    fromIdType,
+                    createdAt,
+                    updatedAt,
+                    propKey,
+                    propType,
+                    propValue);
+
+        }).collect(Collectors.toList());
     }
 
     private List<IgniteVertexEntry> parseVertices(List<List<?>> sqlResult) {
-        // TODO
-        return null;
+        /*
+         * 0 : IgniteConstants.ID_COL_NAME (String)
+         * 1 : IgniteConstants.ID_TYPE_COL_NAME (String)
+         * 2 : IgniteConstants.LABEL_COL_NAME (String)
+         * 3 : IgniteConstants.CREATED_AT_COL_NAME (Long)
+         * 4 : IgniteConstants.UPDATED_AT_COL_NAME (Long)
+         * 5 : IgniteConstants.PROPERTY_KEY_COL_NAME (String)
+         * 6 : IgniteConstants.PROPERTY_TYPE_COL_NAME (String)
+         * 7 : IgniteConstants.PROPERTY_VALUE_COL_NAME (String)
+         */
+        return sqlResult.stream().map(result -> {
+            String id     = (String)result.get(0);
+            String idType = (String)result.get(1);
+
+            String label  = (String)result.get(2);
+
+            Long createdAt  = (Long)result.get(3);
+            Long updatedAt  = (Long)result.get(4);
+
+            String propKey   = (String)result.get(5);
+            String propType  = (String)result.get(6);
+            String propValue = (String)result.get(7);
+
+            return new IgniteVertexEntry(
+                    id,
+                    idType,
+                    label,
+                    createdAt,
+                    updatedAt,
+                    propKey,
+                    propType,
+                    propValue);
+
+        }).collect(Collectors.toList());
     }
 
     protected abstract void createSql(Map<String, String> fields);

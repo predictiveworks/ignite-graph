@@ -34,10 +34,6 @@ public class IgnitePut extends IgniteMutation {
         columns.add(new IgniteColumn(colName, colType, colValue, colBytes));
     }
 
-    public String getCacheKey() {
-        return null;
-    }
-
     public List<IgniteColumn> getColumns() {
         return columns;
     }

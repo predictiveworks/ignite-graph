@@ -29,7 +29,7 @@ public class IgniteEdgesWithLimitQuery extends IgniteQuery {
 
     public IgniteEdgesWithLimitQuery(String cacheName, IgniteContext context,
                                      Object vertex, Direction direction, String label,
-                                     String key, Object fromValue, int limit, boolean reversed) {
+                                     String key, Object InclusiveFromValue, int limit, boolean reversed) {
         super(cacheName, context);
         /*
          * Transform the provided properties into fields
@@ -40,7 +40,7 @@ public class IgniteEdgesWithLimitQuery extends IgniteQuery {
         fields.put(IgniteConstants.LABEL_COL_NAME, label);
         fields.put(IgniteConstants.PROPERTY_KEY_COL_NAME, key);
 
-        fields.put(IgniteConstants.FROM_VALUE, fromValue.toString());
+        fields.put(IgniteConstants.INCLUSIVE_FROM_VALUE, InclusiveFromValue.toString());
         fields.put(IgniteConstants.LIMIT_VALUE, String.valueOf(limit));
 
         fields.put(IgniteConstants.REVERSED_VALUE, String.valueOf(reversed));
@@ -70,8 +70,23 @@ public class IgniteEdgesWithLimitQuery extends IgniteQuery {
 
             sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
             sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
+            /*
+             * The value of the value column must in the range of
+             * INCLUSIVE_FROM_VALUE >= PROPERTY_VALUE_COL_NAME
+             */
+            sqlStatement += " and " + IgniteConstants.PROPERTY_VALUE_COL_NAME;
+            sqlStatement += " >= '" + fields.get(IgniteConstants.INCLUSIVE_FROM_VALUE) + "'";
+            /*
+             * Determine sorting order
+             */
+            if (fields.get(IgniteConstants.REVERSED_VALUE).equals("true")) {
+                sqlStatement += " order by " + IgniteConstants.PROPERTY_VALUE_COL_NAME + " DESC";
+            }
+            else {
+                sqlStatement += " order by " + IgniteConstants.PROPERTY_VALUE_COL_NAME + " ASC";
+            }
 
-            // TODO
+            sqlStatement += " limit " + fields.get(IgniteConstants.LIMIT_VALUE);
 
         } catch (Exception e) {
             sqlStatement = null;

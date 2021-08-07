@@ -32,6 +32,10 @@ public class IgniteResult {
 
     private List<IgniteColumn> columns = new ArrayList<>();
 
+    public void addColumn(String colName, String colType, String colValue, byte[] colBytes) {
+        columns.add(new IgniteColumn(colName, colType, colValue, colBytes));
+    }
+
     /**
      * This method returns the user identifier assigned
      * to edges, vertices and other
@@ -53,12 +57,12 @@ public class IgniteResult {
         return value;
 
     }
+
     public List<IgniteColumn> getColumns() {
         return columns;
     }
 
     public boolean isEmpty() {
-        // TODO
-        return true;
+         return columns.isEmpty();
     }
 }
