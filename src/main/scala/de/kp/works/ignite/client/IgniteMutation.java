@@ -18,6 +18,33 @@ package de.kp.works.ignite.client;
  *
  */
 
-public abstract class IgniteMutation {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class IgniteMutation {
+
+    public Object id;
+    public List<IgniteColumn> columns = new ArrayList<>();
+
     public IgniteMutationType mutationType;
+
+    public IgniteMutation(Object id) {
+        this.id = id;
+    }
+
+    public List<IgniteColumn> getColumns() {
+        return columns;
+    }
+
+    public List<String> getColumnNames() {
+        return columns
+                .stream().map(IgniteColumn::getColName)
+                .collect(Collectors.toList());
+    }
+
+    public Object getId() {
+        return id;
+    }
+
 }

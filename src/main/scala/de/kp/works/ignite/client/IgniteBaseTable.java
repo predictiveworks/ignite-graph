@@ -18,15 +18,18 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignite.client.query.IgniteEdgesExistQuery;
 import de.kp.works.ignite.client.query.IgniteGetQuery;
 import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteConstants;
+import de.kp.works.ignitegraph.ValueType;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.binary.BinaryObjectBuilder;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class IgniteBaseTable {
 
@@ -59,7 +62,7 @@ public class IgniteBaseTable {
 
     /** METHODS TO SUPPORT BASIC CRUD OPERATIONS **/
 
-    protected Object incrementEdge(IgniteIncrement igniteIncrement) {
+    protected Object incrementEdge(IgniteIncrement igniteIncrement) throws Exception {
        Object edgeId = igniteIncrement.getId();
         List<IgniteEdgeEntry> edge = getEdge(edgeId);
         /*
@@ -71,7 +74,7 @@ public class IgniteBaseTable {
         return incrementEdge(igniteIncrement, edge);
     }
 
-    protected Object incrementVertex(IgniteIncrement igniteIncrement) {
+    protected Object incrementVertex(IgniteIncrement igniteIncrement) throws Exception {
         Object vertexId = igniteIncrement.getId();
         List<IgniteVertexEntry> vertex = getVertex(vertexId);
         /*
@@ -83,7 +86,7 @@ public class IgniteBaseTable {
         return incrementVertex(igniteIncrement, vertex);
     }
 
-    protected void putEdge(IgnitePut ignitePut) {
+    protected void putEdge(IgnitePut ignitePut) throws Exception {
         /*
          * STEP #1: Retrieve existing edge entries
          * that refer to the provided id
@@ -117,7 +120,7 @@ public class IgniteBaseTable {
         if (!edge.isEmpty()) deleteEdge(igniteDelete, edge);
     }
 
-    protected void deleteVertex(IgniteDelete igniteDelete) {
+    protected void deleteVertex(IgniteDelete igniteDelete) throws Exception {
         Object vertexId = igniteDelete.getId();
         List<IgniteVertexEntry> vertex = getVertex(vertexId);
 
@@ -147,14 +150,144 @@ public class IgniteBaseTable {
         IgniteGetQuery igniteQuery = new IgniteGetQuery(name, connect, id);
         return igniteQuery.getVertexEntries();
     }
+    /**
+     * Check whether a vertex is referenced by edges
+     * either as `from` or `to` vertex
+     */
+    protected boolean hasEdges(Object vertex) {
+        IgniteEdgesExistQuery igniteQuery = new IgniteEdgesExistQuery(name, connect, vertex);
+        List<IgniteEdgeEntry> edges = igniteQuery.getEdgeEntries();
 
-    // TODO ADD BASIC OPERATIONS
+        return !edges.isEmpty();
+    }
     /**
      * The provided [IgnitePut] is transformed into a list of
      * [IgniteEdgeEntry] and these entries are put into cache
      */
-    protected void createEdge(IgnitePut ignitePut) {
-        // TODO
+    protected void createEdge(IgnitePut ignitePut) throws Exception {
+
+        String id         = null;
+        String idType     = null;
+        String label      = null;
+        String toId       = null;
+        String toIdType   = null;
+        String fromId     = null;
+        String fromIdType = null;
+
+        Long createdAt = System.currentTimeMillis();
+        Long updatedAt = System.currentTimeMillis();
+
+        List<IgniteEdgeEntry> entries = new ArrayList<>();
+        /*
+         * STEP #1: Move through all columns and
+         * determine the common fields of all entries
+         */
+        for (IgniteColumn column : ignitePut.getColumns()) {
+            switch (column.getColName()) {
+                case IgniteConstants.ID_COL_NAME: {
+                    id = column.getColValue().toString();
+                    idType = column.getColType();
+                    break;
+                }
+                case IgniteConstants.LABEL_COL_NAME: {
+                    label = column.getColValue().toString();
+                    break;
+                }
+                case IgniteConstants.TO_COL_NAME: {
+                    toId = column.getColValue().toString();
+                    toIdType = column.getColType();
+                    break;
+                }
+                case IgniteConstants.FROM_COL_NAME: {
+                    fromId = column.getColValue().toString();
+                    fromIdType = column.getColType();
+                    break;
+                }
+                case IgniteConstants.CREATED_AT_COL_NAME: {
+                    createdAt = (Long)column.getColValue();
+                    break;
+                }
+                case IgniteConstants.UPDATED_AT_COL_NAME: {
+                    updatedAt = (Long)column.getColValue();
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+        /*
+         * Check whether the core fields of an edge entry
+         * are provided
+         */
+        if (id == null || idType == null || label == null || toId == null || toIdType == null || fromId == null || fromIdType == null)
+            throw new Exception("Number of parameters provided is not sufficient to create an edge.");
+
+        /*
+         * STEP #2: Move through all property columns
+         */
+        for (IgniteColumn column : ignitePut.getColumns()) {
+            switch (column.getColName()) {
+                case IgniteConstants.ID_COL_NAME:
+                case IgniteConstants.LABEL_COL_NAME:
+                case IgniteConstants.TO_COL_NAME:
+                case IgniteConstants.FROM_COL_NAME:
+                case IgniteConstants.CREATED_AT_COL_NAME:
+                case IgniteConstants.UPDATED_AT_COL_NAME: {
+                    break;
+                }
+                default: {
+                    /*
+                     * Build an entry for each property
+                     */
+                    String propKey   = column.getColName();
+                    String propType  = column.getColType();
+                    String propValue = column.getColValue().toString();
+                    /*
+                     * For a create request, we must generate
+                     * a unique cache key for each entry
+                     */
+                    String cacheKey = UUID.randomUUID().toString();
+
+                    entries.add(new IgniteEdgeEntry(
+                            cacheKey,
+                            id,
+                            idType,
+                            label,
+                            toId,
+                            toIdType,
+                            fromId,
+                            fromIdType,
+                            createdAt,
+                            updatedAt,
+                            propKey,
+                            propType,
+                            propValue));
+
+                    break;
+                }
+            }
+        }
+        /*
+         * STEP #3: Check whether the entries are still empty,
+         * i.e. a vertex without properties will be created
+         */
+        if (entries.isEmpty()) {
+            String emptyValue = "*";
+            /*
+             * For a create request, we must generate
+             * a unique cache key for each entry
+             */
+            String cacheKey = UUID.randomUUID().toString();
+            entries.add(new IgniteEdgeEntry(cacheKey,
+                    id, idType, label, toId, toIdType, fromId, fromIdType,
+                    createdAt, updatedAt, emptyValue, emptyValue, emptyValue));
+
+        }
+        /*
+         * STEP #4: Persist all entries that describe the edge
+         * to the Ignite edge cache
+         */
+        writeEdge(entries);
     }
 
     /**
@@ -171,12 +304,102 @@ public class IgniteBaseTable {
      * or just specific properties of an existing edge.
      */
     protected void deleteEdge(IgniteDelete igniteDelete, List<IgniteEdgeEntry> edge) {
-        // TODO
-    }
 
-    protected Object incrementEdge(IgniteIncrement igniteIncrement, List<IgniteEdgeEntry> edge) {
-        // TODO
-        return null;
+        List<String> cacheKeys = new ArrayList<>();
+
+        List<IgniteColumn> columns = igniteDelete.getColumns();
+        /*
+         * STEP #1: Check whether we must delete the
+         * entire edge or just a certain column
+         */
+        if (columns.isEmpty()) {
+            /*
+             * All cache entries that refer to the specific
+             * edge must be deleted.
+             */
+            cacheKeys = edge.stream()
+                    .map(entry -> entry.cacheKey).collect(Collectors.toList());
+        }
+        else {
+            /*
+             * All cache entries that refer to a certain
+             * property key must be deleted
+             */
+            List<String> propKeys = columns.stream()
+                    /*
+                     * Restrict to columns that describe
+                     * a property key
+                     */
+                    .filter(c -> c.getColName().equals(IgniteConstants.PROPERTY_KEY_COL_NAME))
+                    /*
+                     * Extract the value of the property key
+                     */
+                    .map(c -> c.getColValue().toString())
+                    .collect(Collectors.toList());
+
+            cacheKeys = edge.stream()
+                    /*
+                     * Restrict to those cache entries that refer
+                     * to the provided property keys
+                     */
+                    .filter(entry -> propKeys.contains(entry.propType))
+                    .map(entry -> entry.cacheKey).collect(Collectors.toList());
+
+        }
+
+        if (!cacheKeys.isEmpty())
+            cache.removeAll(new HashSet<>(cacheKeys));
+    }
+    /**
+     * This method increments a certain property value
+     */
+    protected Object incrementEdge(IgniteIncrement igniteIncrement, List<IgniteEdgeEntry> edge) throws Exception {
+        IgniteColumn column = igniteIncrement.getColumn();
+        if (column == null) return null;
+        /*
+         * Check whether the column describes a property
+         */
+        String colName = column.getColName();
+        if (!colName.equals(IgniteConstants.PROPERTY_KEY_COL_NAME))
+            return null;
+        /*
+         * Check whether the column value is a [Long]
+         */
+        String colType = column.getColType();
+        if (!colType.equals(ValueType.LONG.name()))
+            return null;
+        /*
+         * Restrict to that edge entry that refer to the
+         * provided column
+         */
+        String colValue = column.getColValue().toString();
+        List<IgniteEdgeEntry> entries = edge.stream()
+                .filter(entry -> entry.propKey.equals(colName) && entry.propType.equals(colType) && entry.propValue.equals(colValue))
+                .collect(Collectors.toList());
+
+        if (entries.isEmpty()) return null;
+        IgniteEdgeEntry entry = entries.get(0);
+
+        Long oldValue = Long.valueOf(entry.propValue);
+        Long newValue = oldValue + 1;
+
+        IgniteEdgeEntry newEntry = new IgniteEdgeEntry(
+                entry.cacheKey,
+                entry.id,
+                entry.idType,
+                entry.label,
+                entry.toId,
+                entry.toIdType,
+                entry.fromId,
+                entry.fromIdType,
+                entry.createdAt,
+                entry.updatedAt,
+                entry.propKey,
+                entry.propType,
+                newValue.toString());
+
+        writeEdge(Arrays.asList(newEntry));
+        return newValue;
     }
     /**
      * The provided [IgnitePut] is transformed into a list of
@@ -223,7 +446,7 @@ public class IgniteBaseTable {
          * are provided
          */
         if (id == null || idType == null || label == null)
-            throw new Exception("Number of parameters provided is not sufficient to creat a vertex");
+            throw new Exception("Number of parameters provided is not sufficient to create a vertex.");
         /*
          * STEP #2: Move through all property columns
          */
@@ -302,15 +525,143 @@ public class IgniteBaseTable {
      * When and entire vertex must be deleted, this methods
      * also checks whether the vertex is referenced by an edge
      */
-    protected void deleteVertex(IgniteDelete igniteDelete, List<IgniteVertexEntry> vertex) {
-        // TODO
+    protected void deleteVertex(IgniteDelete igniteDelete, List<IgniteVertexEntry> vertex) throws Exception {
+
+        List<String> cacheKeys = new ArrayList<>();
+
+        List<IgniteColumn> columns = igniteDelete.getColumns();
+        /*
+         * STEP #1: Check whether we must delete the
+         * entire vertex or just a certain column
+         */
+        if (columns.isEmpty()) {
+            /*
+             * All cache entries that refer to the specific
+             * vertex must be deleted.
+             */
+            Object id = igniteDelete.getId();
+            if (hasEdges(id))
+                throw new Exception("The vertex '" + id.toString() + "' is referenced by at least one edge.");
+
+            cacheKeys = vertex.stream()
+                    .map(entry -> entry.cacheKey).collect(Collectors.toList());
+        }
+        else {
+            /*
+             * All cache entries that refer to a certain
+             * property key must be deleted
+             */
+            List<String> propKeys = columns.stream()
+                    /*
+                     * Restrict to columns that describe
+                     * a property key
+                     */
+                    .filter(c -> c.getColName().equals(IgniteConstants.PROPERTY_KEY_COL_NAME))
+                    /*
+                     * Extract the value of the property key
+                     */
+                    .map(c -> c.getColValue().toString())
+                    .collect(Collectors.toList());
+
+            cacheKeys = vertex.stream()
+                    /*
+                     * Restrict to those cache entries that refer
+                     * to the provided property keys
+                     */
+                    .filter(entry -> propKeys.contains(entry.propType))
+                    .map(entry -> entry.cacheKey).collect(Collectors.toList());
+
+        }
+
+        cache.removeAll(new HashSet<>(cacheKeys));
     }
 
-    protected Object incrementVertex(IgniteIncrement igniteIncrement, List<IgniteVertexEntry> vertex) {
-        // TODO
-        return null;
+    protected Object incrementVertex(IgniteIncrement igniteIncrement, List<IgniteVertexEntry> vertex) throws Exception {
+        IgniteColumn column = igniteIncrement.getColumn();
+        if (column == null) return null;
+        /*
+         * Check whether the column describes a property
+         */
+        String colName = column.getColName();
+        if (!colName.equals(IgniteConstants.PROPERTY_KEY_COL_NAME))
+            return null;
+        /*
+         * Check whether the column value is a [Long]
+         */
+        String colType = column.getColType();
+        if (!colType.equals(ValueType.LONG.name()))
+            return null;
+        /*
+         * Restrict to that vertex entry that refer to the
+         * provided column
+         */
+        String colValue = column.getColValue().toString();
+        List<IgniteVertexEntry> entries = vertex.stream()
+                .filter(entry -> entry.propKey.equals(colName) && entry.propType.equals(colType) && entry.propValue.equals(colValue))
+                .collect(Collectors.toList());
+
+        if (entries.isEmpty()) return null;
+        IgniteVertexEntry entry = entries.get(0);
+
+        Long oldValue = Long.valueOf(entry.propValue);
+        Long newValue = oldValue + 1;
+
+        IgniteVertexEntry newEntry = new IgniteVertexEntry(
+                entry.cacheKey,
+                entry.id,
+                entry.idType,
+                entry.label,
+                entry.createdAt,
+                entry.updatedAt,
+                entry.propKey,
+                entry.propType,
+                newValue.toString());
+
+        writeVertex(Arrays.asList(newEntry));
+        return newValue;
     }
 
+    /**
+     * Supports create and update operations for edges
+     */
+    private void writeEdge(List<IgniteEdgeEntry> entries) throws Exception {
+
+        Ignite ignite = connect.getIgnite();
+        Map<String,BinaryObject> row = new HashMap<>();
+
+        for (IgniteEdgeEntry entry : entries) {
+            BinaryObjectBuilder valueBuilder = ignite.binary().builder(name);
+
+            valueBuilder.setField(IgniteConstants.ID_COL_NAME,         entry.id);
+            valueBuilder.setField(IgniteConstants.ID_TYPE_COL_NAME,    entry.idType);
+            valueBuilder.setField(IgniteConstants.LABEL_COL_NAME,      entry.label);
+
+            valueBuilder.setField(IgniteConstants.TO_COL_NAME,      entry.toId);
+            valueBuilder.setField(IgniteConstants.TO_TYPE_COL_NAME, entry.toIdType);
+
+            valueBuilder.setField(IgniteConstants.FROM_COL_NAME,      entry.fromId);
+            valueBuilder.setField(IgniteConstants.FROM_TYPE_COL_NAME, entry.fromIdType);
+
+            valueBuilder.setField(IgniteConstants.CREATED_AT_COL_NAME, entry.createdAt);
+            valueBuilder.setField(IgniteConstants.UPDATED_AT_COL_NAME, entry.updatedAt);
+
+            valueBuilder.setField(IgniteConstants.PROPERTY_KEY_COL_NAME,  entry.propKey);
+            valueBuilder.setField(IgniteConstants.PROPERTY_TYPE_COL_NAME,  entry.propType);
+            valueBuilder.setField(IgniteConstants.PROPERTY_VALUE_COL_NAME, entry.propValue);
+
+            String cacheKey = entry.cacheKey;
+            BinaryObject cacheValue = valueBuilder.build();
+
+            row.put(cacheKey, cacheValue);
+        };
+
+        for (Map.Entry<String,BinaryObject> entry : row.entrySet()) {
+            cache.put(entry.getKey(), entry.getValue());
+        }
+    }
+    /**
+     * Supports create and update operations for vertices
+     */
     private void writeVertex(List<IgniteVertexEntry> entries) throws Exception {
 
         Ignite ignite = connect.getIgnite();

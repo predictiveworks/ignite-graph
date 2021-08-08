@@ -20,19 +20,18 @@ package de.kp.works.ignite.client;
 
 public class IgniteIncrement extends IgniteMutation {
 
-    private Object id;
     private IgniteColumn column = null;
 
     public IgniteIncrement(Object id) {
-
+        super(id);
         mutationType = IgniteMutationType.INCREMENT;
-        this.id = id;
     }
 
     public void addColumn(String colName, String colType, Object colValue) {
         column = new IgniteColumn(colName, colType, colValue);
     }
-    public Object getId() {
-        return id;
+
+    public IgniteColumn getColumn() {
+        return column;
     }
 }

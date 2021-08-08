@@ -18,36 +18,14 @@ package de.kp.works.ignite.client;
  *
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class IgniteDelete extends IgniteMutation {
 
-    private Object id;
-
-    private final List<IgniteColumn> columns = new ArrayList<>();
-
     public IgniteDelete(Object id) {
+        super(id);
         mutationType = IgniteMutationType.DELETE;
-        this.id = id;
     }
 
     public void addColumn(String colName) {
         columns.add(new IgniteColumn(colName));
-    }
-
-    public void addColumn(String colName, String colType) {
-        columns.add(new IgniteColumn(colName, colType));
-    }
-
-    /**
-     * The colValue is a timestamp that controls deletion.
-     */
-    public void addColumn(String colName, String colType, Object colValue) {
-        columns.add(new IgniteColumn(colName, colType, colValue));
-    }
-
-    public Object getId() {
-        return id;
     }
 }
