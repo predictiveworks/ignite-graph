@@ -18,9 +18,12 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignitegraph.IgniteConstants;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class IgniteMutation {
 
@@ -41,6 +44,24 @@ public class IgniteMutation {
         return columns
                 .stream().map(IgniteColumn::getColName)
                 .collect(Collectors.toList());
+    }
+
+    public Stream<IgniteColumn> getProperties() {
+        return columns.stream()
+                .filter(column -> {
+                    switch (column.getColName()) {
+                        case IgniteConstants.ID_COL_NAME:
+                        case IgniteConstants.LABEL_COL_NAME:
+                        case IgniteConstants.TO_COL_NAME:
+                        case IgniteConstants.FROM_COL_NAME:
+                        case IgniteConstants.CREATED_AT_COL_NAME:
+                        case IgniteConstants.UPDATED_AT_COL_NAME:
+                            return false;
+
+                        default:
+                            return true;
+                    }
+                });
     }
 
     public Object getId() {

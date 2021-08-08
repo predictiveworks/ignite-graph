@@ -20,9 +20,6 @@ package de.kp.works.ignitegraph.mutators;
 
 import de.kp.works.ignite.client.IgniteIncrement;
 import de.kp.works.ignite.client.IgniteMutation;
-import de.kp.works.ignite.client.IgnitePut;
-import de.kp.works.ignitegraph.IgniteConstants;
-import de.kp.works.ignitegraph.IgniteElement;
 import de.kp.works.ignitegraph.IgniteGraph;
 import de.kp.works.ignitegraph.ValueUtils;
 import org.apache.tinkerpop.gremlin.structure.Element;
@@ -52,14 +49,6 @@ public class PropertyIncrementer implements Mutator {
         String colType = ValueUtils.getValueType(value).name();
         increment.addColumn(key, colType, value);
 
-        IgnitePut put = new IgnitePut(id);
-        put.addColumn(IgniteConstants.ID_COL_NAME, ValueUtils.getValueType(id).name(),
-                id.toString());
-
-        Long updatedAt = ((IgniteElement) element).updatedAt();
-        put.addColumn(IgniteConstants.UPDATED_AT_COL_NAME, IgniteConstants.LONG_COL_TYPE,
-                updatedAt.toString());
-
-        return IteratorUtils.of(increment, put);
+        return IteratorUtils.of(increment);
     }
 }
