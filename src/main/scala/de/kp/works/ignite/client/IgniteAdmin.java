@@ -18,6 +18,7 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignite.client.IgniteConnect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,13 +70,13 @@ public class IgniteAdmin {
             return null;
         }
 
-        IgniteUtils context = client.getContext();
-        if (context == null) {
+        IgniteConnect connect = client.getConnect();
+        if (connect == null) {
             LOGGER.error("IgniteContext is not initialized.");
             return null;
         }
 
-        return new IgniteTable(tableName, context);
+        return new IgniteTable(tableName, connect);
     }
 
 }

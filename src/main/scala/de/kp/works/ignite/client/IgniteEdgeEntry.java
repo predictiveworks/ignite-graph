@@ -20,6 +20,8 @@ package de.kp.works.ignite.client;
 
 public class IgniteEdgeEntry {
 
+    public String cacheKey;
+
     public String id;
     public String idType;
     public String label;
@@ -34,6 +36,7 @@ public class IgniteEdgeEntry {
     public String propValue;
 
     public IgniteEdgeEntry(
+            String cacheKey,
             String id,
             String idType,
             String label,
@@ -47,6 +50,7 @@ public class IgniteEdgeEntry {
             String propType,
             String propValue) {
 
+        this.cacheKey = cacheKey;
         this.id = id;
         this.idType = idType;
 

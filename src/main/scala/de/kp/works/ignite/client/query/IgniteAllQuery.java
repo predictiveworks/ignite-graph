@@ -18,7 +18,7 @@ package de.kp.works.ignite.client.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteUtils;
+import de.kp.works.ignite.client.IgniteConnect;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +28,8 @@ public class IgniteAllQuery extends IgniteQuery {
      * Retrieve all elements that refer to the
      * selected Ignite cache
      */
-    public IgniteAllQuery(String cacheName, IgniteUtils context) {
-        super(cacheName, context);
+    public IgniteAllQuery(String cacheName, IgniteConnect connect) {
+        super(cacheName, connect);
         /*
          * This query does not take fields
          */

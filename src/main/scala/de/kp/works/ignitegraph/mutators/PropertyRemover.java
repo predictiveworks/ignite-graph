@@ -45,13 +45,13 @@ public class PropertyRemover implements Mutator {
         IgniteDelete delete = new IgniteDelete(id);
         delete.addColumn(key);
 
-        IgnitePut put = new IgnitePut();
+        IgnitePut put = new IgnitePut(id);
         put.addColumn(IgniteConstants.ID_COL_NAME, ValueUtils.getValueType(id).name(),
-                id.toString(), ValueUtils.serialize(id));
+                id.toString());
 
         Long updatedAt = ((IgniteElement) element).updatedAt();
         put.addColumn(IgniteConstants.UPDATED_AT_COL_NAME, IgniteConstants.LONG_COL_TYPE,
-                updatedAt.toString(), ValueUtils.serialize(updatedAt));
+                updatedAt.toString());
 
         return IteratorUtils.of(delete, put);
     }

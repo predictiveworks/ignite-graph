@@ -18,7 +18,7 @@ package de.kp.works.ignite.client.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteUtils;
+import de.kp.works.ignite.client.IgniteConnect;
 import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.HashMap;
@@ -30,9 +30,9 @@ public class IgniteRangeQuery extends IgniteQuery {
      * label and a range of values of a property that
      * can be sorted in ASC order.
      */
-    public IgniteRangeQuery(String cacheName, IgniteUtils context,
+    public IgniteRangeQuery(String cacheName, IgniteConnect connect,
                             String label, String key, Object inclusiveFromValue, Object exclusiveToValue) {
-        super(cacheName, context);
+        super(cacheName, connect);
         /*
          * Transform the provided properties into fields
          */

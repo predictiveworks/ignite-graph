@@ -20,5 +20,6 @@ package de.kp.works.ignitegraph;
 
 public enum ElementType {
     EDGE,
-    VERTEX
+    VERTEX,
+    UNDEFINED
 }

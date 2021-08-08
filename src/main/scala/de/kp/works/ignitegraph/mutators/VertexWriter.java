@@ -43,29 +43,29 @@ public final class VertexWriter implements Creator {
     public Iterator<IgnitePut> constructInsertions() {
 
         final String label = vertex.label() != null ? vertex.label() : Vertex.DEFAULT_LABEL;
-        IgnitePut put = new IgnitePut();
 
         Object id = vertex.id();
+
+        IgnitePut put = new IgnitePut(id);
         put.addColumn(IgniteConstants.ID_COL_NAME, ValueUtils.getValueType(id).name(),
-                id.toString(), ValueUtils.serialize(id));
+                id.toString());
 
         put.addColumn(IgniteConstants.LABEL_COL_NAME, IgniteConstants.STRING_COL_TYPE,
-                label, ValueUtils.serialize(label));
+                label);
 
         Long createdAt = ((IgniteVertex) vertex).createdAt();
         put.addColumn(IgniteConstants.CREATED_AT_COL_NAME, IgniteConstants.LONG_COL_TYPE,
-                createdAt.toString(), ValueUtils.serialize(createdAt));
+                createdAt.toString());
 
         Long updatedAt = ((IgniteVertex) vertex).updatedAt();
         put.addColumn(IgniteConstants.UPDATED_AT_COL_NAME, IgniteConstants.LONG_COL_TYPE,
-                updatedAt.toString(), ValueUtils.serialize(updatedAt));
+                updatedAt.toString());
 
         ((IgniteVertex) vertex).getProperties().forEach((key, value) -> {
             String colType = ValueUtils.getValueType(value).name();
             String colValue = value.toString();
 
-            byte[] colBytes = ValueUtils.serialize(value);
-            put.addColumn(key, colType, colValue, colBytes);
+            put.addColumn(key, colType, colValue);
         });
 
         return IteratorUtils.of(put);

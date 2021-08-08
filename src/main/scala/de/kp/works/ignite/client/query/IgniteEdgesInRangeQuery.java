@@ -18,7 +18,7 @@ package de.kp.works.ignite.client.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteUtils;
+import de.kp.works.ignite.client.IgniteConnect;
 import de.kp.works.ignitegraph.IgniteConstants;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 
@@ -30,10 +30,10 @@ public class IgniteEdgesInRangeQuery extends IgniteQuery {
      * This query is restricted to the Ignite cache that
      * contains the edges of the graph network.
      */
-    public IgniteEdgesInRangeQuery(String cacheName, IgniteUtils context,
+    public IgniteEdgesInRangeQuery(String cacheName, IgniteConnect connect,
                                    Object vertex, Direction direction, String label,
                                    String key, Object inclusiveFromValue, Object exclusiveToValue) {
-        super(cacheName, context);
+        super(cacheName, connect);
         /*
          * Transform the provided properties into fields
          */

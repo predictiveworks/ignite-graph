@@ -20,6 +20,8 @@ package de.kp.works.ignite.client;
 
 public class IgniteVertexEntry {
 
+    public String cacheKey;
+
     public String id;
     public String idType;
     public String label;
@@ -30,6 +32,7 @@ public class IgniteVertexEntry {
     public String propValue;
 
     public IgniteVertexEntry(
+            String cacheKey,
             String id,
             String idType,
             String label,
@@ -39,6 +42,7 @@ public class IgniteVertexEntry {
             String propType,
             String propValue) {
 
+        this.cacheKey = cacheKey;
         this.id = id;
         this.idType = idType;
 

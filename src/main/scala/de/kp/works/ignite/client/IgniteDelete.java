@@ -28,6 +28,7 @@ public class IgniteDelete extends IgniteMutation {
     private final List<IgniteColumn> columns = new ArrayList<>();
 
     public IgniteDelete(Object id) {
+        mutationType = IgniteMutationType.DELETE;
         this.id = id;
     }
 
@@ -42,8 +43,11 @@ public class IgniteDelete extends IgniteMutation {
     /**
      * The colValue is a timestamp that controls deletion.
      */
-    public void addColumn(String colName, String colType, Object colValue, byte[] colBytes) {
-        columns.add(new IgniteColumn(colName, colType, colValue, colBytes));
+    public void addColumn(String colName, String colType, Object colValue) {
+        columns.add(new IgniteColumn(colName, colType, colValue));
     }
 
+    public Object getId() {
+        return id;
+    }
 }

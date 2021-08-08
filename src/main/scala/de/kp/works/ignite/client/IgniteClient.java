@@ -18,6 +18,7 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignite.client.IgniteConnect;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryObject;
@@ -29,7 +30,7 @@ public class IgniteClient {
      * is designed as a singleton and this call is used to initialize
      * this client
      */
-    private static IgniteUtils igniteUtils;
+    private static IgniteConnect igniteConnect;
 
     private static IgniteClient instance;
 
@@ -39,19 +40,12 @@ public class IgniteClient {
          * note, this must be done before any graph operations is initiated
          * (even the configuration of a certain graph)
          */
-        igniteUtils = IgniteUtils.getInstance(igniteConfig, namespace);
+        igniteConnect = IgniteConnect.getInstance(igniteConfig, namespace);
 
-        Ignite ignite = igniteUtils.getIgnite();
+        Ignite ignite = igniteConnect.getIgnite();
         if (ignite == null)
             throw new Exception("[IgniteGraph] A problem occurred while trying to initialize Apache Ignite.");
 
-    }
-    /**
-     * Retrieve an instance of IgniteClient without
-     * any externally provided configuration options
-     */
-    public static IgniteClient getInstance(String namespace) throws Exception {
-        return getInstance(null, namespace);
     }
 
     public static IgniteClient getInstance(IgniteConfiguration config, String namespace) throws Exception {
@@ -59,19 +53,19 @@ public class IgniteClient {
         return instance;
     }
 
-    public IgniteUtils getContext() {
-        return igniteUtils;
+    public IgniteConnect getConnect() {
+        return igniteConnect;
     }
-    public Ignite getIgnite() {
-        return igniteUtils.getIgnite();
+    public Ignite getIgnite() throws Exception {
+        return igniteConnect.getIgnite();
     }
 
     public boolean cacheExists(String cacheName) throws Exception {
-        return igniteUtils.cacheExists(cacheName);
+        return igniteConnect.cacheExists(cacheName);
     }
 
     public void createCache(String cacheName) throws Exception {
-        IgniteCache<String, BinaryObject> cache = igniteUtils.getOrCreateCache(cacheName);
+        IgniteCache<String, BinaryObject> cache = igniteConnect.getOrCreateCache(cacheName);
         if (cache == null)
             throw new Exception("Connection to Ignited failed. Could not create cache.");
         /*
@@ -83,6 +77,6 @@ public class IgniteClient {
     }
 
     public void deleteCache(String cacheName) throws Exception {
-        igniteUtils.deleteCache(cacheName);
+        igniteConnect.deleteCache(cacheName);
     }
 }

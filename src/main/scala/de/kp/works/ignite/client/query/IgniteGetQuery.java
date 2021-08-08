@@ -18,7 +18,7 @@ package de.kp.works.ignite.client.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteUtils;
+import de.kp.works.ignite.client.IgniteConnect;
 import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.HashMap;
@@ -32,8 +32,8 @@ public class IgniteGetQuery extends IgniteQuery {
      * Retrieve the element (edge or vertex) that refers
      * to the provided identifier
      */
-    public IgniteGetQuery(String cacheName, IgniteUtils context, Object id) {
-        super(cacheName, context);
+    public IgniteGetQuery(String cacheName, IgniteConnect connect, Object id) {
+        super(cacheName, connect);
         /*
          * Transform the provided properties into fields
          */
@@ -47,14 +47,14 @@ public class IgniteGetQuery extends IgniteQuery {
      * Retrieve all elements (edges or vertices) that refer
      * to the provided list of identifiers
      */
-    public IgniteGetQuery(String cacheName, IgniteUtils context, List<Object> ids) {
-        super(cacheName, context);
+    public IgniteGetQuery(String cacheName, IgniteConnect connect, List<Object> ids) {
+        super(cacheName, connect);
         /*
          * Transform the provided properties into fields
          */
         HashMap<String, String> fields = new HashMap<>();
-        fields.put(IgniteConstants.ID_COL_NAME, String.join(",",
-                ids.stream().map(id -> id.toString()).collect(Collectors.toList())));
+        fields.put(IgniteConstants.ID_COL_NAME, ids.stream()
+                .map(Object::toString).collect(Collectors.joining(",")));
 
         createSql(fields);
 

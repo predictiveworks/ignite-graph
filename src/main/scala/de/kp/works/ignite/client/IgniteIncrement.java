@@ -24,11 +24,15 @@ public class IgniteIncrement extends IgniteMutation {
     private IgniteColumn column = null;
 
     public IgniteIncrement(Object id) {
+
+        mutationType = IgniteMutationType.INCREMENT;
         this.id = id;
     }
 
-    public void addColumn(String colName, String colType, Object colValue, byte[] colBytes) {
-        column = new IgniteColumn(colName, colType, colValue, colBytes);
+    public void addColumn(String colName, String colType, Object colValue) {
+        column = new IgniteColumn(colName, colType, colValue);
     }
-
+    public Object getId() {
+        return id;
+    }
 }

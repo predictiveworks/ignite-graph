@@ -50,17 +50,15 @@ public class PropertyIncrementer implements Mutator {
         IgniteIncrement increment = new IgniteIncrement(id);
 
         String colType = ValueUtils.getValueType(value).name();
-        byte[] colBytes = ValueUtils.serialize(value);
+        increment.addColumn(key, colType, value);
 
-        increment.addColumn(key, colType, value, colBytes);
-
-        IgnitePut put = new IgnitePut();
+        IgnitePut put = new IgnitePut(id);
         put.addColumn(IgniteConstants.ID_COL_NAME, ValueUtils.getValueType(id).name(),
-                id.toString(), ValueUtils.serialize(id));
+                id.toString());
 
         Long updatedAt = ((IgniteElement) element).updatedAt();
         put.addColumn(IgniteConstants.UPDATED_AT_COL_NAME, IgniteConstants.LONG_COL_TYPE,
-                updatedAt.toString(), ValueUtils.serialize(updatedAt));
+                updatedAt.toString());
 
         return IteratorUtils.of(increment, put);
     }

@@ -20,21 +20,34 @@ package de.kp.works.ignite.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class IgnitePut extends IgniteMutation {
-    /**
-     * Create a Put operation for the specified row
-     */
+
+    private Object id;
     private List<IgniteColumn> columns = new ArrayList<>();
 
-    public IgnitePut() {
+    public IgnitePut(Object id) {
+        mutationType = IgniteMutationType.PUT;
+        this.id = id;
     }
 
-    public void addColumn(String colName, String colType, String colValue, byte[] colBytes) {
-        columns.add(new IgniteColumn(colName, colType, colValue, colBytes));
+    public void addColumn(String colName, String colType, String colValue) {
+        columns.add(new IgniteColumn(colName, colType, colValue));
     }
 
     public List<IgniteColumn> getColumns() {
         return columns;
     }
+
+    public List<String> getColumnNames() {
+        return columns
+                .stream().map(column -> column.getColName())
+                .collect(Collectors.toList());
+    }
+
+    public Object getId() {
+        return id;
+    }
+
 }

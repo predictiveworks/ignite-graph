@@ -41,24 +41,22 @@ public class PropertyWriter implements Mutator {
     @Override
     public Iterator<IgniteMutation> constructMutations() {
 
-        IgnitePut put = new IgnitePut();
-
         Object id = element.id();
+        IgnitePut put = new IgnitePut(id);
+
         put.addColumn(IgniteConstants.ID_COL_NAME, ValueUtils.getValueType(id).name(),
-                id.toString(), ValueUtils.serialize(id));
+                id.toString());
 
         Long updatedAt = ((IgniteElement) element).updatedAt();
         put.addColumn(IgniteConstants.UPDATED_AT_COL_NAME, IgniteConstants.LONG_COL_TYPE,
-                updatedAt.toString(), ValueUtils.serialize(updatedAt));
+                updatedAt.toString());
 
         /* Put property */
 
         String colType = ValueUtils.getValueType(value).name();
-
         String colValue = value.toString();
-        byte[] colBytes = ValueUtils.serialize(value);
 
-        put.addColumn(key, colType, colValue, colBytes);
+        put.addColumn(key, colType, colValue);
         return IteratorUtils.of(put);
 
     }

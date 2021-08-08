@@ -19,6 +19,7 @@ package de.kp.works.ignite.client.query;
  */
 
 import de.kp.works.ignite.client.*;
+import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteConstants;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryObject;
@@ -40,10 +41,28 @@ public abstract class IgniteQuery {
     protected IgniteCache<String, BinaryObject> cache;
     protected String sqlStatement;
 
-    public IgniteQuery(String name, IgniteUtils context) {
+    protected ElementType elementType;
+
+    public IgniteQuery(String name, IgniteConnect connect) {
 
         try {
-            cache = context.getOrCreateCache(name);
+            /*
+             * Retrieve element type from provided
+             * cache (table) name
+             */
+            if (name.equals(IgniteConnect.namespace() + "_" + IgniteConstants.EDGES)) {
+                elementType = ElementType.EDGE;
+            }
+            else if (name.equals(IgniteConnect.namespace() + "_" + IgniteConstants.VERTICES)) {
+                elementType = ElementType.VERTEX;
+            }
+            else
+                elementType = ElementType.UNDEFINED;
+            /*
+             * Connect to Ignite cache of the respective
+             * name
+             */
+            cache = connect.getOrCreateCache(name);
 
         } catch (Exception e) {
             cache = null;
@@ -72,6 +91,69 @@ public abstract class IgniteQuery {
 
 
     }
+
+    public List<IgniteEdgeEntry> getEdgeEntries() {
+
+        List<IgniteEdgeEntry> entries = new ArrayList<>();
+        /*
+         * An empty result is returned, if the SQL statement
+         * is not defined yet.
+         */
+        if (sqlStatement == null)
+            return entries;
+
+        if (!elementType.equals(ElementType.EDGE))
+            return entries;
+
+        try {
+            List<List<?>> sqlResult = getSqlResult();
+            /*
+             * Parse sql result and extract edge specific entries
+             */
+            entries = parseEdges(sqlResult);
+
+        } catch (Exception e) {
+            LOGGER.error("Parsing query result failed.", e);
+
+        }
+
+        return entries;
+    }
+
+    public List<IgniteVertexEntry> getVertexEntries() {
+
+        List<IgniteVertexEntry> entries = new ArrayList<>();
+        /*
+         * An empty result is returned, if the SQL statement
+         * is not defined yet.
+         */
+        if (sqlStatement == null)
+            return entries;
+
+        if (!elementType.equals(ElementType.VERTEX))
+            return entries;
+
+        try {
+            List<List<?>> sqlResult = getSqlResult();
+            /*
+             * Parse sql result and extract Vertex specific entries
+             */
+            entries = parseVertices(sqlResult);
+
+        } catch (Exception e) {
+            LOGGER.error("Parsing query result failed.", e);
+
+        }
+
+        return entries;
+    }
+
+
+    /**
+     * This method returns the result of the Ignite SQL query
+     * in form of a row-based result list. It supports user
+     * specific read requests
+     */
     public List<IgniteResult> getResult() {
 
         List<IgniteResult> result = new ArrayList<>();
@@ -82,13 +164,14 @@ public abstract class IgniteQuery {
         if (sqlStatement == null)
             return result;
 
-        List<List<?>> sqlResult = getSqlResult();
         try {
             if (cache == null)
                 throw new Exception("Cache is not initialized.");
 
+            List<List<?>> sqlResult = getSqlResult();
             String cacheName = cache.getName();
-            if (cacheName.equals(IgniteUtils.namespace + "_" + IgniteConstants.EDGES)) {
+
+            if (elementType.equals(ElementType.EDGE)) {
                 /*
                  * Parse sql result and extract edge specific entries
                  */
@@ -99,7 +182,7 @@ public abstract class IgniteQuery {
                 return IgniteTransform
                         .transformEdgeEntries(entries);
             }
-            else if (cacheName.equals(IgniteUtils.namespace + "_" + IgniteConstants.VERTICES)) {
+            else if (elementType.equals(ElementType.VERTEX)) {
                 /*
                  * Parse sql result and extract Vertex specific entries
                  */
@@ -123,38 +206,43 @@ public abstract class IgniteQuery {
 
     private List<IgniteEdgeEntry> parseEdges(List<List<?>> sqlResult) {
         /*
-         * 0 : IgniteConstants.ID_COL_NAME (String)
-         * 1 : IgniteConstants.ID_TYPE_COL_NAME (String)
-         * 2 : IgniteConstants.LABEL_COL_NAME (String)
-         * 3 : IgniteConstants.TO_COL_NAME (String)
-         * 4 : IgniteConstants.TO_TYPE_COL_NAME (String)
-         * 5 : IgniteConstants.FROM_COL_NAME (String)
-         * 6 : IgniteConstants.FROM_TYPE_COL_NAME (String)
-         * 7 : IgniteConstants.CREATED_AT_COL_NAME (Long)
-         * 8 : IgniteConstants.UPDATED_AT_COL_NAME (Long)
-         * 9 : IgniteConstants.PROPERTY_KEY_COL_NAME (String)
-         * 10: IgniteConstants.PROPERTY_TYPE_COL_NAME (String)
-         * 11: IgniteConstants.PROPERTY_VALUE_COL_NAME (String)
+         * 0 : Cache key
+         *
+         * 1 : IgniteConstants.ID_COL_NAME (String)
+         * 2 : IgniteConstants.ID_TYPE_COL_NAME (String)
+         * 3 : IgniteConstants.LABEL_COL_NAME (String)
+         * 4 : IgniteConstants.TO_COL_NAME (String)
+         * 5 : IgniteConstants.TO_TYPE_COL_NAME (String)
+         * 6 : IgniteConstants.FROM_COL_NAME (String)
+         * 7 : IgniteConstants.FROM_TYPE_COL_NAME (String)
+         * 8 : IgniteConstants.CREATED_AT_COL_NAME (Long)
+         * 9 : IgniteConstants.UPDATED_AT_COL_NAME (Long)
+         * 10: IgniteConstants.PROPERTY_KEY_COL_NAME (String)
+         * 11: IgniteConstants.PROPERTY_TYPE_COL_NAME (String)
+         * 12: IgniteConstants.PROPERTY_VALUE_COL_NAME (String)
          */
         return sqlResult.stream().map(result -> {
-            String id     = (String)result.get(0);
-            String idType = (String)result.get(1);
-            String label  = (String)result.get(2);
+            String cacheKey = (String)result.get(0);
 
-            String toId     = (String)result.get(3);
-            String toIdType = (String)result.get(4);
+            String id     = (String)result.get(1);
+            String idType = (String)result.get(2);
+            String label  = (String)result.get(3);
 
-            String fromId     = (String)result.get(5);
-            String fromIdType = (String)result.get(6);
+            String toId     = (String)result.get(4);
+            String toIdType = (String)result.get(5);
 
-            Long createdAt  = (Long)result.get(7);
-            Long updatedAt  = (Long)result.get(8);
+            String fromId     = (String)result.get(6);
+            String fromIdType = (String)result.get(7);
 
-            String propKey   = (String)result.get(9);
-            String propType  = (String)result.get(10);
-            String propValue = (String)result.get(11);
+            Long createdAt  = (Long)result.get(8);
+            Long updatedAt  = (Long)result.get(9);
+
+            String propKey   = (String)result.get(10);
+            String propType  = (String)result.get(11);
+            String propValue = (String)result.get(12);
 
             return new IgniteEdgeEntry(
+                    cacheKey,
                     id,
                     idType,
                     label,
@@ -173,29 +261,35 @@ public abstract class IgniteQuery {
 
     private List<IgniteVertexEntry> parseVertices(List<List<?>> sqlResult) {
         /*
-         * 0 : IgniteConstants.ID_COL_NAME (String)
-         * 1 : IgniteConstants.ID_TYPE_COL_NAME (String)
-         * 2 : IgniteConstants.LABEL_COL_NAME (String)
-         * 3 : IgniteConstants.CREATED_AT_COL_NAME (Long)
-         * 4 : IgniteConstants.UPDATED_AT_COL_NAME (Long)
-         * 5 : IgniteConstants.PROPERTY_KEY_COL_NAME (String)
-         * 6 : IgniteConstants.PROPERTY_TYPE_COL_NAME (String)
-         * 7 : IgniteConstants.PROPERTY_VALUE_COL_NAME (String)
+         * 0 : Cache key
+         *
+         * 1 : IgniteConstants.ID_COL_NAME (String)
+         * 2 : IgniteConstants.ID_TYPE_COL_NAME (String)
+         * 3 : IgniteConstants.LABEL_COL_NAME (String)
+         * 4 : IgniteConstants.CREATED_AT_COL_NAME (Long)
+         * 5 : IgniteConstants.UPDATED_AT_COL_NAME (Long)
+         * 6 : IgniteConstants.PROPERTY_KEY_COL_NAME (String)
+         * 7 : IgniteConstants.PROPERTY_TYPE_COL_NAME (String)
+         * 8 : IgniteConstants.PROPERTY_VALUE_COL_NAME (String)
          */
         return sqlResult.stream().map(result -> {
-            String id     = (String)result.get(0);
-            String idType = (String)result.get(1);
 
-            String label  = (String)result.get(2);
+            String cacheKey = (String)result.get(0);
 
-            Long createdAt  = (Long)result.get(3);
-            Long updatedAt  = (Long)result.get(4);
+            String id     = (String)result.get(1);
+            String idType = (String)result.get(2);
 
-            String propKey   = (String)result.get(5);
-            String propType  = (String)result.get(6);
-            String propValue = (String)result.get(7);
+            String label  = (String)result.get(3);
+
+            Long createdAt  = (Long)result.get(4);
+            Long updatedAt  = (Long)result.get(5);
+
+            String propKey   = (String)result.get(6);
+            String propType  = (String)result.get(7);
+            String propValue = (String)result.get(8);
 
             return new IgniteVertexEntry(
+                    cacheKey,
                     id,
                     idType,
                     label,
@@ -235,11 +329,16 @@ public abstract class IgniteQuery {
     protected List<String> getColumns() throws Exception {
 
         List<String> columns = new ArrayList<>();
+        /*
+         * We want to retrieve the cache key as well
+         */
+        columns.add("_key");
+
         if (cache == null)
             throw new Exception("Cache is not initialized.");
 
         String cacheName = cache.getName();
-        if (cacheName.equals(IgniteUtils.namespace + "_" + IgniteConstants.EDGES)) {
+        if (elementType.equals(ElementType.EDGE)) {
             /*
              * The edge identifier used by TinkerPop to
              * identify an equivalent of a data row
@@ -282,14 +381,9 @@ public abstract class IgniteQuery {
              * The serialized property value
              */
             columns.add(IgniteConstants.PROPERTY_VALUE_COL_NAME);
-            /*
-             * The [ByteBuffer] representation for the
-             * property value is an internal field and
-             * not exposed to queries
-             */
             return columns;
         }
-        if (cacheName.equals(IgniteUtils.namespace + "_" + IgniteConstants.VERTICES)) {
+        if (elementType.equals(ElementType.VERTEX)) {
             /*
              * The vertex identifier used by TinkerPop to identify
              * an equivalent of a data row
@@ -322,11 +416,6 @@ public abstract class IgniteQuery {
              * The serialized property value
              */
             columns.add(IgniteConstants.PROPERTY_VALUE_COL_NAME);
-            /*
-             * The [ByteBuffer] representation for the
-             * property value is an internal field and
-             * not exposed to queries
-             */
             return columns;
         }
         throw new Exception("Cache '" + cacheName +  "' is not supported.");

@@ -22,7 +22,6 @@ import de.kp.works.ignite.client.IgniteMutation;
 import de.kp.works.ignite.client.IgnitePut;
 import de.kp.works.ignite.client.IgniteResult;
 import de.kp.works.ignite.client.IgniteTable;
-import de.kp.works.ignitegraph.IgniteElement;
 import de.kp.works.ignitegraph.exception.IgniteGraphException;
 
 import java.util.ArrayList;
@@ -31,22 +30,26 @@ import java.util.List;
 
 public class Mutators {
 
-    public static final String IS_UNIQUE = "isUnique";
-
     public static void create(IgniteTable table, Creator... creators) {
 
         List<IgniteMutation> batch = new ArrayList<>();
         for (Creator creator : creators) {
             Iterator<IgnitePut> insertions = creator.constructInsertions();
-            insertions.forEachRemaining(put -> batch.add(put));
+            insertions.forEachRemaining(batch::add);
         }
         write(table, batch);
     }
 
     private static void create(IgniteTable table, Creator creator, IgnitePut put) {
-        boolean success = table.checkAndPut(put);
+
+        boolean success = false;
+        try {
+            success = table.put(put);
+        } catch (Exception e) {
+            /* Do nothing */
+        }
+
         if (!success) {
-            IgniteElement element = (IgniteElement) creator.getElement();
             throw creator.alreadyExists();
         }
     }
@@ -70,6 +73,10 @@ public class Mutators {
         IgniteResult result = (IgniteResult) results[0];
         Object value = result.getValue(key);
 
+        if (value instanceof Exception) {
+            throw new IgniteGraphException((Exception) value);
+        }
+
         return (long)value;
     }
 
@@ -78,12 +85,17 @@ public class Mutators {
         Object[] results = new Object[mutations.size()];
         if (mutations.isEmpty()) return results;
 
-        table.batch(mutations, results);
+        try {
+            table.batch(mutations, results);
 
-        for (Object result : results) {
-            if (result instanceof Exception) {
-                throw new IgniteGraphException((Exception) result);
+            for (Object result : results) {
+                if (result instanceof Exception) {
+                    throw new IgniteGraphException((Exception) result);
+                }
             }
+
+        } catch (Exception e) {
+            throw new IgniteGraphException(e);
         }
 
         return results;

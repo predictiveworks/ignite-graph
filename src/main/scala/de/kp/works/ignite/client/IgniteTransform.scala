@@ -49,22 +49,22 @@ object IgniteTransform {
          * Add common fields
          */
         igniteResult
-          .addColumn(IgniteConstants.ID_COL_NAME, idType, id, id.getBytes)
+          .addColumn(IgniteConstants.ID_COL_NAME, idType, id)
 
         igniteResult
-          .addColumn(IgniteConstants.LABEL_COL_NAME, ValueType.STRING.name(), label, label.getBytes)
+          .addColumn(IgniteConstants.LABEL_COL_NAME, ValueType.STRING.name(), label)
 
         igniteResult
-          .addColumn(IgniteConstants.TO_COL_NAME, toIdType, toId, toId.getBytes)
+          .addColumn(IgniteConstants.TO_COL_NAME, toIdType, toId)
 
         igniteResult
-          .addColumn(IgniteConstants.FROM_COL_NAME, fromIdType, fromId, fromId.getBytes)
+          .addColumn(IgniteConstants.FROM_COL_NAME, fromIdType, fromId)
 
         igniteResult
-          .addColumn(IgniteConstants.CREATED_AT_COL_NAME, ValueType.LONG.name(), createdAt, createdAt.getBytes)
+          .addColumn(IgniteConstants.CREATED_AT_COL_NAME, ValueType.LONG.name(), createdAt)
 
         igniteResult
-          .addColumn(IgniteConstants.UPDATED_AT_COL_NAME, ValueType.LONG.name(), updatedAt, updatedAt.getBytes)
+          .addColumn(IgniteConstants.UPDATED_AT_COL_NAME, ValueType.LONG.name(), updatedAt)
 
         igniteResult
 
@@ -93,16 +93,16 @@ object IgniteTransform {
          * Add common fields
          */
         igniteResult
-          .addColumn(IgniteConstants.ID_COL_NAME, idType, id, id.getBytes)
+          .addColumn(IgniteConstants.ID_COL_NAME, idType, id)
 
         igniteResult
-          .addColumn(IgniteConstants.LABEL_COL_NAME, ValueType.STRING.name(), label, label.getBytes)
+          .addColumn(IgniteConstants.LABEL_COL_NAME, ValueType.STRING.name(), label)
 
         igniteResult
-          .addColumn(IgniteConstants.CREATED_AT_COL_NAME, ValueType.LONG.name(), createdAt, createdAt.getBytes)
+          .addColumn(IgniteConstants.CREATED_AT_COL_NAME, ValueType.LONG.name(), createdAt)
 
         igniteResult
-          .addColumn(IgniteConstants.UPDATED_AT_COL_NAME, ValueType.LONG.name(), updatedAt, updatedAt.getBytes)
+          .addColumn(IgniteConstants.UPDATED_AT_COL_NAME, ValueType.LONG.name(), updatedAt)
         /*
          * Extract & add properties
          */
@@ -113,7 +113,7 @@ object IgniteTransform {
           val propValue:String = value.propValue
 
           igniteResult
-            .addColumn(propKey, propType, propValue, propValue.getBytes)
+            .addColumn(propKey, propType, propValue)
 
         })
 

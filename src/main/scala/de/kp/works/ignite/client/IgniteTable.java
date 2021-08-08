@@ -19,9 +19,9 @@ package de.kp.works.ignite.client;
  */
 
 import de.kp.works.ignite.client.query.*;
+import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteConstants;
 import de.kp.works.ignitegraph.IgniteVertex;
-import org.apache.ignite.IgniteCache;
 import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.binary.BinaryObjectBuilder;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -29,36 +29,35 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class IgniteTable {
+public class IgniteTable extends IgniteBaseTable {
 
-    private final String name;
-    private final IgniteUtils context;
-
-    public IgniteTable(String name, IgniteUtils context) {
-        this.name = name;
-        this.context = context;
+    public IgniteTable(String name, IgniteConnect connect) {
+        super(name, connect);
     }
-
     /**
-     * This method adds or updates an Ignite cache entry
+     * This method adds or updates an Ignite cache entry;
+     * note, the current implementation requires a fully
+     * qualified cache entry.
      */
-    public boolean checkAndPut(IgnitePut put) {
+    public boolean put(IgnitePut ignitePut) throws Exception {
 
-        if (context == null) return false;
-        if (context.getIgnite() == null) return false;
+        if (connect == null) return false;
+        if (connect.getIgnite() == null) return false;
 
         try {
 
-            IgniteCache<String, BinaryObject> cache = context.getOrCreateCache(name);
-
-            Map<String, BinaryObject> row = buildRow(put);
-            for (Map.Entry<String,BinaryObject> entry : row.entrySet()) {
-                 cache.put(entry.getKey(), entry.getValue());
+            if (elementType.equals(ElementType.EDGE)) {
+                putEdge(ignitePut);
             }
+            else if (elementType.equals(ElementType.VERTEX)) {
+                putVertex(ignitePut);
+            }
+            else
+                throw new Exception("Table '" + name +  "' is not supported.");
+
             return true;
 
         } catch (Exception e) {
@@ -66,20 +65,139 @@ public class IgniteTable {
         }
 
     }
+    /**
+     * Delete supports deletion of an entire element
+     * (edge or vertex) and also the removal of a certain
+     * property.
+     */
+    public boolean delete(IgniteDelete igniteDelete) throws Exception {
+
+        if (connect == null) return false;
+        if (connect.getIgnite() == null) return false;
+
+        try {
+
+            if (elementType.equals(ElementType.EDGE)) {
+                deleteEdge(igniteDelete);
+            }
+            else if (elementType.equals(ElementType.VERTEX)) {
+                deleteVertex(igniteDelete);
+            }
+            else
+                throw new Exception("Table '" + name +  "' is not supported.");
+
+             return true;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public Object increment(IgniteIncrement igniteIncrement) throws Exception {
+
+        if (connect == null) return false;
+        if (connect.getIgnite() == null) return false;
+        /*
+         * In case of an increment, the respective incremented
+         * value is returned,
+         */
+        try {
+
+            if (elementType.equals(ElementType.EDGE)) {
+                return incrementEdge(igniteIncrement);
+            }
+            else if (elementType.equals(ElementType.VERTEX)) {
+                return incrementVertex(igniteIncrement);
+            }
+            else
+                throw new Exception("Table '" + name +  "' is not supported.");
+
+
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    public void batch(List<IgniteMutation> mutations, Object[] results) throws Exception {
+
+         for (int i = 0; i < mutations.size(); i++) {
+             /*
+              * Determine the respective mutation
+              */
+             IgniteMutation mutation = mutations.get(i);
+             if (mutation.mutationType.equals(IgniteMutationType.DELETE)) {
+
+                 IgniteDelete deleteMutation = (IgniteDelete)mutation;
+
+                 boolean success = delete(deleteMutation);
+                 if (!success) {
+                     /*
+                      * See [Mutators]: In case of a failed delete
+                      * operation an exception is returned
+                      */
+                     results[i] = new Exception(
+                         "Deletion of element '" + deleteMutation.getId().toString() + "' failed in table '" + name + "'.");
+
+                 }
+                 else
+                     results[i] = deleteMutation.getId();
+
+             }
+             else if (mutation.mutationType.equals(IgniteMutationType.INCREMENT)) {
+
+                 IgniteIncrement incrementMutation = (IgniteIncrement)mutation;
+
+                 Object value = increment(incrementMutation);
+                 if (value == null) {
+                     /*
+                      * See [Mutators]: In case of a failed delete
+                      * operation an exception is returned
+                      */
+                     results[i] = new Exception(
+                             "Increment of element '" + incrementMutation.getId().toString() + "' failed in table '" + name + "'.");
+
+                 }
+                 else
+                     results[i] = value;
+
+             }
+             else {
+
+                 IgnitePut putMutation = (IgnitePut)mutation;
+
+                 boolean success = put(putMutation);
+                 if (!success) {
+                     /*
+                      * See [Mutators]: In case of a failed delete
+                      * operation an exception is returned
+                      */
+                     results[i] = new Exception(
+                             "Deletion of element '" + putMutation.getId().toString() + "' failed in table '" + name + "'.");
+
+                 }
+                 else
+                     results[i] = putMutation.getId();
+                 // TODO
+
+             }
+
+        }
+    }
 
     private Map<String,BinaryObject> buildRow(IgnitePut put) throws Exception {
 
-        if (name.equals(IgniteUtils.namespace + "_" + IgniteConstants.EDGES)) {
+        if (elementType.equals(ElementType.EDGE)) {
             return buildEdgeRow(put);
         }
-        if (name.equals(IgniteUtils.namespace + "_" + IgniteConstants.VERTICES)) {
+        if (elementType.equals(ElementType.VERTEX)) {
             return buildVertexRow(put);
         }
         throw new Exception("Table '" + name +  "' is not supported.");
 
     }
 
-    private Map<String, BinaryObject> buildEdgeRow(IgnitePut put) throws NoSuchAlgorithmException {
+    private Map<String, BinaryObject> buildEdgeRow(IgnitePut put) throws Exception {
 
         Map<String, BinaryObject> row = new HashMap<>();
 
@@ -146,9 +264,6 @@ public class IgniteTable {
 
                 String colValue = property.getColValue().toString();
                 valueBuilder.setField(IgniteConstants.PROPERTY_VALUE_COL_NAME, colValue);
-
-                ByteBuffer colBuffer = ByteBuffer.wrap(property.getColBytes());
-                valueBuilder.setField(IgniteConstants.BYTE_BUFFER_COL_NAME, colBuffer);
                 /*
                  * Build cache entry key
                  */
@@ -171,7 +286,7 @@ public class IgniteTable {
         return row;
     }
 
-    private Map<String,BinaryObject> buildVertexRow(IgnitePut put) throws NoSuchAlgorithmException {
+    private Map<String,BinaryObject> buildVertexRow(IgnitePut put) throws Exception {
 
         Map<String,BinaryObject> row = new HashMap<>();
 
@@ -237,9 +352,6 @@ public class IgniteTable {
 
                 String colValue = property.getColValue().toString();
                 valueBuilder.setField(IgniteConstants.PROPERTY_VALUE_COL_NAME, colValue);
-
-                ByteBuffer colBuffer = ByteBuffer.wrap(property.getColBytes());
-                valueBuilder.setField(IgniteConstants.BYTE_BUFFER_COL_NAME, colBuffer);
                 /*
                  * Build cache entry key
                  */
@@ -262,8 +374,8 @@ public class IgniteTable {
         return row;
     }
 
-    private BinaryObjectBuilder buildEdgeBuilder(List<IgniteColumn> attributes) {
-        BinaryObjectBuilder valueBuilder = context.getIgnite().binary().builder(name);
+    private BinaryObjectBuilder buildEdgeBuilder(List<IgniteColumn> attributes) throws Exception {
+        BinaryObjectBuilder valueBuilder = connect.getIgnite().binary().builder(name);
         for (IgniteColumn attribute : attributes) {
 
             switch (attribute.getColName()) {
@@ -324,8 +436,8 @@ public class IgniteTable {
         return valueBuilder;
     }
 
-    private BinaryObjectBuilder buildVertexBuilder(List<IgniteColumn> attributes) {
-        BinaryObjectBuilder valueBuilder = context.getIgnite().binary().builder(name);
+    private BinaryObjectBuilder buildVertexBuilder(List<IgniteColumn> attributes) throws Exception {
+        BinaryObjectBuilder valueBuilder = connect.getIgnite().binary().builder(name);
         for (IgniteColumn attribute : attributes) {
 
             switch (attribute.getColName()) {
@@ -381,18 +493,12 @@ public class IgniteTable {
         return parts;
     }
 
-    // TODO
-
-    public void batch(List<IgniteMutation> mutations, Object[] results) {
-        // TODO
-    }
-
     /**
      * Retrieve all elements (edges or vertices) that refer
      * to the provided list of identifiers
      */
     public IgniteResult[] get(List<Object> ids) {
-        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, context, ids);
+        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, connect, ids);
 
         List<IgniteResult> result = igniteQuery.getResult();
         return result.toArray(new IgniteResult[0]);
@@ -402,7 +508,7 @@ public class IgniteTable {
      * to the provided identifier
      */
     public IgniteResult get(Object id) {
-        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, context, id);
+        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, connect, id);
 
         List<IgniteResult> result = igniteQuery.getResult();
         if (result.isEmpty()) return null;
@@ -413,7 +519,7 @@ public class IgniteTable {
      * Returns an [IgniteQuery] to retrieve all elements
      */
     public IgniteQuery getAllQuery() {
-        return new IgniteAllQuery(name, context);
+        return new IgniteAllQuery(name, connect);
     }
 
     /**
@@ -421,7 +527,7 @@ public class IgniteTable {
      * that are referenced by a certain label
      */
     public IgniteQuery getLabelQuery(String label) {
-        return new IgniteLabelQuery(name, context, label);
+        return new IgniteLabelQuery(name, connect, label);
     }
     /**
      * Returns an [IgniteQuery] to retrieve a specified
@@ -429,22 +535,22 @@ public class IgniteTable {
      * of the cache
      */
     public IgniteQuery getLimitQuery(int limit) {
-        return new IgniteLimitQuery(name, context, limit);
+        return new IgniteLimitQuery(name, connect, limit);
     }
 
     public IgniteQuery getLimitQuery(Object fromId, int limit) {
-        return new IgniteLimitQuery(name, context, fromId, limit);
+        return new IgniteLimitQuery(name, connect, fromId, limit);
     }
 
     public IgniteQuery getLimitQuery(String label, String key, Object inclusiveFrom, int limit, boolean reversed) {
-        return new IgniteLimitQuery(name, context, label, key, inclusiveFrom, limit, reversed);    }
+        return new IgniteLimitQuery(name, connect, label, key, inclusiveFrom, limit, reversed);    }
     /**
      * Returns an [IgniteQuery] to retrieve all elements
      * that are referenced by a certain label and share
      * a certain property key and value
      */
     public IgniteQuery getPropertyQuery(String label, String key, Object value) {
-        return new IgnitePropertyQuery(name, context, label, key, value);
+        return new IgnitePropertyQuery(name, connect, label, key, value);
     }
     /**
      * Returns an [IgniteQuery] to retrieve all elements
@@ -452,7 +558,7 @@ public class IgniteTable {
      * a certain property key and value range
      */
     public IgniteQuery getRangeQuery(String label, String key, Object inclusiveFrom, Object exclusiveTo) {
-        return new IgniteRangeQuery(name, context, label, key, inclusiveFrom, exclusiveTo);
+        return new IgniteRangeQuery(name, connect, label, key, inclusiveFrom, exclusiveTo);
     }
 
     /** EDGE READ SUPPORT **/
@@ -462,7 +568,7 @@ public class IgniteTable {
      * vertex that match direction and the provided labels
      */
     public IgniteQuery getEdgesQuery(IgniteVertex vertex, Direction direction, String... labels) {
-        return new IgniteEdgesQuery(name, context, vertex.id(), direction, labels);
+        return new IgniteEdgesQuery(name, connect, vertex.id(), direction, labels);
     }
     /**
      * Method to retrieve all edges that refer to the provided
@@ -471,7 +577,7 @@ public class IgniteTable {
      */
     public IgniteQuery getEdgesQuery(IgniteVertex vertex, Direction direction, String label,
                                      String key, Object value) {
-        return new IgniteEdgesQuery(name, context, vertex.id(), direction, label, key, value);
+        return new IgniteEdgesQuery(name, connect, vertex.id(), direction, label, key, value);
     }
     /**
      * Method to retrieve all edges that refer to the provided
@@ -480,13 +586,13 @@ public class IgniteTable {
      */
     public IgniteQuery getEdgesInRangeQuery(IgniteVertex vertex, Direction direction, String label,
                                        String key, Object inclusiveFromValue, Object exclusiveToValue) {
-        return new IgniteEdgesInRangeQuery(name, context, vertex.id(), direction, label,
+        return new IgniteEdgesInRangeQuery(name, connect, vertex.id(), direction, label,
                 key, inclusiveFromValue, exclusiveToValue);
     }
 
     public IgniteQuery getEdgesWithLimitQuery(IgniteVertex vertex, Direction direction, String label,
                                       String key, Object fromValue, int limit, boolean reversed) {
-         return new IgniteEdgesWithLimitQuery(name, context, vertex.id(), direction, label,
+         return new IgniteEdgesWithLimitQuery(name, connect, vertex.id(), direction, label,
                 key, fromValue, limit, reversed);
 
     }

@@ -22,16 +22,13 @@ public class IgniteColumn {
 
     private final String colName;
     private String colType;
-
     private Object colValue;
-    private byte[] colBytes;
 
-    public IgniteColumn(String colName, String colType, Object colValue, byte[] colBuffer) {
+    public IgniteColumn(String colName, String colType, Object colValue) {
         this.colName = colName;
         this.colType = colType;
 
         this.colValue = colValue;
-        this.colBytes = colBuffer;
     }
 
     public IgniteColumn(String colName) {
@@ -48,10 +45,6 @@ public class IgniteColumn {
 
     public String getColType() {
         return colType;
-    }
-
-    public byte[] getColBytes() {
-        return colBytes;
     }
 
     public Object getColValue() {

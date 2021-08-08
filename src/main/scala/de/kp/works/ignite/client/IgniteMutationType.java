@@ -18,6 +18,8 @@ package de.kp.works.ignite.client;
  *
  */
 
-public abstract class IgniteMutation {
-    public IgniteMutationType mutationType;
+public enum IgniteMutationType {
+    DELETE,
+    INCREMENT,
+    PUT
 }
