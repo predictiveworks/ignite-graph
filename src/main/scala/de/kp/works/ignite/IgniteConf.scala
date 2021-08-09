@@ -61,10 +61,29 @@ object IgniteConf {
     }
   }
 
+  /**
+   * Retrieve the SSL/TLS configuration for subscription
+   * requests to the Orion Context Broker
+   */
+  def getFiwareSecurity:Config = {
+    val security = cfg.get.getConfig("security")
+    security.getConfig("fiware")
+  }
+
   def getIgniteCfg:Config = {
     if (cfg.isDefined) cfg.get.getConfig("ignite")
     else
       throw new Exception(s"Run `init` to initialize configuration.")
+  }
+  /**
+   * Retrieve the SSL/TLS configuration for notification
+   * requests from the Orion Context Broker
+   */
+  def getServerSecurity:Config = {
+
+    val security = cfg.get.getConfig("security")
+    security.getConfig("server")
+
   }
 
 }
