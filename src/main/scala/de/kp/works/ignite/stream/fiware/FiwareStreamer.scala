@@ -22,7 +22,19 @@ package de.kp.works.ignite.stream.fiware
 import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
-class FiwareStreamer[K,V](properties:Map[String,String]) extends StreamAdapter[FiwareMessage, K, V] {streamer =>
+trait FiwareNotificationCallback {
+
+  def connectionLost():Unit
+
+  def notificationArrived(notification:FiwareNotification):Unit
+
+}
+/**
+ * [FiwareStreamer] class is responsible for write Fiware
+ * notification to a temporary Ignite cache
+ */
+class FiwareStreamer[K,V](properties:Map[String,String])
+  extends StreamAdapter[FiwareNotification, K, V] with FiwareNotificationCallback {
 
   /** Logger. */
   private val log:IgniteLogger = null
@@ -48,4 +60,39 @@ class FiwareStreamer[K,V](properties:Map[String,String]) extends StreamAdapter[F
 
   }
 
+  /********************************
+   *
+   *  Fiware Notification server
+   *  callback methods
+   *
+   *******************************/
+
+  override def connectionLost():Unit = {
+  }
+
+  override def notificationArrived(notification: FiwareNotification): Unit = {
+    /*
+     * The leveraged extractors below must be explicitly
+     * defined when initiating this streamer
+     */
+    if (getMultipleTupleExtractor != null) {
+
+      val entries:java.util.Map[K,V] = getMultipleTupleExtractor.extract(notification)
+      if (log.isTraceEnabled)
+        log.trace("Adding cache entries: " + entries)
+
+      getStreamer.addData(entries)
+
+    }
+    else {
+
+      val entry:java.util.Map.Entry[K,V] = getSingleTupleExtractor.extract(notification)
+      if (log.isTraceEnabled)
+        log.trace("Adding cache entry: " + entry)
+
+      getStreamer.addData(entry)
+
+    }
+
+  }
 }

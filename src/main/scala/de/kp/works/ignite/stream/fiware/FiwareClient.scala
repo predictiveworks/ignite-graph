@@ -1,5 +1,4 @@
 package de.kp.works.ignite.stream.fiware
-
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -27,9 +26,14 @@ import de.kp.works.ignite.ssl.SslHelper
 
 import scala.concurrent.Future
 /**
+ * The FiwareClient is used to connect to the Orion
+ * Context Broker and subscribe to certain events.
  *
+ * The Fiware implementation requires a (public)
+ * endpoint, the Orion Context Broker can send its
+ * notifications to.
  */
-class OrionClient(brokerUrl:String) {
+class FiwareClient(brokerUrl:String) {
 
   private var sid:Option[String] = None
   /*
