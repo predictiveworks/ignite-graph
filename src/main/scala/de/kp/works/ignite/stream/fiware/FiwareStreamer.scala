@@ -32,7 +32,7 @@ trait FiwareNotificationCallback {
  * [FiwareStreamer] class is responsible for write Fiware
  * notification to a temporary Ignite cache
  */
-class FiwareStreamer[K,V](properties:Map[String,String])
+class FiwareStreamer[K,V]
   extends StreamAdapter[FiwareNotification, K, V] with FiwareNotificationCallback {
 
   /** Logger. */

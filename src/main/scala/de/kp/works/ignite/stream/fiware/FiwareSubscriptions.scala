@@ -99,4 +99,8 @@ object FiwareSubscriptions {
   def register(sid:String, subscription:String):Unit = {
     registry += sid -> subscription
   }
+
+  def isRegistered(sid:String):Boolean = {
+    registry.contains(sid)
+  }
 }

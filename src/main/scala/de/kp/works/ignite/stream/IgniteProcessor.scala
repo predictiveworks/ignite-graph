@@ -1,4 +1,8 @@
 package de.kp.works.ignite.stream
+
+import org.apache.ignite.{Ignite, IgniteCache}
+import org.apache.ignite.binary.BinaryObject
+
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,7 +22,10 @@ package de.kp.works.ignite.stream
  *
  */
 
-class IgniteProcessor {
+class IgniteProcessor(
+  cache:IgniteCache[String,BinaryObject],
+  ignite:Ignite) {
+
   /*
    * These flags control shutdown mechanism
    */

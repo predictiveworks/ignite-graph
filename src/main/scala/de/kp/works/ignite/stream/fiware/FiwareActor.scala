@@ -127,7 +127,13 @@ abstract class BaseActor extends Actor with ActorLogging {
   }
 
 }
-
+/**
+ * The [FiwareActor] is responsible for executing HTTP based
+ * notification requests from the Orion Broker. Each notification
+ * is checked whether it refers to a registered subscriptions,
+ * and, if this is the case, further processing is delegated to
+ * the Ignite (Fiware) Streamer
+ */
 class FiwareActor(callback:FiwareNotificationCallback) extends BaseActor {
 
   import FiwareActor._
@@ -150,7 +156,37 @@ class FiwareActor(callback:FiwareNotificationCallback) extends BaseActor {
    * further processing to the provided callback
    */
   private def execute(request: HttpRequest):Unit = {
-    // TODO
+    /*
+     * Convert Http request from Orion Broker
+     * into internal notification format
+     */
+    val notification = toFiwareNotification(request)
+    /*
+     * Before we continue to delegate the notification
+     * to the Ignite streamer, we check whether the
+     * notification refers to a registered subscription.
+     */
+    val json = notification.payload
+    /*
+     * {
+        "data": [
+            {
+                "id": "Room1",
+                "temperature": {
+                    "metadata": {},
+                    "type": "Float",
+                    "value": 28.5
+                },
+                "type": "Room"
+            }
+        ],
+        "subscriptionId": "57458eb60962ef754e7c0998"
+       }
+     */
+    val sid = json.get("subscriptionId").getAsString
+    if (FiwareSubscriptions.isRegistered(sid))
+      callback.notificationArrived(notification)
+
   }
 }
 
