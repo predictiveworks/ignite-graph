@@ -18,4 +18,9 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
-case class FiwareNotification()
+import com.google.gson.JsonObject
+
+case class FiwareNotification(
+  service:String,
+  servicePath:String,
+  payload:JsonObject)

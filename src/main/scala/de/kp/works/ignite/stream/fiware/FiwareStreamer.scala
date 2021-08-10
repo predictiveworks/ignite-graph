@@ -1,5 +1,4 @@
 package de.kp.works.ignite.stream.fiware
-
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -49,6 +48,8 @@ class FiwareStreamer[K,V](properties:Map[String,String])
     if (!stopped)
       throw new IgniteException("Attempted to start an already started Orion Streamer.")
 
+    // TODO Start the Fiware Server
+
   }
 
   /** Stop streamer **/
@@ -57,6 +58,8 @@ class FiwareStreamer[K,V](properties:Map[String,String])
 
     if (stopped)
       throw new IgniteException("Failed to stop Orion Streamer (already stopped).")
+
+    // TODO Stop the Fiware Server
 
   }
 

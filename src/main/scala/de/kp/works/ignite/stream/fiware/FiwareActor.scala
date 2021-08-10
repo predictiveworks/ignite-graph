@@ -27,8 +27,7 @@ import com.google.gson._
 
 import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration._
-
-case class FiwareRequest(service:String, servicePath:String, payload:JsonObject)
+import scala.util.Try
 
 abstract class BaseActor extends Actor with ActorLogging {
   /**
@@ -99,7 +98,7 @@ abstract class BaseActor extends Actor with ActorLogging {
    * request and to transform into an internal JSON format for
    * further processing.
    */
-  def toFiwareRequest(request:HttpRequest):FiwareRequest = {
+  def toFiwareNotification(request:HttpRequest):FiwareNotification = {
 
     /** HEADERS **/
 
@@ -118,17 +117,45 @@ abstract class BaseActor extends Actor with ActorLogging {
      * We do not expect to retrieve large messages
      * and accept a blocking wait
      */
-    val bytes = Await.result(future, timeout.duration).asInstanceOf[ByteString]
+    val bytes = Await.result(future, timeout.duration)
     val body = bytes.decodeString("UTF-8")
 
     /* We expect that the Orion Context Broker sends a JSON object */
     val payload = JsonParser.parseString(body).getAsJsonObject
-    FiwareRequest(service, servicePath, payload)
+    FiwareNotification(service, servicePath, payload)
 
   }
 
 }
 
-class FiwareActor {
+class FiwareActor(callback:FiwareNotificationCallback) extends BaseActor {
+
+  import FiwareActor._
+
+  override def receive: Receive = {
+
+    case request: HttpRequest =>
+      sender ! Response(Try({
+        execute(request)
+      })
+        .recover {
+          case e: Exception =>
+            throw new Exception(e.getMessage)
+        })
+
+  }
+  /**
+   * Method to transform an Orion Broker notification
+   * message into an internal format and to delegate
+   * further processing to the provided callback
+   */
+  private def execute(request: HttpRequest):Unit = {
+    // TODO
+  }
+}
+
+object FiwareActor {
+
+  case class Response(status: Try[_])
 
 }

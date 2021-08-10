@@ -19,7 +19,6 @@ package de.kp.works.ignite.stream
  */
 
 import org.apache.ignite.binary.BinaryObject
-
 import scala.actors.threadpool._
 
 abstract class IgniteStreamContext {

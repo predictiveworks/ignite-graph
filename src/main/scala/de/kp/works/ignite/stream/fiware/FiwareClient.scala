@@ -32,9 +32,7 @@ import scala.concurrent.Future
  * endpoint, the Orion Context Broker can send its
  * notifications to.
  */
-class FiwareClient(brokerUrl:String) {
-
-  private var sid:Option[String] = None
+object FiwareClient {
   /*
    * {
    *		"description": "A subscription to get info about Room1",
@@ -53,7 +51,7 @@ class FiwareClient(brokerUrl:String) {
    *  },
    *  "notification": {
    *    "http": {
-   *      "url": "http://localhost:1028/accumulate"
+   *      "url": "http://localhost:9080/notifications"
    *    },
    *    "attrs": [
    *      "temperature"
@@ -73,6 +71,7 @@ class FiwareClient(brokerUrl:String) {
        * Build request: A subscription is registered with a POST request
        * to /v2/subscriptions
        */
+      val brokerUrl = FiwareConf.getBrokerUrl
       val endpoint = s"$brokerUrl/v2/subscriptions"
 
       val headers = List(`Content-Type`(`text/plain(UTF-8)`))
@@ -113,12 +112,14 @@ class FiwareClient(brokerUrl:String) {
    * Broker response is 201 (Created) and then the subscription ID is
    * extracted from the provided 'Location' header
    */
-  def registerSubscription(response:HttpResponse):Unit = {
+  def getSubscriptionId(response:HttpResponse):String = {
+
+    var sid:Option[String] = None
 
     val statusCode = response._1
     if (statusCode == StatusCodes.Created) {
       /*
-       * The Orion Context Broker respons with a 201 Created response
+       * The Orion Context Broker responds with a 201 Created response
        * code; the subscription identifier is provided through the
        * Location Header
        */
@@ -135,7 +136,7 @@ class FiwareClient(brokerUrl:String) {
            * used to identify the notifications that refer to this
            * subscription
            */
-          sid = Option(header.value().replace("/v2/subscriptions/",""))
+          sid = Some(header.value().replace("/v2/subscriptions/",""))
         }
 
       })
@@ -143,6 +144,8 @@ class FiwareClient(brokerUrl:String) {
 
     if (sid.isEmpty)
       throw new Exception("Orion Context Broker did not respond with a subscription response.")
+
+    sid.get
 
   }
 

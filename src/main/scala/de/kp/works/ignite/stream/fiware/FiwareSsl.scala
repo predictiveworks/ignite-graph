@@ -36,6 +36,15 @@ object FiwareSsl {
     if (cfg.getString("ssl") == "false") false else true
   }
 
+  def isServerSsl: Boolean = {
+    /*
+      * Distinguish between SSL/TLS and non-SSL/TLS requests;
+      * note, [IgniteConf] must be initialized.
+      */
+    val cfg = IgniteConf.getServerSecurity
+    if (cfg.getString("ssl") == "false") false else true
+  }
+
   def buildFiwareContext: HttpsConnectionContext = {
     val cfg = IgniteConf.getFiwareSecurity
     ConnectionContext.https(buildSSLContext(cfg))
