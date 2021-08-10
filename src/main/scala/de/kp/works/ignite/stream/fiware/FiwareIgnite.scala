@@ -41,21 +41,25 @@ class FiwareIgnite(ignite:Ignite) {
    *
    * - timeWindow
    * - ignite.autoFlushFrequency
+   * - ignite.numThreads
    */
   def buildStream(props:Properties):Option[IgniteStreamContext] = {
 
     try {
 
       val (cache,streamer) = prepareFiwareStreamer(props)
-      /*
-       * Prepare INGESTION stream processor, which is responsible
-       * for data operations on the streamed notifications
-       */
+      val numThreads = {
+        if (props.containsKey("ignite.numThreads"))
+          props.getProperty("ignite.numThreads").toInt
+
+        else
+          1
+      }
       val stream: IgniteStream = new IgniteStream {
         override val processor = new FiwareProcessor(cache,ignite, props)
       }
 
-      Some(new IgniteFiwareContext(stream,streamer))
+      Some(new IgniteFiwareContext(stream,streamer, numThreads))
 
     } catch {
       case t:Throwable =>

@@ -102,13 +102,6 @@ object FiwareConf {
     fiwareCfg.getConfig("actor")
 
   }
-  def getBrokerUrl: String = brokerUrl
-  /**
-   * The host & port configuration of the HTTP server that
-   * is used as a notification endpoint for an Orion Context
-   * Broker instance
-   */
-  def getServerBinding: (String, Int) = (httpHost, httpPort)
   /**
    * Retrieve the SSL/TLS configuration for subscription
    * requests to the Orion Context Broker
@@ -117,15 +110,21 @@ object FiwareConf {
     val security = cfg.get.getConfig("security")
     security.getConfig("fiware")
   }
+
+  def getBrokerUrl: String = brokerUrl
+  /**
+   * The host & port configuration of the HTTP server that
+   * is used as a notification endpoint for an Orion Context
+   * Broker instance
+   */
+  def getServerBinding: (String, Int) = (httpHost, httpPort)
   /**
    * Retrieve the SSL/TLS configuration for notification
    * requests from the Orion Context Broker
    */
   def getServerSecurity:Config = {
-
     val security = cfg.get.getConfig("security")
     security.getConfig("server")
-
   }
   /**
    * The name of Actor System used

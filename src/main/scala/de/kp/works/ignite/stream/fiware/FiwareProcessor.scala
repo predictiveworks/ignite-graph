@@ -59,11 +59,15 @@ class FiwareProcessor(
    * Ignite cache, retrieve the results and write them to the
    * eventStore
    */
-  override protected def extractEntries(): Unit = ???
+  override protected def extractEntries(): Unit = {
+    // TODO
+  }
 
   /**
    * A helper method to process the extracted cache entries
    * and transform and write to predefined output
    */
-  override protected def processEntries(): Unit = ???
+  override protected def processEntries(): Unit = {
+    // TODO
+  }
 }
