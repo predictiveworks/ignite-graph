@@ -19,13 +19,51 @@ package de.kp.works.ignite.stream.fiware
  */
 
 import de.kp.works.ignite.stream.IgniteProcessor
-import org.apache.ignite.{Ignite, IgniteCache}
 import org.apache.ignite.binary.BinaryObject
+import org.apache.ignite.cache.query.SqlFieldsQuery
+import org.apache.ignite.{Ignite, IgniteCache}
+
+import java.util.Properties
 
 class FiwareProcessor(
   cache:IgniteCache[String,BinaryObject],
-  ignite:Ignite) extends IgniteProcessor(cache, ignite) {
+  ignite:Ignite,
+  properties:Properties) extends IgniteProcessor(cache, ignite) {
 
-  // TODO
+  private val notificationFields = Array(
+    "_key",
+    FiwareConstants.FIELD_SERVICE,
+    FiwareConstants.FIELD_SERVICE_PATH,
+    FiwareConstants.FIELD_PAYLOAD).mkString(",")
+  /**
+   * Apache Ignite SQL query to retrieve the content of
+   * the temporary notification cache including the _key
+   */
+  private val eventQuery =
+    new SqlFieldsQuery(s"select $notificationFields from ${FiwareConstants.FIWARE_CACHE}")
+  /**
+   * The frequency we flush the internal store and write
+   * data to the predefined output is currently set to
+   * 2 times of the stream buffer flush frequency
+   */
+  override val flushWindow:Int = {
+    if (properties.containsKey("flushWindow"))
+      properties.getProperty("flushWindow").toInt
 
+    else
+      DEFAULT_FLUSH_WINDOW.toInt
+  }
+
+  /**
+   * A helper method to apply the event query to the selected
+   * Ignite cache, retrieve the results and write them to the
+   * eventStore
+   */
+  override protected def extractEntries(): Unit = ???
+
+  /**
+   * A helper method to process the extracted cache entries
+   * and transform and write to predefined output
+   */
+  override protected def processEntries(): Unit = ???
 }

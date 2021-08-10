@@ -36,17 +36,6 @@ import scala.collection.JavaConversions.mapAsJavaMap
  * processing as edges & vertices of an information network.
  */
 class FiwareIgnite(ignite:Ignite) {
-
-  /**
-   * The cache name used to temporarily store
-   * Orion Broker notification messages
-   */
-  private val FIWARE_CACHE:String = "fiware_notifications"
-
-  private val FIELD_SERVICE:String      = "service"
-  private val FIELD_SERVICE_PATH:String = "service_path"
-  private val FIELD_PAYLOAD:String      = "payload"
-
   /**
    * Properties:
    *
@@ -63,7 +52,7 @@ class FiwareIgnite(ignite:Ignite) {
        * for data operations on the streamed notifications
        */
       val stream: IgniteStream = new IgniteStream {
-        override val processor = new FiwareProcessor(cache,ignite)
+        override val processor = new FiwareProcessor(cache,ignite, props)
       }
 
       Some(new IgniteFiwareContext(stream,streamer))
@@ -148,7 +137,7 @@ class FiwareIgnite(ignite:Ignite) {
      * Configure streaming cache.
      */
     val cfg = new CacheConfiguration[String,BinaryObject]()
-    cfg.setName(FIWARE_CACHE)
+    cfg.setName(FiwareConstants.FIWARE_CACHE)
     /*
      * Specify Apache Ignite cache configuration; it is
      * important to leverage 'BinaryObject' as well as
@@ -176,24 +165,24 @@ class FiwareIgnite(ignite:Ignite) {
     val queryEntity = new QueryEntity()
 
     queryEntity.setKeyType("java.lang.String")
-    queryEntity.setValueType(FIWARE_CACHE)
+    queryEntity.setValueType(FiwareConstants.FIWARE_CACHE)
 
     val fields = new java.util.LinkedHashMap[String,String]()
     /*
      * The service that is associated
      * with the notification
      */
-    fields.put(FIELD_SERVICE,"java.lang.String")
+    fields.put(FiwareConstants.FIELD_SERVICE,"java.lang.String")
     /*
      * The service path that is associated
      * with the notification
      */
-    fields.put(FIELD_SERVICE_PATH,"java.lang.String")
+    fields.put(FiwareConstants.FIELD_SERVICE_PATH,"java.lang.String")
     /*
      * The payload that is associated
      * with the notification
      */
-    fields.put(FIELD_PAYLOAD,"java.lang.String")
+    fields.put(FiwareConstants.FIELD_PAYLOAD,"java.lang.String")
 
     queryEntity.setFields(fields)
     queryEntity
@@ -209,11 +198,11 @@ class FiwareIgnite(ignite:Ignite) {
         val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
         try {
 
-          val builder = ignite.binary().builder(FIWARE_CACHE)
-          builder.setField(FIELD_SERVICE, notification.service)
+          val builder = ignite.binary().builder(FiwareConstants.FIWARE_CACHE)
+          builder.setField(FiwareConstants.FIELD_SERVICE, notification.service)
 
-          builder.setField(FIELD_SERVICE_PATH, notification.servicePath)
-          builder.setField(FIELD_PAYLOAD, notification.payload.toString)
+          builder.setField(FiwareConstants.FIELD_SERVICE_PATH, notification.servicePath)
+          builder.setField(FiwareConstants.FIELD_PAYLOAD, notification.payload.toString)
 
           val cacheKey = java.util.UUID.randomUUID.toString
           val cacheValue = builder.build()
@@ -235,8 +224,8 @@ class FiwareIgnite(ignite:Ignite) {
   private def deleteCache():Unit = {
     try {
 
-      if (ignite.cacheNames().contains(FIWARE_CACHE)) {
-        val cache = ignite.cache(FIWARE_CACHE)
+      if (ignite.cacheNames().contains(FiwareConstants.FIWARE_CACHE)) {
+        val cache = ignite.cache(FiwareConstants.FIWARE_CACHE)
         cache.destroy()
       }
 
