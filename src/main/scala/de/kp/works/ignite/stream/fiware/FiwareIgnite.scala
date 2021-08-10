@@ -28,6 +28,7 @@ import org.apache.ignite.cache.QueryEntity
 import org.apache.ignite.configuration.CacheConfiguration
 import org.apache.ignite.stream.StreamSingleTupleExtractor
 
+import java.security.MessageDigest
 import java.util.Properties
 import scala.collection.JavaConversions.mapAsJavaMap
 /**
@@ -208,8 +209,20 @@ class FiwareIgnite(ignite:Ignite) {
           builder.setField(FiwareConstants.FIELD_SERVICE_PATH, notification.servicePath)
           builder.setField(FiwareConstants.FIELD_PAYLOAD, notification.payload.toString)
 
-          val cacheKey = java.util.UUID.randomUUID.toString
           val cacheValue = builder.build()
+          /*
+           * The cache key is built from the content
+           * to enable the detection of duplicates.
+           *
+           * (see FiwareProcessor)
+           */
+          val serialized = Seq(
+            notification.service,
+            notification.servicePath,
+            notification.payload.toString).mkString("#")
+
+          val cacheKey = new String(MessageDigest.getInstance("MD5")
+            .digest(serialized.getBytes("UTF-8")))
 
           entries.put(cacheKey,cacheValue)
 

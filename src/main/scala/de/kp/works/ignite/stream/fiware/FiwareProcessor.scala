@@ -18,12 +18,15 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
+import com.google.gson.JsonParser
 import de.kp.works.ignite.stream.IgniteProcessor
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.query.SqlFieldsQuery
 import org.apache.ignite.{Ignite, IgniteCache}
 
 import java.util.Properties
+import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.mutable
 
 class FiwareProcessor(
   cache:IgniteCache[String,BinaryObject],
@@ -39,8 +42,14 @@ class FiwareProcessor(
    * Apache Ignite SQL query to retrieve the content of
    * the temporary notification cache including the _key
    */
-  private val eventQuery =
+  private val notificationQuery =
     new SqlFieldsQuery(s"select $notificationFields from ${FiwareConstants.FIWARE_CACHE}")
+  /**
+   * This store is introduced to collect the result from the
+   * event query in a distinct manner; the eventStore is used
+   * as a buffer before it is flushed and cleared
+   */
+  private val notificationStore = mutable.HashMap.empty[String,FiwareNotification]
   /**
    * The frequency we flush the internal store and write
    * data to the predefined output is currently set to
@@ -60,7 +69,35 @@ class FiwareProcessor(
    * eventStore
    */
   override protected def extractEntries(): Unit = {
-    // TODO
+
+    val keys = new java.util.HashSet[String]()
+    /*
+     * Extract & transform cache entries
+     */
+    readEvents().foreach(values => {
+      val k = values.head.asInstanceOf[String]
+      keys.add(k)
+
+      val mutable.Buffer(service, servicePath, payload) =
+        values.tail.map(_.asInstanceOf[String])
+
+      notificationStore += k -> FiwareNotification(service,servicePath, JsonParser.parseString(payload).getAsJsonObject)
+    })
+    /*
+     * Clear extracted cache entries fast
+     */
+    cache.clearAll(keys)
+  }
+  /**
+   * This method is responsible for retrieving the streaming
+   * events, i.e. entries of the Apache Ignite stream cache
+   */
+  private def readEvents():java.util.List[java.util.List[_]] = {
+    /*
+     * The default processing retrieves all entries of the
+     * Apache Ignite stream cache without preprocessing
+     */
+    cache.query(notificationQuery).getAll()
   }
 
   /**
@@ -68,6 +105,45 @@ class FiwareProcessor(
    * and transform and write to predefined output
    */
   override protected def processEntries(): Unit = {
-    // TODO
+    /*
+     * Extract notifications from store, clear
+     * store immediately afterwards and send to
+     * transformation stage
+     */
+    val notifications = notificationStore.values.toSeq
+    notificationStore.clear
+
+    transform(notifications)
+  }
+
+  private def transform(notifications:Seq[FiwareNotification]):Unit = {
+
+    notifications.foreach(notification => {
+
+      val service = notification.service
+      val servicePath = notification.servicePath
+
+      val payload = notification.payload
+      /*
+       * {
+       *  "data": [
+       *      {
+       *          "id": "Room1",
+       *          "temperature": {
+       *              "metadata": {},
+       *              "type": "Float",
+       *              "value": 28.5
+       *          },
+       *          "type": "Room"
+       *      }
+       *  ],
+       *  "subscriptionId": "57458eb60962ef754e7c0998"
+       * }
+       */
+      val data = payload.get("data").getAsJsonArray
+
+      // TODO
+
+    })
   }
 }
