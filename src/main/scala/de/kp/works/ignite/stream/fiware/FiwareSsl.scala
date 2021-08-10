@@ -1,4 +1,4 @@
-package de.kp.works.ignite.ssl
+package de.kp.works.ignite.stream.fiware
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -21,12 +21,13 @@ package de.kp.works.ignite.ssl
 import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
 import com.typesafe.config.Config
 import de.kp.works.ignite.IgniteConf
+import de.kp.works.ignite.ssl.SslOptions
 
 import javax.net.ssl.SSLContext
 
-object SslHelper {
+object FiwareSsl {
 
-  def isFiwareSsl:Boolean = {
+  def isFiwareSsl: Boolean = {
     /*
       * Distinguish between SSL/TLS and non-SSL/TLS requests;
       * note, [IgniteConf] must be initialized.

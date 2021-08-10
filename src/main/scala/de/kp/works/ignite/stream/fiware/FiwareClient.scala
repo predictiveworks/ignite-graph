@@ -22,7 +22,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
-import de.kp.works.ignite.ssl.SslHelper
 
 import scala.concurrent.Future
 /**
@@ -83,7 +82,7 @@ class FiwareClient(brokerUrl:String) {
 
       val response: Future[HttpResponse] = {
 
-        if (!SslHelper.isFiwareSsl)
+        if (!FiwareSsl.isFiwareSsl)
          /*
           * The request protocol in the broker url must be
           * specified as 'http://'
@@ -96,7 +95,7 @@ class FiwareClient(brokerUrl:String) {
            * specified as 'https://'. In this case, an SSL
            * security context must be specified
            */
-          val context = SslHelper.buildFiwareContext
+          val context = FiwareSsl.buildFiwareContext
           Http(system).singleRequest(request = request, connectionContext = context)
 
         }

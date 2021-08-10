@@ -18,6 +18,12 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
+import akka.actor.{ActorSystem, Props}
+import akka.util.Timeout
+
+import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.duration._
+
 /**
  * The notification endpoint, the Orion Context Broker
  * sends (subscribed) notifications to.
@@ -38,4 +44,33 @@ class FiwareServer {
     this.callback = Some(callback)
     this
   }
+  /**
+   * This method launches the Orion notification server and also subscribes
+   * to the Orion Context Broker for receiving NGSI event notifications
+   */
+  def launch(config:Option[String] = None):Unit = {
+
+    /* STEP #1: Read configuration and prepare
+     * for launching the Orion notification server
+     */
+    if (!FiwareConf.init(config))
+      throw new Exception("[FiwareServer] Loading configuration failed and server cannot be started.")
+
+    /* STEP #2: Launch notification server */
+
+    /*
+     * Akka 2.6 provides a default materializer out of the box, i.e., for Scala
+     * an implicit materializer is provided if there is an implicit ActorSystem
+     * available. This avoids leaking materializers and simplifies most stream
+     * use cases somewhat.
+     */
+    implicit val system: ActorSystem = ActorSystem(FiwareConf.getSystemName)
+    implicit lazy val context: ExecutionContextExecutor = system.dispatcher
+    /*
+   	 * Common timeout for all Akka connection
+     */
+    implicit val timeout: Timeout = Timeout(5.seconds)
+
+  }
+
 }
