@@ -18,9 +18,9 @@ package de.kp.works.ignite.rdd
  *
  */
 
-import de.kp.works.ignitegraph.{IgniteConstants, ValueType}
-import org.apache.ignite.binary.BinaryObject
-import org.apache.ignite.configuration.CacheConfiguration
+import de.kp.works.ignite.util.IgniteUtil
+import de.kp.works.ignitegraph.{ElementType, IgniteConstants, ValueType}
+import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.spark.IgniteContext
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.{col, collect_list, struct, udf}
@@ -31,15 +31,16 @@ import scala.collection.mutable.ArrayBuffer
  * certain graph namespace and transforms them
  * into a GraphFrame-like format.
  */
-class VertexRDDReader(
-   ic:IgniteContext,
-   namespace:String,
-   cfg:CacheConfiguration[String,BinaryObject]) extends RDDReader(ic, cfg) {
+class VertexRDDReader(ic:IgniteContext, namespace:String) extends RDDReader(ic) {
+
+  table = Some(namespace + "_" + IgniteConstants.VERTICES)
+
+  /* Build cache configuration */
+  cfg = Some(IgniteUtil.createCacheCfg(table.get, ElementType.VERTEX, CacheMode.REPLICATED))
 
   def vertices():DataFrame = {
 
-    val table = namespace + "_" + IgniteConstants.VERTICES
-    val dataframe = load(table, getFields)
+    val dataframe = load(getFields)
     /*
      * The dataframe contains the the cache entries and
      * we want to transform them into a vertex compliant

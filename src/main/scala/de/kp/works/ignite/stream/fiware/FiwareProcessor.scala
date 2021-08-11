@@ -19,6 +19,7 @@ package de.kp.works.ignite.stream.fiware
  */
 
 import com.google.gson.JsonParser
+import de.kp.works.conf.CommonConfig
 import de.kp.works.ignite.client.{IgniteConnect, IgnitePut, IgniteTable}
 import de.kp.works.ignite.stream.IgniteProcessor
 import de.kp.works.ignitegraph.IgniteConstants
@@ -55,7 +56,7 @@ class FiwareProcessor(
    * data to the predefined output is currently set to
    * 2 times of the stream buffer flush frequency
    */
-  private val conf = FiwareConf.getStreamerCfg
+  private val conf = CommonConfig.getStreamerCfg
   override val flushWindow:Int = conf.getInt("flushWindow")
 
   /**

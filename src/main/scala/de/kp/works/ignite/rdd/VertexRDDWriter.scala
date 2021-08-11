@@ -18,27 +18,31 @@ package de.kp.works.ignite.rdd
  *
  */
 
-import de.kp.works.ignitegraph.{IgniteConstants, ValueType}
-import org.apache.ignite.binary.BinaryObject
-import org.apache.ignite.configuration.CacheConfiguration
+import de.kp.works.ignite.util.IgniteUtil
+import de.kp.works.ignitegraph.{ElementType, IgniteConstants, ValueType}
+import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.spark.IgniteContext
 import org.apache.spark.sql.{DataFrame, Row}
 
-class VertexRDDWriter(
-  ic:IgniteContext,
-  namespace:String,
-  cfg:CacheConfiguration[String,BinaryObject]) extends RDDWriter(ic, cfg) {
+class VertexRDDWriter(ic:IgniteContext, namespace:String) extends RDDWriter(ic) {
 
-  val table: String = namespace + "_" + IgniteConstants.VERTICES
+  table = Some(namespace + "_" + IgniteConstants.VERTICES)
+
+  /* Build cache configuration */
+  cfg = Some(IgniteUtil.createCacheCfg(table.get, ElementType.VERTEX, CacheMode.REPLICATED))
+
+  /* Create cache */
+  IgniteUtil.createCacheIfNotExists(ic.ignite(), table.get, cfg.get)
+
   /**
    * This method auto-generates cache keys, i.e. this method
    * appends entries to an already existing vertex cache.
    */
   def write(dataframe:DataFrame, keepBinary:Boolean=false):Unit = {
 
-    save(dataframe, table, (row:Row, ic:IgniteContext) => {
+    save(dataframe, (row:Row, ic:IgniteContext) => {
 
-      val valueBuilder = ic.ignite().binary().builder(table)
+      val valueBuilder = ic.ignite().binary().builder(table.get)
       /*
        * Transform [Row] into a vertex-specific [BinaryObject]
        */

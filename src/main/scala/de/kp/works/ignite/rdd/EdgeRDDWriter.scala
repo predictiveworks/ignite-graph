@@ -18,27 +18,31 @@ package de.kp.works.ignite.rdd
  *
  */
 
-import de.kp.works.ignitegraph.{IgniteConstants, ValueType}
-import org.apache.ignite.binary.BinaryObject
-import org.apache.ignite.configuration.CacheConfiguration
+import de.kp.works.ignite.util.IgniteUtil
+import de.kp.works.ignitegraph.{ElementType, IgniteConstants, ValueType}
+import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.spark.IgniteContext
 import org.apache.spark.sql.{DataFrame, Row}
 
-class EdgeRDDWriter(
-   ic:IgniteContext,
-   namespace:String,
-   cfg:CacheConfiguration[String,BinaryObject]) extends RDDWriter(ic, cfg) {
+class EdgeRDDWriter(ic:IgniteContext, namespace:String) extends RDDWriter(ic) {
 
-  val table: String = namespace + "_" + IgniteConstants.EDGES
+  table = Some(namespace + "_" + IgniteConstants.EDGES)
+
+  /* Build cache configuration */
+  cfg = Some(IgniteUtil.createCacheCfg(table.get, ElementType.EDGE, CacheMode.REPLICATED))
+
+  /* Create cache */
+  IgniteUtil.createCacheIfNotExists(ic.ignite(), table.get, cfg.get)
+
   /**
    * This method auto-generates cache keys, i.e. this method
    * appends entries to an already existing edge cache.
    */
   def write(dataframe:DataFrame, keepBinary:Boolean=false):Unit = {
 
-    save(dataframe, table, (row:Row, ic:IgniteContext) => {
+    save(dataframe, (row:Row, ic:IgniteContext) => {
 
-      val valueBuilder = ic.ignite().binary().builder(table)
+      val valueBuilder = ic.ignite().binary().builder(table.get)
       /*
        * Transform [Row] into an edge-specific [BinaryObject]
        */

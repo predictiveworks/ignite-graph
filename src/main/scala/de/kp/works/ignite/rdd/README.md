@@ -4,4 +4,5 @@ This package supports read & write operations for edges and vertices and perfect
 fits into a DataFrame- or GraphFrame-centric analytics environment.
 
 The current implementation of write requests creates Ignite caches for the provided
-edge and vertex dataframes. It its intended to support bulk write operations.
+edge and vertex dataframes.
+

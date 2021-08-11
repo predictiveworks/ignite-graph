@@ -31,6 +31,7 @@ import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.{ByteString, Timeout}
+import de.kp.works.conf.CommonConfig
 import de.kp.works.ignite.stream.fiware.FiwareActor._
 
 import scala.concurrent.duration._
@@ -52,7 +53,7 @@ class FiwareServer {
    * available. This avoids leaking materializers and simplifies most stream
    * use cases somewhat.
    */
-  implicit val system: ActorSystem = ActorSystem(FiwareConf.getSystemName)
+  implicit val system: ActorSystem = ActorSystem(CommonConfig.getSystemName)
   implicit lazy val context: ExecutionContextExecutor = system.dispatcher
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -136,7 +137,7 @@ class FiwareServer {
       }
     }
 
-    val (host, port) = FiwareConf.getServerBinding
+    val (host, port) = CommonConfig.getServerBinding
     /*
      * Distinguish between SSL/TLS and non-SSL/TLS requests
      */

@@ -17,6 +17,7 @@ package de.kp.works.ignite.stream.fiware
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
+import de.kp.works.conf.CommonConfig
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.{IgniteFiwareContext, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
@@ -37,11 +38,11 @@ import scala.collection.JavaConversions.mapAsJavaMap
  */
 class FiwareIgnite(connect:IgniteConnect) {
 
-  if (!FiwareConf.isInit)
+  if (!CommonConfig.isInit)
     throw new Exception("[FiwareIgnite] No configuration initialized. Streaming cannot be started.")
 
   private val ignite = connect.getIgnite
-  private val conf = FiwareConf.getStreamerCfg
+  private val conf = CommonConfig.getStreamerCfg
 
   def buildStream:Option[IgniteStreamContext] = {
 

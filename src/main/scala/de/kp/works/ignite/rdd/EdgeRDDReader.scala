@@ -18,9 +18,9 @@ package de.kp.works.ignite.rdd
  *
  */
 
-import de.kp.works.ignitegraph.{IgniteConstants, ValueType}
-import org.apache.ignite.binary.BinaryObject
-import org.apache.ignite.configuration.CacheConfiguration
+import de.kp.works.ignite.util.IgniteUtil
+import de.kp.works.ignitegraph.{ElementType, IgniteConstants, ValueType}
+import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.spark.IgniteContext
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.{col, collect_list, struct, udf}
@@ -34,15 +34,17 @@ import scala.collection.mutable.ArrayBuffer
  * Note, the column names of `from` and `to` columns
  * must be adapted by the user.
  */
-class EdgeRDDReader(
-   ic:IgniteContext,
-   namespace:String,
-   cfg:CacheConfiguration[String,BinaryObject]) extends RDDReader(ic, cfg) {
+class EdgeRDDReader(ic:IgniteContext, namespace:String) extends RDDReader(ic) {
+
+  table = Some(namespace + "_" + IgniteConstants.EDGES)
+
+  /* Build cache configuration */
+  cfg = Some(IgniteUtil.createCacheCfg(table.get, ElementType.EDGE, CacheMode.REPLICATED))
+
 
   def edges(): DataFrame = {
 
-    val table = namespace + "_" + IgniteConstants.EDGES
-    val dataframe = load(table, getFields)
+    val dataframe = load(getFields)
     /*
      * The dataframe contains the the cache entries and
      * we want to transform them into an edge compliant

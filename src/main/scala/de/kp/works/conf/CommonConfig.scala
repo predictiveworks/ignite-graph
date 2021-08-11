@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware
+package de.kp.works.conf
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -19,8 +19,10 @@ package de.kp.works.ignite.stream.fiware
  */
 
 import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.ignite.configuration.IgniteConfiguration
+import org.apache.ignite.logger.java.JavaLogger
 
-object FiwareConf {
+object CommonConfig {
 
   private val path = "reference.conf"
   /*
@@ -28,7 +30,7 @@ object FiwareConf {
    * notification server and must adapted to the
    * current environment
    */
-  private var systemName = "fiware-server"
+  private val systemName = "fiware-server"
 
   private var brokerUrl = ""
 
@@ -41,9 +43,9 @@ object FiwareConf {
    * file that holds all configuration required for this
    * application
    */
-  private var cfg:Option[Config] = None
+  private var cfg: Option[Config] = None
 
-  def init(config:Option[String] = None):Boolean = {
+  def init(config: Option[String] = None): Boolean = {
 
     if (cfg.isDefined) true
     else {
@@ -68,17 +70,17 @@ object FiwareConf {
         true
 
       } catch {
-        case t:Throwable =>
+        case t: Throwable =>
           false
       }
     }
   }
 
-  def isInit:Boolean = {
+  def isInit: Boolean = {
     cfg.isDefined
   }
 
-  private def extractCfg():Unit = {
+  private def extractCfg(): Unit = {
 
     val fiwareCfg = cfg.get.getConfig("fiware")
 
@@ -95,45 +97,58 @@ object FiwareConf {
     httpPort = binding.getInt("port")
 
   }
+
   /**
    * The configuration of the Fiware (notification)
    * actor, which is responsible for retrieving and
    * executing Orion Broker notification requests
    */
-  def getActorCfg:Config = {
+  def getActorCfg: Config = {
 
     val fiwareCfg = cfg.get.getConfig("fiware")
     fiwareCfg.getConfig("actor")
 
   }
+
   /**
    * Retrieve the SSL/TLS configuration for subscription
    * requests to the Orion Context Broker
    */
-  def getBrokerSecurity:Config = {
+  def getBrokerSecurity: Config = {
     val security = cfg.get.getConfig("security")
     security.getConfig("fiware")
   }
 
   def getBrokerUrl: String = brokerUrl
 
-  def getDataModel:Config = {
+  def getDataModel: Config = {
     val fiwareCfg = cfg.get.getConfig("fiware")
     fiwareCfg.getConfig("model")
   }
+
   /**
    * Retrieve the SSL/TLS configuration for subscription
    * requests to the Orion Context Broker
    */
-  def getFiwareSecurity:Config = {
+  def getFiwareSecurity: Config = {
     val security = cfg.get.getConfig("security")
     security.getConfig("fiware")
   }
 
-  def getStreamerCfg:Config = {
+  def getGraphNS: String = {
+    val fiwareCfg = cfg.get.getConfig("fiware")
+    fiwareCfg.getString("namespace")
+  }
+
+  def getIgniteCfg: Config = {
+    cfg.get.getConfig("ignite")
+  }
+
+  def getStreamerCfg: Config = {
     val fiwareCfg = cfg.get.getConfig("fiware")
     fiwareCfg.getConfig("streamer")
   }
+
   /**
    * The host & port configuration of the HTTP server that
    * is used as a notification endpoint for an Orion Context
@@ -145,21 +160,39 @@ object FiwareConf {
    * Retrieve the SSL/TLS configuration for notification
    * requests from the Orion Context Broker
    */
-  def getServerSecurity:Config = {
+  def getServerSecurity: Config = {
     val security = cfg.get.getConfig("security")
     security.getConfig("server")
   }
+
+  def getSparkCfg: Config = {
+    cfg.get.getConfig("spark")
+  }
+
   /**
    * The name of Actor System used
    */
   def getSystemName: String = systemName
 
   /**
-   * Properties:
-   *
-   * - timeWindow
-   * - ignite.autoFlushFrequency
-   * - ignite.numThreads
+   * The current implementation of this method
+   * provides the default configuration
    */
+  def toIgniteConfiguration: IgniteConfiguration = {
+    /*
+     * Configure default java logger which leverages file
+     * config/java.util.logging.properties
+     */
+    val logger = new JavaLogger()
+    /*
+     * The current Ignite context is configured with the
+     * default configuration (except 'marshaller')
+     */
+    val igniteCfg = new IgniteConfiguration()
+    igniteCfg.setGridLogger(logger)
+
+    // TODO Customize with project specific settings
+    igniteCfg
+  }
 
 }

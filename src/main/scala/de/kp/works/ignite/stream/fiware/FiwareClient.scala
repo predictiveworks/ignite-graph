@@ -22,6 +22,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
+import de.kp.works.conf.CommonConfig
 
 import scala.concurrent.Future
 /**
@@ -71,7 +72,7 @@ object FiwareClient {
        * Build request: A subscription is registered with a POST request
        * to /v2/subscriptions
        */
-      val brokerUrl = FiwareConf.getBrokerUrl
+      val brokerUrl = CommonConfig.getBrokerUrl
       val endpoint = s"$brokerUrl/v2/subscriptions"
 
       val headers = List(`Content-Type`(`text/plain(UTF-8)`))

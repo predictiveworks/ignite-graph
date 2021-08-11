@@ -23,16 +23,17 @@ import org.apache.ignite.configuration.CacheConfiguration
 import org.apache.ignite.spark.IgniteContext
 import org.apache.spark.sql.DataFrame
 
-abstract class RDDReader(
-  ic:IgniteContext,
-  cfg:CacheConfiguration[String,BinaryObject]) {
+abstract class RDDReader(ic:IgniteContext) {
 
-  def load(table:String, fields:Seq[String]):DataFrame = {
+  protected var cfg:Option[CacheConfiguration[String,BinaryObject]] = None
+  protected var table:Option[String] = None
+
+  def load(fields:Seq[String]):DataFrame = {
 
     val columns = fields.mkString(",")
     val sql = s"select $columns from $table"
 
-    val rdd = ic.fromCache(cfg) //.withKeepBinary[String,BinaryObject]()
+    val rdd = ic.fromCache(cfg.get) //.withKeepBinary[String,BinaryObject]()
     rdd.sql(sql)
 
   }

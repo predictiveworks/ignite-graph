@@ -20,7 +20,7 @@ package de.kp.works.ignite.stream.fiware
 
 import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
 import com.typesafe.config.Config
-import de.kp.works.ignite.IgniteConf
+import de.kp.works.conf.CommonConfig
 import de.kp.works.ignite.ssl.SslOptions
 
 import javax.net.ssl.SSLContext
@@ -32,7 +32,7 @@ object FiwareSsl {
       * Distinguish between SSL/TLS and non-SSL/TLS requests;
       * note, [IgniteConf] must be initialized.
       */
-    val cfg = FiwareConf.getFiwareSecurity
+    val cfg = CommonConfig.getFiwareSecurity
     if (cfg.getString("ssl") == "false") false else true
   }
 
@@ -41,17 +41,17 @@ object FiwareSsl {
       * Distinguish between SSL/TLS and non-SSL/TLS requests;
       * note, [IgniteConf] must be initialized.
       */
-    val cfg = FiwareConf.getServerSecurity
+    val cfg = CommonConfig.getServerSecurity
     if (cfg.getString("ssl") == "false") false else true
   }
 
   def buildFiwareContext: HttpsConnectionContext = {
-    val cfg = FiwareConf.getFiwareSecurity
+    val cfg = CommonConfig.getFiwareSecurity
     ConnectionContext.https(buildSSLContext(cfg))
   }
 
   def buildServerContext: HttpsConnectionContext = {
-    val cfg = FiwareConf.getServerSecurity
+    val cfg = CommonConfig.getServerSecurity
     ConnectionContext.https(buildSSLContext(cfg))
   }
 

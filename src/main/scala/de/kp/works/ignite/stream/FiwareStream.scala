@@ -18,8 +18,10 @@ package de.kp.works.ignite.stream
  *
  */
 
+import de.kp.works.conf.CommonConfig
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.fiware.{FiwareConf, FiwareIgnite}
+import de.kp.works.ignite.stream.fiware.FiwareIgnite
+import de.kp.works.spark.Session
 import scopt.OptionParser
 
 object FiwareStream {
@@ -61,7 +63,7 @@ object FiwareStream {
           println("[INFO] Launch Fiware Stream with internal configuration.")
           println("[INFO] -------------------------------------------------")
 
-          FiwareConf.init()
+          CommonConfig.init()
 
         } else {
 
@@ -72,7 +74,7 @@ object FiwareStream {
           val source = scala.io.Source.fromFile(c.conf)
           val config = source.getLines.mkString("\n")
 
-          FiwareConf.init(Option(config))
+          CommonConfig.init(Option(config))
           source.close()
 
         }
@@ -80,8 +82,10 @@ object FiwareStream {
         /*
          * Initialize connection to Apache Ignite
          */
-
-        // TODO
+        connect = Some(IgniteConnect.getInstance(
+          Session.getSession,
+          CommonConfig.toIgniteConfiguration,
+          CommonConfig.getGraphNS))
 
         start()
 

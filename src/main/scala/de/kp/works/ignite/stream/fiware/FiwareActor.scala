@@ -24,6 +24,7 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.stream.ActorMaterializer
 import akka.util.{ByteString, Timeout}
 import com.google.gson._
+import de.kp.works.conf.CommonConfig
 
 import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration._
@@ -45,7 +46,7 @@ abstract class BaseActor extends Actor with ActorLogging {
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  private val conf = FiwareConf.getActorCfg
+  private val conf = CommonConfig.getActorCfg
 
   implicit val timeout: Timeout = {
     val value = conf.getInt("timeout")
