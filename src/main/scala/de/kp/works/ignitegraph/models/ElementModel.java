@@ -20,6 +20,7 @@ package de.kp.works.ignitegraph.models;
 
 import de.kp.works.ignite.client.IgniteResult;
 import de.kp.works.ignite.client.IgniteTable;
+import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteGraph;
 import de.kp.works.ignitegraph.exception.IgniteGraphNotFoundException;
 import de.kp.works.ignitegraph.mutators.PropertyIncrementer;
@@ -86,8 +87,8 @@ public abstract class ElementModel extends BaseModel {
      * @param element The element
      * @param key     The property key
      */
-    public PropertyRemover clearProperty(Element element, String key) {
-        return new PropertyRemover(graph, element, key);
+    public PropertyRemover clearProperty(Element element, ElementType elementType, String key) {
+        return new PropertyRemover(graph, element, elementType, key);
     }
 
     /**
@@ -97,8 +98,8 @@ public abstract class ElementModel extends BaseModel {
      * @param key     The property key
      * @param value   The property value
      */
-    public PropertyWriter writeProperty(Element element, String key, Object value) {
-        return new PropertyWriter(graph, element, key, value);
+    public PropertyWriter writeProperty(Element element, ElementType elementType, String key, Object value) {
+        return new PropertyWriter(graph, element, elementType, key, value);
     }
 
     /**
@@ -108,8 +109,8 @@ public abstract class ElementModel extends BaseModel {
      * @param key     The property key
      * @param value   The amount to increment
      */
-    public PropertyIncrementer incrementProperty(Element element, String key, long value) {
-        return new PropertyIncrementer(graph, element, key, value);
+    public PropertyIncrementer incrementProperty(Element element, ElementType elementType, String key, long value) {
+        return new PropertyIncrementer(graph, element, elementType, key, value);
     }
 
 }

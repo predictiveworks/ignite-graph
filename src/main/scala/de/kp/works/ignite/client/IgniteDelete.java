@@ -18,10 +18,13 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignitegraph.ElementType;
+
 public class IgniteDelete extends IgniteMutation {
 
-    public IgniteDelete(Object id) {
+    public IgniteDelete(Object id, ElementType elementType) {
         super(id);
+        this.elementType = elementType;
         mutationType = IgniteMutationType.DELETE;
     }
 

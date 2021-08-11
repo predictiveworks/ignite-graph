@@ -20,6 +20,7 @@ package de.kp.works.ignitegraph.mutators;
 
 import de.kp.works.ignite.client.IgniteDelete;
 import de.kp.works.ignite.client.IgniteMutation;
+import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteGraph;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
@@ -36,7 +37,7 @@ public class EdgeRemover implements Mutator {
 
     @Override
     public Iterator<IgniteMutation> constructMutations() {
-        IgniteDelete delete = new IgniteDelete(edge.id());
+        IgniteDelete delete = new IgniteDelete(edge.id(), ElementType.EDGE);
         return IteratorUtils.of(delete);
     }
 }

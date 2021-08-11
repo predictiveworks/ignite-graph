@@ -45,7 +45,7 @@ public class EdgeWriter implements Creator {
         final String label = edge.label() != null ? edge.label() : Edge.DEFAULT_LABEL;
 
         Object id = edge.id();
-        IgnitePut put = new IgnitePut(id);
+        IgnitePut put = new IgnitePut(id, ElementType.EDGE);
 
         put.addColumn(IgniteConstants.ID_COL_NAME, ValueUtils.getValueType(id).name(),
                 id.toString());

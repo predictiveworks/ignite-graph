@@ -46,7 +46,7 @@ public final class VertexWriter implements Creator {
 
         Object id = vertex.id();
 
-        IgnitePut put = new IgnitePut(id);
+        IgnitePut put = new IgnitePut(id, ElementType.VERTEX);
         put.addColumn(IgniteConstants.ID_COL_NAME, ValueUtils.getValueType(id).name(),
                 id.toString());
 

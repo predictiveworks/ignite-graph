@@ -18,6 +18,7 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteConstants;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class IgniteMutation {
     public Object id;
     public List<IgniteColumn> columns = new ArrayList<>();
 
+    public ElementType elementType;
     public IgniteMutationType mutationType;
 
     public IgniteMutation(Object id) {

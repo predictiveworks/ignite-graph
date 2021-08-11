@@ -19,10 +19,12 @@ package de.kp.works.ignite.stream.fiware
  */
 
 import com.google.gson.JsonParser
+import de.kp.works.ignite.client.{IgniteConnect, IgnitePut, IgniteTable}
 import de.kp.works.ignite.stream.IgniteProcessor
+import de.kp.works.ignitegraph.IgniteConstants
+import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.query.SqlFieldsQuery
-import org.apache.ignite.{Ignite, IgniteCache}
 
 import java.util.Properties
 import scala.collection.JavaConversions.asScalaBuffer
@@ -30,8 +32,8 @@ import scala.collection.mutable
 
 class FiwareProcessor(
   cache:IgniteCache[String,BinaryObject],
-  ignite:Ignite,
-  properties:Properties) extends IgniteProcessor(cache, ignite) {
+  connect:IgniteConnect,
+  properties:Properties) extends IgniteProcessor(cache) {
 
   private val notificationFields = Array(
     "_key",
@@ -97,7 +99,7 @@ class FiwareProcessor(
      * The default processing retrieves all entries of the
      * Apache Ignite stream cache without preprocessing
      */
-    cache.query(notificationQuery).getAll()
+    cache.query(notificationQuery).getAll
   }
 
   /**
@@ -112,38 +114,37 @@ class FiwareProcessor(
      */
     val notifications = notificationStore.values.toSeq
     notificationStore.clear
+    /*
+     * Leverage the FiwareGraphFactory to extract
+     * vertices and edges from the notifications
+     * by applying plugged data models
+     */
+    val (vertices, edges) = FiwareGraphFactory.transform(notifications)
+    /*
+     * Finally write vertices and edges to the
+     * respective output caches
+     */
+    writeVertices(vertices)
+    writeEdges(edges)
 
-    transform(notifications)
   }
 
-  private def transform(notifications:Seq[FiwareNotification]):Unit = {
+  private def writeEdges(edges:Seq[IgnitePut]):Unit = {
 
-    notifications.foreach(notification => {
+    val name = s"${connect.graphNS}_${IgniteConstants.EDGES}"
+    val table = new IgniteTable(name, connect)
 
-      val service = notification.service
-      val servicePath = notification.servicePath
+    edges.foreach(edge => table.put(edge))
 
-      val payload = notification.payload
-      /*
-       * {
-       *  "data": [
-       *      {
-       *          "id": "Room1",
-       *          "temperature": {
-       *              "metadata": {},
-       *              "type": "Float",
-       *              "value": 28.5
-       *          },
-       *          "type": "Room"
-       *      }
-       *  ],
-       *  "subscriptionId": "57458eb60962ef754e7c0998"
-       * }
-       */
-      val data = payload.get("data").getAsJsonArray
-
-      // TODO
-
-    })
   }
+
+  private def writeVertices(vertices:Seq[IgnitePut]):Unit = {
+
+    val name = s"${connect.graphNS}_${IgniteConstants.VERTICES}"
+    val table = new IgniteTable(name, connect)
+
+    vertices.foreach(vertex => table.put(vertex))
+
+  }
+
 }

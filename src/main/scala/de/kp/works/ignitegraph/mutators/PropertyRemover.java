@@ -20,6 +20,7 @@ package de.kp.works.ignitegraph.mutators;
 
 import de.kp.works.ignite.client.IgniteDelete;
 import de.kp.works.ignite.client.IgniteMutation;
+import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteGraph;
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
@@ -29,10 +30,14 @@ import java.util.Iterator;
 public class PropertyRemover implements Mutator {
 
     private final Element element;
+    private final ElementType elementType;
+
     private final String key;
 
-    public PropertyRemover(IgniteGraph graph, Element element, String key) {
+    public PropertyRemover(IgniteGraph graph, Element element, ElementType elementType, String key) {
         this.element = element;
+        this.elementType = elementType;
+
         this.key = key;
     }
 
@@ -41,7 +46,7 @@ public class PropertyRemover implements Mutator {
 
         Object id = element.id();
 
-        IgniteDelete delete = new IgniteDelete(id);
+        IgniteDelete delete = new IgniteDelete(id, elementType);
         delete.addColumn(key);
 
         return IteratorUtils.of(delete);

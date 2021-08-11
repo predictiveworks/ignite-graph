@@ -119,6 +119,15 @@ object FiwareConf {
    */
   def getServerBinding: (String, Int) = (httpHost, httpPort)
   /**
+   * Retrieve the SSL/TLS configuration for subscription
+   * requests to the Orion Context Broker
+   */
+  def getFiwareSecurity:Config = {
+    val security = cfg.get.getConfig("security")
+    security.getConfig("fiware")
+  }
+
+  /**
    * Retrieve the SSL/TLS configuration for notification
    * requests from the Orion Context Broker
    */

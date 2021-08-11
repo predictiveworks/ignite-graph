@@ -1,11 +1,4 @@
 package de.kp.works.ignite.rdd
-
-import de.kp.works.ignitegraph.{IgniteConstants, ValueType}
-import org.apache.ignite.binary.BinaryObject
-import org.apache.ignite.configuration.CacheConfiguration
-import org.apache.ignite.spark.IgniteContext
-import org.apache.spark.sql.{DataFrame, Row}
-
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -25,6 +18,12 @@ import org.apache.spark.sql.{DataFrame, Row}
  *
  */
 
+import de.kp.works.ignitegraph.{IgniteConstants, ValueType}
+import org.apache.ignite.binary.BinaryObject
+import org.apache.ignite.configuration.CacheConfiguration
+import org.apache.ignite.spark.IgniteContext
+import org.apache.spark.sql.{DataFrame, Row}
+
 class VertexRDDWriter(
   ic:IgniteContext,
   namespace:String,
@@ -37,7 +36,7 @@ class VertexRDDWriter(
    */
   def write(dataframe:DataFrame, keepBinary:Boolean=false):Unit = {
 
-    write(dataframe, table, (row:Row, ic:IgniteContext) => {
+    save(dataframe, table, (row:Row, ic:IgniteContext) => {
 
       val valueBuilder = ic.ignite().binary().builder(table)
       /*

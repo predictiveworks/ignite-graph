@@ -35,7 +35,7 @@ class IgniteBatchRDD[K,V](
      * @param overwrite Boolean flag indicating whether the call on this method should overwrite existing
      *      values in Ignite cache.
      */
-    override def savePairs[T](rdd: RDD[T], f: (T, IgniteContext) ⇒ (K, V), overwrite: Boolean, skipStore:Boolean = true): Unit = {
+    override def savePairs[T](rdd: RDD[T], f: (T, IgniteContext) ⇒ (K, V), overwrite: Boolean, skipStore:Boolean): Unit = {
 
       rdd.foreachPartition(it ⇒ {
 

@@ -177,7 +177,9 @@ public abstract class IgniteElement implements Element {
         getProperties().put(key, value);
         updatedAt(System.currentTimeMillis());
 
-        Mutator writer = getModel().writeProperty(this, key, value);
+        ElementType elementType = getElementType();
+
+        Mutator writer = getModel().writeProperty(this, elementType, key, value);
         Mutators.write(getTable(), writer);
     }
 
@@ -186,7 +188,9 @@ public abstract class IgniteElement implements Element {
         ElementHelper.validateProperty(key, value);
         updatedAt(System.currentTimeMillis());
 
-        Mutator writer = getModel().incrementProperty(this, key, value);
+        ElementType elementType = getElementType();
+
+        Mutator writer = getModel().incrementProperty(this, elementType, key, value);
         long newValue = Mutators.increment(getTable(), writer, key);
         getProperties().put(key, newValue);
     }
@@ -197,7 +201,9 @@ public abstract class IgniteElement implements Element {
             getProperties().remove(key);
             updatedAt(System.currentTimeMillis());
 
-            Mutator writer = getModel().clearProperty(this, key);
+            ElementType elementType = getElementType();
+
+            Mutator writer = getModel().clearProperty(this, elementType, key);
             Mutators.write(getTable(), writer);
         }
         return value;

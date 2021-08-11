@@ -18,13 +18,11 @@ package de.kp.works.ignite.stream
  *
  */
 
-import org.apache.ignite.{Ignite, IgniteCache}
+import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.slf4j.LoggerFactory
 
-abstract class IgniteProcessor(
-  cache:IgniteCache[String,BinaryObject],
-  ignite:Ignite) {
+abstract class IgniteProcessor(cache:IgniteCache[String,BinaryObject]) {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[IgniteProcessor])
   /**

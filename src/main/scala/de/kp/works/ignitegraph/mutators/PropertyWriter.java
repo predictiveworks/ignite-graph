@@ -29,11 +29,15 @@ import java.util.Iterator;
 public class PropertyWriter implements Mutator {
 
     private final Element element;
+    private final ElementType elementType;
+
     private final String key;
     private final Object value;
 
-    public PropertyWriter(IgniteGraph graph, Element element, String key, Object value) {
+    public PropertyWriter(IgniteGraph graph, Element element, ElementType elementType, String key, Object value) {
         this.element = element;
+        this.elementType = elementType;
+
         this.key = key;
         this.value = value;
     }
@@ -42,7 +46,7 @@ public class PropertyWriter implements Mutator {
     public Iterator<IgniteMutation> constructMutations() {
 
         Object id = element.id();
-        IgnitePut put = new IgnitePut(id);
+        IgnitePut put = new IgnitePut(id, elementType);
 
         put.addColumn(IgniteConstants.ID_COL_NAME, ValueUtils.getValueType(id).name(),
                 id.toString());

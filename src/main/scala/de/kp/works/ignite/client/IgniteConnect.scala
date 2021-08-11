@@ -61,7 +61,7 @@ object IgniteConnect {
 class IgniteConnect(
    session: SparkSession,
    config: IgniteConfiguration,
-   graphNS: String) {
+   val graphNS: String) {
 
   private var ignite:Option[Ignite] = None
   /*

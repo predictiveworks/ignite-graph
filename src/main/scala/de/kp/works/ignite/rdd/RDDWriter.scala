@@ -25,19 +25,20 @@ import org.apache.spark.sql.{DataFrame, Row}
 
 abstract class RDDWriter(
   ic:IgniteContext,
-  cfg:CacheConfiguration[String,BinaryObject]) {
+  cfg:CacheConfiguration[String,BinaryObject],
+  keepBinary:Boolean = false) {
 
-  def write(dataframe:DataFrame,
+  def save(dataframe:DataFrame,
             table:String, f: (Row, IgniteContext) ⇒ (String, BinaryObject),
             overwrite:Boolean = true,
-            keepBinary:Boolean = false):Unit = {
+           skipStore:Boolean = true):Unit = {
     /*
      * IgniteBatchRDD is an application controlled variant
      * of Apache Ignite's [IgniteRDD] that extends this class
      * with a batch receiver for large-scale processing.
      */
     val cache = new IgniteBatchRDD(ic,table,cfg,keepBinary)
-    cache.savePairs(dataframe.rdd, f, overwrite, keepBinary)
+    cache.savePairs(dataframe.rdd, f, overwrite, skipStore)
 
   }
 }

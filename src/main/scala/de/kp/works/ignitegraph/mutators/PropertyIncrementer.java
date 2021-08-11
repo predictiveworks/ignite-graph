@@ -20,6 +20,7 @@ package de.kp.works.ignitegraph.mutators;
 
 import de.kp.works.ignite.client.IgniteIncrement;
 import de.kp.works.ignite.client.IgniteMutation;
+import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteGraph;
 import de.kp.works.ignitegraph.ValueUtils;
 import org.apache.tinkerpop.gremlin.structure.Element;
@@ -30,11 +31,15 @@ import java.util.Iterator;
 public class PropertyIncrementer implements Mutator {
 
     private final Element element;
+    private final ElementType elementType;
+
     private final String key;
     private final long value;
 
-    public PropertyIncrementer(IgniteGraph graph, Element element, String key, long value) {
+    public PropertyIncrementer(IgniteGraph graph, Element element, ElementType elementType, String key, long value) {
         this.element = element;
+        this.elementType = elementType;
+
         this.key = key;
         this.value = value;
     }
@@ -44,7 +49,7 @@ public class PropertyIncrementer implements Mutator {
 
         Object id = element.id();
 
-        IgniteIncrement increment = new IgniteIncrement(id);
+        IgniteIncrement increment = new IgniteIncrement(id, elementType);
 
         String colType = ValueUtils.getValueType(value).name();
         increment.addColumn(key, colType, value);

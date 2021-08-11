@@ -17,12 +17,9 @@ package de.kp.works.ignite.stream.fiware
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
+import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.{IgniteFiwareContext, IgniteStream, IgniteStreamContext}
-
-import javax.cache.configuration.FactoryBuilder
-import javax.cache.expiry.{CreatedExpiryPolicy, Duration}
-import java.util.concurrent.TimeUnit.SECONDS
-import org.apache.ignite.{Ignite, IgniteCache}
+import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.QueryEntity
 import org.apache.ignite.configuration.CacheConfiguration
@@ -30,13 +27,18 @@ import org.apache.ignite.stream.StreamSingleTupleExtractor
 
 import java.security.MessageDigest
 import java.util.Properties
+import java.util.concurrent.TimeUnit.SECONDS
+import javax.cache.configuration.FactoryBuilder
+import javax.cache.expiry.{CreatedExpiryPolicy, Duration}
 import scala.collection.JavaConversions.mapAsJavaMap
 /**
  * [FiwareIgnite] is responsible for streaming Orion Broker
  * notifications into a temporary cache and also their final
  * processing as edges & vertices of an information network.
  */
-class FiwareIgnite(ignite:Ignite) {
+class FiwareIgnite(connect:IgniteConnect) {
+
+  private val ignite = connect.getIgnite
   /**
    * Properties:
    *
@@ -57,7 +59,7 @@ class FiwareIgnite(ignite:Ignite) {
           1
       }
       val stream: IgniteStream = new IgniteStream {
-        override val processor = new FiwareProcessor(cache,ignite, props)
+        override val processor = new FiwareProcessor(cache, connect, props)
       }
 
       Some(new IgniteFiwareContext(stream,streamer, numThreads))

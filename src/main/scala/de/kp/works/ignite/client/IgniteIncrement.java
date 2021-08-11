@@ -18,12 +18,15 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignitegraph.ElementType;
+
 public class IgniteIncrement extends IgniteMutation {
 
     private IgniteColumn column = null;
 
-    public IgniteIncrement(Object id) {
+    public IgniteIncrement(Object id, ElementType elementType) {
         super(id);
+        this.elementType = elementType;
         mutationType = IgniteMutationType.INCREMENT;
     }
 
