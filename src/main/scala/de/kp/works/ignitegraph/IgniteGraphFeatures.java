@@ -93,7 +93,7 @@ public class IgniteGraphFeatures implements Graph.Features {
         }
     }
 
-    public class IgniteVertexFeatures extends IgniteElementFeatures implements VertexFeatures {
+    public static class IgniteVertexFeatures extends IgniteElementFeatures implements VertexFeatures {
 
         private final VertexPropertyFeatures vertexPropertyFeatures = new IgniteVertexPropertyFeatures();
 
@@ -126,7 +126,7 @@ public class IgniteGraphFeatures implements Graph.Features {
         }
     }
 
-    public class IgniteEdgeFeatures extends IgniteElementFeatures implements EdgeFeatures {
+    public static class IgniteEdgeFeatures extends IgniteElementFeatures implements EdgeFeatures {
 
         private final EdgePropertyFeatures edgePropertyFeatures = new IgniteEdgePropertyFeatures();
 
@@ -140,7 +140,7 @@ public class IgniteGraphFeatures implements Graph.Features {
 
     }
 
-    public class IgniteElementFeatures implements ElementFeatures {
+    public static class IgniteElementFeatures implements ElementFeatures {
 
         IgniteElementFeatures() {
         }
@@ -186,7 +186,7 @@ public class IgniteGraphFeatures implements Graph.Features {
         }
     }
 
-    public class IgniteVertexPropertyFeatures implements VertexPropertyFeatures {
+    public static class IgniteVertexPropertyFeatures implements VertexPropertyFeatures {
 
         IgniteVertexPropertyFeatures() {
         }
@@ -227,7 +227,7 @@ public class IgniteGraphFeatures implements Graph.Features {
         }
     }
 
-    public class IgniteEdgePropertyFeatures implements EdgePropertyFeatures {
+    public static class IgniteEdgePropertyFeatures implements EdgePropertyFeatures {
 
         IgniteEdgePropertyFeatures() {
         }
@@ -254,7 +254,7 @@ public class IgniteGraphFeatures implements Graph.Features {
 
     }
 
-    public class IgniteVariableFeatures implements Graph.Features.VariableFeatures {
+    public static class IgniteVariableFeatures implements Graph.Features.VariableFeatures {
 
         @Override
         public boolean supportsVariables() {
