@@ -119,7 +119,8 @@ class FiwareProcessor(
      * vertices and edges from the notifications
      * by applying plugged data models
      */
-    val (vertices, edges) = FiwareGraphFactory.transform(notifications)
+    val transformer = FiwareGraphFactory.getTransformer
+    val (vertices, edges) = transformer.transform(notifications)
     /*
      * Finally write vertices and edges to the
      * respective output caches

@@ -18,9 +18,14 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
-import de.kp.works.ignite.client.IgnitePut
-import scala.collection.mutable
+import de.kp.works.ignite.stream.fiware.transformer._
 
+object FiwareModels extends Enumeration {
+  val AgriFood: FiwareModels.Value = Value("AgriFood")
+  val City: FiwareModels.Value     = Value("City")
+  val Energy: FiwareModels.Value   = Value("Energy")
+  val Industry: FiwareModels.Value = Value("Industry")
+}
 /**
  * The [FiwareGraphFactory] is responsible to transform
  * a specific Context Broker notification into IgniteGraph
@@ -28,41 +33,18 @@ import scala.collection.mutable
  */
 object FiwareGraphFactory {
 
-  def transform(notifications:Seq[FiwareNotification]):(Seq[IgnitePut], Seq[IgnitePut]) = {
+  def getTransformer:FiwareTransformer = {
 
-    val edges = mutable.ArrayBuffer.empty[IgnitePut]
-    val vertices = mutable.ArrayBuffer.empty[IgnitePut]
+    val model = FiwareConf.getDataModel
+    val name = model.getString("name")
 
-    notifications.foreach(notification => {
-
-      val service = notification.service
-      val servicePath = notification.servicePath
-
-      val payload = notification.payload
-      /*
-       * {
-       *  "data": [
-       *      {
-       *          "id": "Room1",
-       *          "temperature": {
-       *              "metadata": {},
-       *              "type": "Float",
-       *              "value": 28.5
-       *          },
-       *          "type": "Room"
-       *      }
-       *  ],
-       *  "subscriptionId": "57458eb60962ef754e7c0998"
-       * }
-       */
-      val data = payload.get("data").getAsJsonArray
-
-      // TODO :: Plugin mechanism
-
-    })
-
-    (vertices.toSeq, edges.toSeq)
+    FiwareModels.withName(name) match {
+      case FiwareModels.AgriFood => FiwareAgriFood
+      case FiwareModels.City     => FiwareCity
+      case FiwareModels.Energy   => FiwareEnergy
+      case FiwareModels.Industry => FiwareIndustry
+      case _ => throw new Exception(s"The data model `$name` is not supported.")
+    }
 
   }
-
 }

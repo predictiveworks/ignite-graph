@@ -112,6 +112,11 @@ object FiwareConf {
   }
 
   def getBrokerUrl: String = brokerUrl
+
+  def getDataModel:Config = {
+    val fiwareCfg = cfg.get.getConfig("fiware")
+    fiwareCfg.getConfig("model")
+  }
   /**
    * The host & port configuration of the HTTP server that
    * is used as a notification endpoint for an Orion Context
