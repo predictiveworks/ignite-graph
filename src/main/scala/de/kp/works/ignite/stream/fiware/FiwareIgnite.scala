@@ -26,7 +26,6 @@ import org.apache.ignite.configuration.CacheConfiguration
 import org.apache.ignite.stream.StreamSingleTupleExtractor
 
 import java.security.MessageDigest
-import java.util.Properties
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.cache.configuration.FactoryBuilder
 import javax.cache.expiry.{CreatedExpiryPolicy, Duration}
@@ -38,28 +37,21 @@ import scala.collection.JavaConversions.mapAsJavaMap
  */
 class FiwareIgnite(connect:IgniteConnect) {
 
+  if (!FiwareConf.isInit)
+    throw new Exception("[FiwareIgnite] No configuration initialized. Streaming cannot be started.")
+
   private val ignite = connect.getIgnite
-  /**
-   * Properties:
-   *
-   * - timeWindow
-   * - ignite.autoFlushFrequency
-   * - ignite.numThreads
-   */
-  def buildStream(props:Properties):Option[IgniteStreamContext] = {
+  private val conf = FiwareConf.getStreamerCfg
+
+  def buildStream:Option[IgniteStreamContext] = {
 
     try {
 
-      val (cache,streamer) = prepareFiwareStreamer(props)
-      val numThreads = {
-        if (props.containsKey("ignite.numThreads"))
-          props.getProperty("ignite.numThreads").toInt
+      val (cache,streamer) = prepareFiwareStreamer
+      val numThreads = conf.getInt("numThreads")
 
-        else
-          1
-      }
       val stream: IgniteStream = new IgniteStream {
-        override val processor = new FiwareProcessor(cache, connect, props)
+        override val processor = new FiwareProcessor(cache, connect)
       }
 
       Some(new IgniteFiwareContext(stream,streamer, numThreads))
@@ -72,17 +64,12 @@ class FiwareIgnite(connect:IgniteConnect) {
 
   }
 
-  private def prepareFiwareStreamer(props:Properties):(IgniteCache[String,BinaryObject],FiwareStreamer[String,BinaryObject]) = {
-    /*
-     * The time window specifies the batch window that
-     * is used to gather stream events
-     */
-    val timeWindow = props.getProperty("timeWindow").toInt
+  private def prepareFiwareStreamer:(IgniteCache[String,BinaryObject],FiwareStreamer[String,BinaryObject]) = {
     /*
      * The auto flush frequency of the stream buffer is
      * internally set to 0.5 sec (500 ms)
      */
-    val autoFlushFrequency = props.getProperty("ignite.autoFlushFrequency").toInt
+    val autoFlushFrequency = conf.getInt("ignite.autoFlushFrequency")
     /*
      * The cache is configured with sliding window holding
      * N seconds of the streaming data; note, that we delete
@@ -90,7 +77,7 @@ class FiwareIgnite(connect:IgniteConnect) {
      */
     deleteCache()
 
-    val config = createCacheConfig(timeWindow)
+    val config = createCacheConfig
     val cache = ignite.getOrCreateCache(config)
 
     val streamer = ignite.dataStreamer[String,BinaryObject](cache.getName)
@@ -132,7 +119,7 @@ class FiwareIgnite(connect:IgniteConnect) {
    * data older than N second will be automatically removed
    * from the cache.
    */
-  private def createCacheConfig(timeWindow:Int):CacheConfiguration[String,BinaryObject] ={
+  private def createCacheConfig:CacheConfiguration[String,BinaryObject] ={
     /*
      * Defining query entities is the Apache Ignite
      * mechanism to dynamically define a queryable
@@ -140,7 +127,7 @@ class FiwareIgnite(connect:IgniteConnect) {
      */
     val qes = new java.util.ArrayList[QueryEntity]()
     qes.add(buildQueryEntity)
-    /**
+    /*
      * Configure streaming cache.
      */
     val cfg = new CacheConfiguration[String,BinaryObject]()
@@ -156,6 +143,11 @@ class FiwareIgnite(connect:IgniteConnect) {
     cfg.setQueryEntities(qes)
 
     cfg.setStatisticsEnabled(true)
+    /*
+     * The time window specifies the batch window that
+     * is used to gather stream events
+     */
+    val timeWindow = conf.getInt("timeWindow")
 
     /* Sliding window of 'timeWindow' in seconds */
     val duration = timeWindow / 1000

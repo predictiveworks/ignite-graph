@@ -76,6 +76,14 @@
             <version>30.1-jre</version>
         </dependency>
 
+        <!-- CLI
+        -->
+        <dependency>
+            <groupId>com.github.scopt</groupId>
+            <artifactId>scopt_2.11</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+
         <!-- APACHE IGNITE
         -->
         <dependency>

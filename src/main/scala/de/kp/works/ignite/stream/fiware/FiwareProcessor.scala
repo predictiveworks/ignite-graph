@@ -26,14 +26,12 @@ import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.query.SqlFieldsQuery
 
-import java.util.Properties
 import scala.collection.JavaConversions.asScalaBuffer
 import scala.collection.mutable
 
 class FiwareProcessor(
   cache:IgniteCache[String,BinaryObject],
-  connect:IgniteConnect,
-  properties:Properties) extends IgniteProcessor(cache) {
+  connect:IgniteConnect) extends IgniteProcessor(cache) {
 
   private val notificationFields = Array(
     "_key",
@@ -57,13 +55,8 @@ class FiwareProcessor(
    * data to the predefined output is currently set to
    * 2 times of the stream buffer flush frequency
    */
-  override val flushWindow:Int = {
-    if (properties.containsKey("flushWindow"))
-      properties.getProperty("flushWindow").toInt
-
-    else
-      DEFAULT_FLUSH_WINDOW.toInt
-  }
+  private val conf = FiwareConf.getStreamerCfg
+  override val flushWindow:Int = conf.getInt("flushWindow")
 
   /**
    * A helper method to apply the event query to the selected

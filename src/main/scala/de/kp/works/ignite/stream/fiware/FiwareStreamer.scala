@@ -29,14 +29,19 @@ trait FiwareNotificationCallback {
 
 }
 /**
- * [FiwareStreamer] class is responsible for write Fiware
- * notification to a temporary Ignite cache
+ * [FiwareStreamer] class is responsible for writing Fiware notifications
+ * to a temporary Ignite cache; the streamer connects to the Fiware Context
+ * Broker by providing a HTTP notification endpoint.
  */
 class FiwareStreamer[K,V]
   extends StreamAdapter[FiwareNotification, K, V] with FiwareNotificationCallback {
 
-  /** Logger. */
-  private val log:IgniteLogger = null
+  /** Logger */
+  private val log:IgniteLogger = getIgnite.log()
+
+  /** FiwareServer */
+
+  private var server:Option[FiwareServer] = None
 
   /** State keeping. */
   private val stopped = true
@@ -48,7 +53,10 @@ class FiwareStreamer[K,V]
     if (!stopped)
       throw new IgniteException("Attempted to start an already started Orion Streamer.")
 
-    // TODO Start the Fiware Server
+    server = Some(new FiwareServer())
+    server.get.setCallback(this)
+
+    server.get.launch()
 
   }
 
@@ -57,9 +65,15 @@ class FiwareStreamer[K,V]
   def stop():Unit = {
 
     if (stopped)
-      throw new IgniteException("Failed to stop Orion Streamer (already stopped).")
+      throw new IgniteException("Failed to stop Fiware Streamer (already stopped).")
 
-    // TODO Stop the Fiware Server
+    if (server.isEmpty)
+      throw new IgniteException("Failed to stop the Fiware Server (never started).")
+    /*
+     * Stopping the streamer equals stopping
+     * the Fiware notification server
+     */
+    server.get.stop()
 
   }
 

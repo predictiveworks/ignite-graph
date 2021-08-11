@@ -64,7 +64,7 @@ object FiwareConf {
           Option(ConfigFactory.load(path))
 
         }
-        extractCfg
+        extractCfg()
         true
 
       } catch {
@@ -72,6 +72,10 @@ object FiwareConf {
           false
       }
     }
+  }
+
+  def isInit:Boolean = {
+    cfg.isDefined
   }
 
   private def extractCfg():Unit = {
@@ -118,12 +122,6 @@ object FiwareConf {
     fiwareCfg.getConfig("model")
   }
   /**
-   * The host & port configuration of the HTTP server that
-   * is used as a notification endpoint for an Orion Context
-   * Broker instance
-   */
-  def getServerBinding: (String, Int) = (httpHost, httpPort)
-  /**
    * Retrieve the SSL/TLS configuration for subscription
    * requests to the Orion Context Broker
    */
@@ -131,6 +129,17 @@ object FiwareConf {
     val security = cfg.get.getConfig("security")
     security.getConfig("fiware")
   }
+
+  def getStreamerCfg:Config = {
+    val fiwareCfg = cfg.get.getConfig("fiware")
+    fiwareCfg.getConfig("streamer")
+  }
+  /**
+   * The host & port configuration of the HTTP server that
+   * is used as a notification endpoint for an Orion Context
+   * Broker instance
+   */
+  def getServerBinding: (String, Int) = (httpHost, httpPort)
 
   /**
    * Retrieve the SSL/TLS configuration for notification
@@ -144,5 +153,13 @@ object FiwareConf {
    * The name of Actor System used
    */
   def getSystemName: String = systemName
+
+  /**
+   * Properties:
+   *
+   * - timeWindow
+   * - ignite.autoFlushFrequency
+   * - ignite.numThreads
+   */
 
 }

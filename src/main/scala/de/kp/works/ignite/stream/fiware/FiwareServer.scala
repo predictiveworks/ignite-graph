@@ -41,19 +41,11 @@ import scala.util.{Failure, Success}
  * The notification endpoint, the Orion Context Broker
  * sends (subscribed) notifications to.
  */
-class FiwareServer(config:Option[String] = None) {
+class FiwareServer {
 
   private var callback:Option[FiwareNotificationCallback] = None
 
   private var server:Option[Future[Http.ServerBinding]] = None
-
-  /**
-   * Read configuration and prepare for launching the
-   * Orion notification server
-   */
-  if (!FiwareConf.init(config))
-    throw new Exception("[FiwareServer] Loading configuration failed and server cannot be started.")
-
   /**
    * Akka 2.6 provides a default materializer out of the box, i.e., for Scala
    * an implicit materializer is provided if there is an implicit ActorSystem
@@ -84,7 +76,7 @@ class FiwareServer(config:Option[String] = None) {
    * This method launches the Orion notification server and also subscribes
    * to the Orion Context Broker for receiving NGSI event notifications
    */
-  def launch(config:Option[String] = None):Unit = {
+  def launch():Unit = {
     /*
      * The FiwareActor is used to receive NGSI events and delegate
      * them to the provided callback

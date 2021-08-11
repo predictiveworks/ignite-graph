@@ -35,7 +35,6 @@ abstract class IgniteProcessor(cache:IgniteCache[String,BinaryObject]) {
    * data to the predefined output is currently set to
    * 2 times of the stream buffer flush frequency
    */
-  protected val DEFAULT_FLUSH_WINDOW:String = "2000"
   protected val flushWindow:Int
 
   protected var lastTs:Long = System.currentTimeMillis()
