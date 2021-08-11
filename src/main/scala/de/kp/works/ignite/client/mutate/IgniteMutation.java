@@ -1,4 +1,4 @@
-package de.kp.works.ignite.client;
+package de.kp.works.ignite.client.mutate;
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,6 +18,7 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignite.client.IgniteColumn;
 import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteConstants;
 

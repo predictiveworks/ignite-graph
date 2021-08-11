@@ -103,7 +103,16 @@ class IgniteConnect(
     if (ignite.isEmpty) {
       return null
     }
-    IgniteUtil.getOrCreateCache(ignite.get, name, graphNS)
+    val cache = IgniteUtil.getOrCreateCache(ignite.get, name, graphNS)
+    if (cache == null)
+      throw new Exception("Connection to Ignited failed. Could not create cache.");
+    /*
+     * Rebalancing is called here in case of partitioned
+     * Apache Ignite caches; the default configuration,
+     * however, is to use replicated caches
+     */
+    cache.rebalance().get()
+    cache
   }
 
   @throws[Exception]

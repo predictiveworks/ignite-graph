@@ -18,7 +18,7 @@ package de.kp.works.ignitegraph.readers;
  *
  */
 
-import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignite.client.query.IgniteResult;
 import de.kp.works.ignitegraph.IgniteGraph;
 import org.apache.tinkerpop.gremlin.structure.Element;
 

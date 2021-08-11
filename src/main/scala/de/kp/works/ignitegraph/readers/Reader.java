@@ -18,7 +18,7 @@ package de.kp.works.ignitegraph.readers;
  *
  */
 
-import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignite.client.query.IgniteResult;
 
 public interface Reader<T> {
 

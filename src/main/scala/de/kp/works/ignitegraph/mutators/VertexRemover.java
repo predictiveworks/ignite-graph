@@ -18,8 +18,8 @@ package de.kp.works.ignitegraph.mutators;
  *
  */
 
-import de.kp.works.ignite.client.IgniteDelete;
-import de.kp.works.ignite.client.IgniteMutation;
+import de.kp.works.ignite.client.mutate.IgniteDelete;
+import de.kp.works.ignite.client.mutate.IgniteMutation;
 import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteGraph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;

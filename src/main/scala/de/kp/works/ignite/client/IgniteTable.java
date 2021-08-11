@@ -18,6 +18,7 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignite.client.mutate.*;
 import de.kp.works.ignite.client.query.*;
 import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteVertex;

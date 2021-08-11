@@ -18,6 +18,9 @@ package de.kp.works.ignite.client;
  *
  */
 
+import de.kp.works.ignite.client.mutate.IgniteDelete;
+import de.kp.works.ignite.client.mutate.IgniteIncrement;
+import de.kp.works.ignite.client.mutate.IgnitePut;
 import de.kp.works.ignite.client.query.IgniteEdgesExistQuery;
 import de.kp.works.ignite.client.query.IgniteGetQuery;
 import de.kp.works.ignitegraph.ElementType;

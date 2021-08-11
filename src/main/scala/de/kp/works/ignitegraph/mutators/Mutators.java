@@ -18,9 +18,9 @@ package de.kp.works.ignitegraph.mutators;
  *
  */
 
-import de.kp.works.ignite.client.IgniteMutation;
-import de.kp.works.ignite.client.IgnitePut;
-import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignite.client.mutate.IgniteMutation;
+import de.kp.works.ignite.client.mutate.IgnitePut;
+import de.kp.works.ignite.client.query.IgniteResult;
 import de.kp.works.ignite.client.IgniteTable;
 import de.kp.works.ignitegraph.exception.IgniteGraphException;
 

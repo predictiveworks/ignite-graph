@@ -18,7 +18,7 @@ package de.kp.works.ignitegraph.models;
  *
  */
 
-import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignite.client.query.IgniteResult;
 import de.kp.works.ignite.client.IgniteTable;
 import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteGraph;

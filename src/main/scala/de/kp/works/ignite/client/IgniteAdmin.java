@@ -18,33 +18,32 @@ package de.kp.works.ignite.client;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IgniteAdmin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IgniteAdmin.class);
-    private final IgniteClient client;
+    private final IgniteConnect connect;
 
-    private final String NO_CLIENT_INITIALIZATION = "IgniteClient is not initialized.";
+    private final String NO_CONNECT_INITIALIZATION = "IgniteConnect is not initialized.";
 
-    public IgniteAdmin(IgniteClient client) {
-        this.client = client;
+    public IgniteAdmin(IgniteConnect connect) {
+        this.connect = connect;
     }
 
     public boolean tableExists(String name) throws Exception {
-        return client.cacheExists(name);
+        return connect.cacheExists(name);
     }
 
     public void createTable(String name) {
 
         try {
 
-            if (this.client == null)
-                throw new Exception(NO_CLIENT_INITIALIZATION);
+            if (this.connect == null)
+                throw new Exception(NO_CONNECT_INITIALIZATION);
 
-            this.client.createCache(name);
+            this.connect.getOrCreateCache(name);
 
         } catch (Exception e) {
             LOGGER.error("Cache creation failed.", e);
@@ -53,10 +52,10 @@ public class IgniteAdmin {
 
     public void dropTable(String name) throws Exception {
 
-        if (this.client == null)
-            throw new Exception(NO_CLIENT_INITIALIZATION);
+        if (this.connect == null)
+            throw new Exception(NO_CONNECT_INITIALIZATION);
 
-        this.client.deleteCache(name);
+        this.connect.deleteCache(name);
 
     }
     /**
@@ -65,14 +64,8 @@ public class IgniteAdmin {
      * does not verify whether the cache exists or not.
      */
     public IgniteTable getTable(String tableName) {
-        if (client == null) {
-            LOGGER.error(NO_CLIENT_INITIALIZATION);
-            return null;
-        }
-
-        IgniteConnect connect = client.getConnect();
         if (connect == null) {
-            LOGGER.error("IgniteContext is not initialized.");
+            LOGGER.error(NO_CONNECT_INITIALIZATION);
             return null;
         }
 

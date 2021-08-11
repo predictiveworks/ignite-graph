@@ -19,7 +19,7 @@ package de.kp.works.ignitegraph.readers;
  */
 
 import de.kp.works.ignite.client.IgniteColumn;
-import de.kp.works.ignite.client.IgniteResult;
+import de.kp.works.ignite.client.query.IgniteResult;
 import de.kp.works.ignitegraph.IgniteConstants;
 import de.kp.works.ignitegraph.IgniteEdge;
 import de.kp.works.ignitegraph.IgniteGraph;

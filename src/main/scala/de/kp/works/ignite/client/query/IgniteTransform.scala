@@ -1,4 +1,4 @@
-package de.kp.works.ignite.client
+package de.kp.works.ignite.client.query
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -17,7 +17,10 @@ package de.kp.works.ignite.client
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
+
+import de.kp.works.ignite.client.{IgniteEdgeEntry, IgniteVertexEntry}
 import de.kp.works.ignitegraph.{IgniteConstants, ValueType}
+
 import scala.collection.JavaConversions._
 
 object IgniteTransform {
@@ -25,26 +28,26 @@ object IgniteTransform {
   def transformEdgeEntries(entries: java.util.List[IgniteEdgeEntry]): java.util.List[IgniteResult] = {
     entries
       .groupBy(entry => entry.id)
-      .map{ case(_, values) =>
+      .map { case (_, values) =>
 
         val igniteResult = new IgniteResult()
         /*
          * Extract common fields
          */
         val head = values.head
-        val id:String = head.id
+        val id: String = head.id
 
-        val idType:String = head.idType
-        val label:String = head.label
+        val idType: String = head.idType
+        val label: String = head.label
 
-        val toId:String = head.toId
-        val toIdType:String = head.toIdType
+        val toId: String = head.toId
+        val toIdType: String = head.toIdType
 
-        val fromId:String = head.fromId
-        val fromIdType:String = head.fromIdType
+        val fromId: String = head.fromId
+        val fromIdType: String = head.fromIdType
 
-        val createdAt:String = head.createdAt.toString
-        val updatedAt:String = head.updatedAt.toString
+        val createdAt: String = head.createdAt.toString
+        val updatedAt: String = head.updatedAt.toString
         /*
          * Add common fields
          */
@@ -75,20 +78,20 @@ object IgniteTransform {
   def transformVertexEntries(entries: java.util.List[IgniteVertexEntry]): java.util.List[IgniteResult] = {
     entries
       .groupBy(entry => entry.id)
-      .map{ case(_, values) =>
+      .map { case (_, values) =>
 
         val igniteResult = new IgniteResult()
         /*
          * Extract common fields
          */
         val head = values.head
-        val id:String = head.id
+        val id: String = head.id
 
-        val idType:String = head.idType
-        val label:String = head.label
+        val idType: String = head.idType
+        val label: String = head.label
 
-        val createdAt:String = head.createdAt.toString
-        val updatedAt:String = head.updatedAt.toString
+        val createdAt: String = head.createdAt.toString
+        val updatedAt: String = head.updatedAt.toString
         /*
          * Add common fields
          */
@@ -108,9 +111,9 @@ object IgniteTransform {
          */
         values.foreach(value => {
 
-          val propKey:String = value.propKey
-          val propType:String = value.propType
-          val propValue:String = value.propValue
+          val propKey: String = value.propKey
+          val propType: String = value.propType
+          val propValue: String = value.propValue
 
           igniteResult
             .addColumn(propKey, propType, propValue)

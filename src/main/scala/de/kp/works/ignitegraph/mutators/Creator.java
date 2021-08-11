@@ -18,7 +18,7 @@ package de.kp.works.ignitegraph.mutators;
  *
  */
 
-import de.kp.works.ignite.client.IgnitePut;
+import de.kp.works.ignite.client.mutate.IgnitePut;
 import org.apache.tinkerpop.gremlin.structure.Element;
 
 import java.util.Iterator;

@@ -21,7 +21,10 @@ package de.kp.works.ignite.client;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+/**
+ * [IgniteConnection] is used in the IgniteGraph context
+ * and provides [IgniteAdmin] as the user interface
+ */
 public class IgniteConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IgniteConnection.class);
@@ -33,9 +36,9 @@ public class IgniteConnection {
     public IgniteConnection(IgniteConfiguration configuration, String namespace) {
 
         try {
-            /* Initialize Ignite Client and its admin interface */
-            IgniteClient client = IgniteClient.getInstance(configuration, namespace);
-            admin = new IgniteAdmin(client);
+            /* Initialize IgniteConnect and its admin interface */
+            IgniteConnect connect = IgniteConnect.getInstance(configuration, namespace);
+            admin = new IgniteAdmin(connect);
 
         } catch (Exception e) {
             String message = "Connecting to Apache Ignited failed";

@@ -18,7 +18,7 @@ package de.kp.works.ignitegraph.mutators;
  *
  */
 
-import de.kp.works.ignite.client.IgniteMutation;
+import de.kp.works.ignite.client.mutate.IgniteMutation;
 import java.util.Iterator;
 
 public interface Mutator {

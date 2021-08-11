@@ -18,8 +18,8 @@ package de.kp.works.ignitegraph.mutators;
  *
  */
 
-import de.kp.works.ignite.client.IgniteIncrement;
-import de.kp.works.ignite.client.IgniteMutation;
+import de.kp.works.ignite.client.mutate.IgniteIncrement;
+import de.kp.works.ignite.client.mutate.IgniteMutation;
 import de.kp.works.ignitegraph.ElementType;
 import de.kp.works.ignitegraph.IgniteGraph;
 import de.kp.works.ignitegraph.ValueUtils;

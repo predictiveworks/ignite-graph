@@ -1,6 +1,6 @@
 package de.kp.works.ignite.stream.fiware
 
-import de.kp.works.ignite.client.IgnitePut
+import de.kp.works.ignite.client.mutate.IgnitePut
 
 import scala.collection.mutable
 

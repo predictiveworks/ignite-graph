@@ -1,4 +1,4 @@
-package de.kp.works.ignite.client;
+package de.kp.works.ignite.client.mutate;
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,18 +18,8 @@ package de.kp.works.ignite.client;
  *
  */
 
-import de.kp.works.ignitegraph.ElementType;
-
-public class IgnitePut extends IgniteMutation {
-
-    public IgnitePut(Object id, ElementType elementType) {
-        super(id);
-        this.elementType = elementType;
-        mutationType = IgniteMutationType.PUT;
-    }
-
-    public void addColumn(String colName, String colType, String colValue) {
-        columns.add(new IgniteColumn(colName, colType, colValue));
-    }
-
+public enum IgniteMutationType {
+    DELETE,
+    INCREMENT,
+    PUT
 }
