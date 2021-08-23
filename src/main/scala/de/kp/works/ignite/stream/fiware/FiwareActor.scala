@@ -46,7 +46,7 @@ abstract class BaseActor extends Actor with ActorLogging {
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  private val conf = CommonConfig.getActorCfg
+  private val conf = CommonConfig.getFiwareActorCfg
 
   implicit val timeout: Timeout = {
     val value = conf.getInt("timeout")

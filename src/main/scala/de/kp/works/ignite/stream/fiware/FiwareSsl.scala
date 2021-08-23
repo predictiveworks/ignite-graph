@@ -32,7 +32,7 @@ object FiwareSsl {
       * Distinguish between SSL/TLS and non-SSL/TLS requests;
       * note, [IgniteConf] must be initialized.
       */
-    val cfg = CommonConfig.getFiwareSecurity
+    val cfg = CommonConfig.getFiwareBrokerSecurity
     if (cfg.getString("ssl") == "false") false else true
   }
 
@@ -41,17 +41,17 @@ object FiwareSsl {
       * Distinguish between SSL/TLS and non-SSL/TLS requests;
       * note, [IgniteConf] must be initialized.
       */
-    val cfg = CommonConfig.getServerSecurity
+    val cfg = CommonConfig.getFiwareServerSecurity
     if (cfg.getString("ssl") == "false") false else true
   }
 
-  def buildFiwareContext: HttpsConnectionContext = {
-    val cfg = CommonConfig.getFiwareSecurity
+  def buildBrokerContext: HttpsConnectionContext = {
+    val cfg = CommonConfig.getFiwareBrokerSecurity
     ConnectionContext.https(buildSSLContext(cfg))
   }
 
   def buildServerContext: HttpsConnectionContext = {
-    val cfg = CommonConfig.getServerSecurity
+    val cfg = CommonConfig.getFiwareServerSecurity
     ConnectionContext.https(buildSSLContext(cfg))
   }
 

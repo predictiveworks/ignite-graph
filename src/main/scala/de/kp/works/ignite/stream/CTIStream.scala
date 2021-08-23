@@ -20,56 +20,55 @@ package de.kp.works.ignite.stream
 
 import de.kp.works.conf.CommonConfig
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.fiware.FiwareIgnite
+import de.kp.works.ignite.stream.opencti.CTIIgnite
 import de.kp.works.spark.Session
 import scopt.OptionParser
 
-object FiwareStream {
+object CTIStream {
 
   private case class CliConfig(
     /*
      * The command line interface supports the provisioning
      * of a typesafe config compliant configuration file
      */
-    conf:String = null
+    conf: String = null
   )
 
-  private var connect:Option[IgniteConnect] = None
-  private var service:Option[IgniteStreamContext] = None
+  private var connect: Option[IgniteConnect] = None
+  private var service: Option[IgniteStreamContext] = None
 
-  def main(args:Array[String]):Unit = {
+  def main(args: Array[String]): Unit = {
     launch(args)
   }
 
-  def launch(args:Array[String]):Unit = {
+  def launch(args: Array[String]): Unit = {
 
     /* Command line argument parser */
-    val parser = new OptionParser[CliConfig]("FiwareStream") {
+    val parser = new OptionParser[CliConfig]("CTIStream") {
 
-      head("Fiware Stream: Streaming support for Fiware notifications.")
+      head("OpenCTI Stream: Streaming support for threat intel events.")
       opt[String]("c")
         .text("The path to the configuration file.")
         .action((x, c) => c.copy(conf = x))
-
     }
     /* Parse the argument and then run */
-    parser.parse(args, CliConfig()).map{c =>
+    parser.parse(args, CliConfig()).map { c =>
 
       try {
 
         if (c.conf == null) {
 
-          println("[INFO] -------------------------------------------------")
-          println("[INFO] Launch Fiware Stream with internal configuration.")
-          println("[INFO] -------------------------------------------------")
+          println("[INFO] --------------------------------------------------")
+          println("[INFO] Launch OpenCTI Stream with internal configuration.")
+          println("[INFO] --------------------------------------------------")
 
           CommonConfig.init()
 
         } else {
 
-          println("[INFO] -------------------------------------------------")
-          println("[INFO] Launch Fiware Stream with external configuration.")
-          println("[INFO] -------------------------------------------------")
+          println("[INFO] --------------------------------------------------")
+          println("[INFO] Launch OpenCTI Stream with external configuration.")
+          println("[INFO] --------------------------------------------------")
 
           val source = scala.io.Source.fromFile(c.conf)
           val config = source.getLines.mkString("\n")
@@ -90,15 +89,15 @@ object FiwareStream {
         start()
 
         println("[INFO] -------------------------------------------------")
-        println("[INFO] Fiware Stream started.")
+        println("[INFO] OpenCTI Stream started.")
         println("[INFO] -------------------------------------------------")
 
       } catch {
-        case t:Throwable =>
+        case t: Throwable =>
           t.printStackTrace()
-          println("[ERROR] -------------------------------------------------")
-          println("[ERROR] Fiware Stream cannot be started: " + t.getMessage)
-          println("[ERROR] -------------------------------------------------")
+          println("[ERROR] --------------------------------------------------")
+          println("[ERROR] OpenCTI Stream cannot be started: " + t.getMessage)
+          println("[ERROR] --------------------------------------------------")
       }
     }.getOrElse {
       /*
@@ -111,23 +110,22 @@ object FiwareStream {
 
   }
 
-  def start():Unit = {
+  def start(): Unit = {
     /*
      * Build streaming context
      */
-    val fiwareIgnite = new FiwareIgnite(connect.get)
-    service = fiwareIgnite.buildStream
+    val ctiIgnite = new CTIIgnite(connect.get)
+    service = ctiIgnite.buildStream
 
     if (service.isEmpty)
-      throw new Exception("Initialization of the Fiware Streamer failed.")
+      throw new Exception("Initialization of the OpenCTI Streamer failed.")
 
     service.get.start()
 
   }
 
-  def stop():Unit = {
+  def stop(): Unit = {
     if (service.isDefined)
       service.get.stop()
   }
-
 }

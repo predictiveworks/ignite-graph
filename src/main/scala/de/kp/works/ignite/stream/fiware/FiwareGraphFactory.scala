@@ -36,7 +36,7 @@ object FiwareGraphFactory {
 
   def getTransformer:FiwareTransformer = {
 
-    val model = CommonConfig.getDataModel
+    val model = CommonConfig.getFiwareDataModel
     val name = model.getString("name")
 
     FiwareModels.withName(name) match {

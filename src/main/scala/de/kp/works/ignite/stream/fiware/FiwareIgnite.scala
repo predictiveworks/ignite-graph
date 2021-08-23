@@ -32,7 +32,7 @@ import javax.cache.configuration.FactoryBuilder
 import javax.cache.expiry.{CreatedExpiryPolicy, Duration}
 import scala.collection.JavaConversions.mapAsJavaMap
 /**
- * [FiwareIgnite] is responsible for streaming Orion Broker
+ * [FiwareIgnite] is responsible for streaming Fiware Broker
  * notifications into a temporary cache and also their final
  * processing as edges & vertices of an information network.
  */
@@ -42,7 +42,7 @@ class FiwareIgnite(connect:IgniteConnect) {
     throw new Exception("[FiwareIgnite] No configuration initialized. Streaming cannot be started.")
 
   private val ignite = connect.getIgnite
-  private val conf = CommonConfig.getStreamerCfg
+  private val conf = CommonConfig.getFiwareStreamerCfg
 
   def buildStream:Option[IgniteStreamContext] = {
 

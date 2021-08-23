@@ -82,3 +82,58 @@ class IgniteFiwareContext(
   }
 }
 
+class IgniteCTIContext(
+   val stream:IgniteStream,
+   val streamer:opencti.CTIStreamer[String,BinaryObject],
+   numThreads:Int = 1) extends IgniteStreamContext {
+
+  private val executorService = Executors.newFixedThreadPool(numThreads)
+
+  def start():Unit = {
+    try {
+
+      /* Start OpenCTI streamer
+       *
+       * This streamer writes OpenCTI events
+       * to an intermediate cache.
+       */
+      streamer.start()
+
+      /* Start stream processor
+       *
+       * This stream processor starts from the intermediate
+       * cache and transforms the respective entries into
+       * their final format and destination
+       */
+      stream.processor.start()
+
+      /* Initiate stream execution */
+      executorService.execute(stream)
+
+    } catch {
+      case e:Exception => executorService.shutdown()
+    }
+  }
+
+  /**
+   * This method shuts down an ExecutorService in two phases,
+   * first by calling 'shutdown' to reject incoming tasks, and
+   * then calling 'shutdownNow'
+   */
+
+  def stop():Unit = {
+
+    /* Stop OpenCTI streamer */
+    streamer.stop()
+
+    /* Shutdown processor */
+    stream.processor.shutdown()
+
+    /* Stop stream processing */
+    executorService.shutdown()
+    executorService.shutdownNow()
+
+  }
+}
+
+

@@ -137,7 +137,8 @@ class FiwareServer {
       }
     }
 
-    val (host, port) = CommonConfig.getServerBinding
+    val bindingCfg = CommonConfig.getFiwareServerBinding
+    val (host, port) = (bindingCfg.getString("host"), bindingCfg.getInt("port"))
     /*
      * Distinguish between SSL/TLS and non-SSL/TLS requests
      */

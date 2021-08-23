@@ -66,7 +66,6 @@ object CommonConfig {
           Option(ConfigFactory.load(path))
 
         }
-        extractCfg()
         true
 
       } catch {
@@ -80,30 +79,14 @@ object CommonConfig {
     cfg.isDefined
   }
 
-  private def extractCfg(): Unit = {
-
-    val fiwareCfg = cfg.get.getConfig("fiware")
-
-    /* BROKER */
-
-    val broker = fiwareCfg.getConfig("broker")
-    brokerUrl = broker.getString("endpoint")
-
-    /* NOTIFICATION SERVER */
-
-    val binding = fiwareCfg.getConfig("binding")
-
-    httpHost = binding.getString("host")
-    httpPort = binding.getInt("port")
-
-  }
+  /** FIWARE CONFIGURATION **/
 
   /**
    * The configuration of the Fiware (notification)
    * actor, which is responsible for retrieving and
    * executing Orion Broker notification requests
    */
-  def getActorCfg: Config = {
+  def getFiwareActorCfg: Config = {
 
     val fiwareCfg = cfg.get.getConfig("fiware")
     fiwareCfg.getConfig("actor")
@@ -114,39 +97,29 @@ object CommonConfig {
    * Retrieve the SSL/TLS configuration for subscription
    * requests to the Orion Context Broker
    */
-  def getBrokerSecurity: Config = {
-    val security = cfg.get.getConfig("security")
-    security.getConfig("fiware")
+  def getFiwareBrokerSecurity: Config = {
+    val fiwareCfg = cfg.get.getConfig("fiware")
+    val brokerCfg = fiwareCfg.getConfig("broker")
+
+    brokerCfg.getConfig("security")
   }
 
-  def getBrokerUrl: String = brokerUrl
+  def getFiwareBrokerUrl: String = {
+    val fiwareCfg = cfg.get.getConfig("fiware")
+    val brokerCfg = fiwareCfg.getConfig("broker")
 
-  def getDataModel: Config = {
+    brokerCfg.getString("endpoint")
+
+  }
+
+  def getFiwareDataModel: Config = {
     val fiwareCfg = cfg.get.getConfig("fiware")
     fiwareCfg.getConfig("model")
   }
 
-  /**
-   * Retrieve the SSL/TLS configuration for subscription
-   * requests to the Orion Context Broker
-   */
-  def getFiwareSecurity: Config = {
-    val security = cfg.get.getConfig("security")
-    security.getConfig("fiware")
-  }
-
-  def getGraphNS: String = {
+  def getFiwareGraphNS: String = {
     val fiwareCfg = cfg.get.getConfig("fiware")
     fiwareCfg.getString("namespace")
-  }
-
-  def getIgniteCfg: Config = {
-    cfg.get.getConfig("ignite")
-  }
-
-  def getStreamerCfg: Config = {
-    val fiwareCfg = cfg.get.getConfig("fiware")
-    fiwareCfg.getConfig("streamer")
   }
 
   /**
@@ -154,16 +127,43 @@ object CommonConfig {
    * is used as a notification endpoint for an Orion Context
    * Broker instance
    */
-  def getServerBinding: (String, Int) = (httpHost, httpPort)
+  def getFiwareServerBinding: Config = {
+    val fiwareCfg = cfg.get.getConfig("fiware")
+    val serverCfg = fiwareCfg.getConfig("server")
+
+    serverCfg.getConfig("binding")
+  }
 
   /**
    * Retrieve the SSL/TLS configuration for notification
    * requests from the Orion Context Broker
    */
-  def getServerSecurity: Config = {
-    val security = cfg.get.getConfig("security")
-    security.getConfig("server")
+  def getFiwareServerSecurity: Config = {
+    val fiwareCfg = cfg.get.getConfig("fiware")
+    val serverCfg = fiwareCfg.getConfig("server")
+
+    serverCfg.getConfig("security")
   }
+
+  def getFiwareStreamerCfg: Config = {
+    val fiwareCfg = cfg.get.getConfig("fiware")
+    fiwareCfg.getConfig("streamer")
+  }
+
+  /** IGNITE CONFIGURATION **/
+
+  def getIgniteCfg: Config = {
+    cfg.get.getConfig("ignite")
+  }
+
+  /** OPENCTI CONFIGURATION **/
+
+  def getCTIStreamerCfg: Config = {
+    val ctiCfg = cfg.get.getConfig("opencti")
+    ctiCfg.getConfig("streamer")
+  }
+
+  /** SPARK CONFIGURATION **/
 
   def getSparkCfg: Config = {
     cfg.get.getConfig("spark")

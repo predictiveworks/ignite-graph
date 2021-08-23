@@ -47,9 +47,6 @@ object FiwareAgriFood extends FiwareTransformer {
      */
     val data = payload.get("data").getAsJsonArray
 
-    // TODO
-
-    null
-
+    throw new Exception("Not implemented yet")
   }
 }

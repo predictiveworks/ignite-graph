@@ -57,7 +57,7 @@ class FiwareProcessor(
    * data to the predefined output is currently set to
    * 2 times of the stream buffer flush frequency
    */
-  private val conf = CommonConfig.getStreamerCfg
+  private val conf = CommonConfig.getFiwareStreamerCfg
   override val flushWindow:Int = conf.getInt("flushWindow")
 
   /**

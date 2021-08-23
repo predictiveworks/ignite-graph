@@ -72,7 +72,7 @@ object FiwareClient {
        * Build request: A subscription is registered with a POST request
        * to /v2/subscriptions
        */
-      val brokerUrl = CommonConfig.getBrokerUrl
+      val brokerUrl = CommonConfig.getFiwareBrokerUrl
       val endpoint = s"$brokerUrl/v2/subscriptions"
 
       val headers = List(`Content-Type`(`text/plain(UTF-8)`))
@@ -95,7 +95,7 @@ object FiwareClient {
            * specified as 'https://'. In this case, an SSL
            * security context must be specified
            */
-          val context = FiwareSsl.buildFiwareContext
+          val context = FiwareSsl.buildBrokerContext
           Http(system).singleRequest(request = request, connectionContext = context)
 
         }
