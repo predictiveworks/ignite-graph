@@ -18,4 +18,13 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-case class CTIEvent(payload:String)
+object CTIConstants {
+
+  /**
+   * The cache name used to temporarily store
+   * OpenCTI event messages
+   */
+  val OPENCTI_CACHE:String = "opencti_events"
+  val FIELD_PAYLOAD:String = "payload"
+
+}

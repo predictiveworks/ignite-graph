@@ -23,6 +23,15 @@ import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.{IgniteCTIContext, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
+import org.apache.ignite.cache.QueryEntity
+import org.apache.ignite.configuration.CacheConfiguration
+import org.apache.ignite.stream.StreamSingleTupleExtractor
+
+import java.security.MessageDigest
+import java.util.concurrent.TimeUnit.SECONDS
+import javax.cache.configuration.FactoryBuilder
+import javax.cache.expiry.{CreatedExpiryPolicy, Duration}
+import scala.collection.JavaConversions.mapAsJavaMap
 
 /**
  * [CTIIgnite] is responsible for streaming threat intelligence
@@ -58,9 +67,168 @@ class CTIIgnite(connect:IgniteConnect) {
   }
 
   private def prepareCTIStreamer:(IgniteCache[String,BinaryObject],CTIStreamer[String,BinaryObject]) = {
+    /*
+     * The auto flush frequency of the stream buffer is
+     * internally set to 0.5 sec (500 ms)
+     */
+    val autoFlushFrequency = conf.getInt("ignite.autoFlushFrequency")
+    /*
+     * The cache is configured with sliding window holding
+     * N seconds of the streaming data; note, that we delete
+     * an already equal named cache
+     */
+    deleteCache()
 
-    // TODO
-    null
+    val config = createCacheConfig
+    val cache = ignite.getOrCreateCache(config)
+
+    val streamer = ignite.dataStreamer[String,BinaryObject](cache.getName)
+    /*
+     * allowOverwrite(boolean) - Sets flag enabling overwriting
+     * existing values in cache. Data streamer will perform better
+     * if this flag is disabled, which is the default setting.
+     */
+    streamer.allowOverwrite(false)
+    /*
+     * IgniteDataStreamer buffers the data and most likely it just
+     * waits for buffers to fill up. We set the time interval after
+     * which buffers will be flushed even if they are not full
+     */
+    streamer.autoFlushFrequency(autoFlushFrequency)
+    val ctiStreamer = new CTIStreamer[String,BinaryObject]()
+
+    ctiStreamer.setIgnite(ignite)
+    ctiStreamer.setStreamer(streamer)
+    /*
+     * The OpenCTI extractor is the linking element between the
+     * OpenCTI events and its specification as Apache Ignite
+     * cache entry.
+     *
+     * We currently leverage a single tuple extractor as we do
+     * not have experience whether we should introduce multiple
+     * tuple extraction. Additional performance requirements can
+     * lead to a channel in the selected extractor
+     */
+    val ctiExtractor = createCTIExtractor
+    ctiStreamer.setSingleTupleExtractor(ctiExtractor)
+
+    (cache, ctiStreamer)
+
+  }
+  /**
+   * Configuration for the threat events cache to store
+   * the stream of events. This cache is configured with
+   * a sliding window of N seconds, which means that data
+   * older than N second will be automatically removed
+   * from the cache.
+   */
+  private def createCacheConfig:CacheConfiguration[String,BinaryObject] = {
+    /*
+     * Defining query entities is the Apache Ignite
+     * mechanism to dynamically define a queryable
+     * 'class'
+     */
+    val qes = new java.util.ArrayList[QueryEntity]()
+    qes.add(buildQueryEntity)
+    /*
+     * Configure streaming cache.
+     */
+    val cfg = new CacheConfiguration[String,BinaryObject]()
+    cfg.setName(CTIConstants.OPENCTI_CACHE)
+    /*
+     * Specify Apache Ignite cache configuration; it is
+     * important to leverage 'BinaryObject' as well as
+     * 'setStoreKeepBinary'
+     */
+    cfg.setStoreKeepBinary(true)
+    cfg.setIndexedTypes(classOf[String],classOf[BinaryObject])
+
+    cfg.setQueryEntities(qes)
+
+    cfg.setStatisticsEnabled(true)
+    /*
+     * The time window specifies the batch window that
+     * is used to gather stream events
+     */
+    val timeWindow = conf.getInt("timeWindow")
+
+    /* Sliding window of 'timeWindow' in seconds */
+    val duration = timeWindow / 1000
+
+    cfg.setExpiryPolicyFactory(FactoryBuilder.factoryOf(new CreatedExpiryPolicy(new Duration(SECONDS, duration))))
+    cfg
+
+  }
+  /**
+   * A helper method to build an Apache Ignite QueryEntity
+   */
+  private def buildQueryEntity:QueryEntity = {
+
+    val queryEntity = new QueryEntity()
+
+    queryEntity.setKeyType("java.lang.String")
+    queryEntity.setValueType(CTIConstants.OPENCTI_CACHE)
+
+    val fields = new java.util.LinkedHashMap[String,String]()
+    /*
+     * The payload that is associated with the event
+     */
+    fields.put(CTIConstants.FIELD_PAYLOAD,"java.lang.String")
+
+    queryEntity.setFields(fields)
+    queryEntity
+
+  }
+
+  private def createCTIExtractor: StreamSingleTupleExtractor[CTIEvent, String, BinaryObject] = {
+
+    new StreamSingleTupleExtractor[CTIEvent,String,BinaryObject]() {
+
+      override def extract(event:CTIEvent):java.util.Map.Entry[String,BinaryObject] = {
+
+        val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
+        try {
+
+          val builder = ignite.binary().builder(CTIConstants.OPENCTI_CACHE)
+          builder.setField(CTIConstants.FIELD_PAYLOAD, event.payload)
+
+          val cacheValue = builder.build()
+          /*
+           * The cache key is built from the content
+           * to enable the detection of duplicates.
+           *
+           * (see CTIProcessor)
+           */
+          val cacheKey = new String(MessageDigest.getInstance("MD5")
+            .digest(event.payload.getBytes("UTF-8")))
+
+          entries.put(cacheKey,cacheValue)
+
+        } catch {
+          case e:Exception => e.printStackTrace()
+        }
+        entries.entrySet().iterator().next
+
+      }
+    }
+  }
+
+  /**
+   * This method deletes the temporary notification
+   * cache from the Ignite cluster
+   */
+  private def deleteCache():Unit = {
+    try {
+
+      if (ignite.cacheNames().contains(CTIConstants.OPENCTI_CACHE)) {
+        val cache = ignite.cache(CTIConstants.OPENCTI_CACHE)
+        cache.destroy()
+      }
+
+    } catch {
+      case t:Throwable => /* do noting */
+
+    }
   }
 
 }
