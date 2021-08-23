@@ -84,7 +84,7 @@ object CTIStream {
         connect = Some(IgniteConnect.getInstance(
           Session.getSession,
           CommonConfig.toIgniteConfiguration,
-          CommonConfig.getFiwareGraphNS))
+          CommonConfig.getCTIGraphNS))
 
         start()
 

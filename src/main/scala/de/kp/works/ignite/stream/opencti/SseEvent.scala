@@ -1,6 +1,6 @@
 package de.kp.works.ignite.stream.opencti
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2020 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,16 +18,4 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-object CTIConstants {
-
-  /**
-   * The cache name used to temporarily store
-   * OpenCTI event messages
-   */
-  val OPENCTI_CACHE:String = "opencti_events"
-
-  val FIELD_ID:String   = "eventId"
-  val FIELD_TYPE:String = "eventType"
-  val FIELD_DATA:String = "eventData"
-
-}
+case class SseEvent(eventId:String, eventType:String, data:String)

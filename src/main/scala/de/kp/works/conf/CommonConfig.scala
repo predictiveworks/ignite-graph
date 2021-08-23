@@ -158,6 +158,16 @@ object CommonConfig {
 
   /** OPENCTI CONFIGURATION **/
 
+  def getCTIGraphNS: String = {
+    val ctiCfg = cfg.get.getConfig("opencti")
+    ctiCfg.getString("namespace")
+  }
+
+  def getCTIReceiverCfg: Config = {
+    val ctiCfg = cfg.get.getConfig("opencti")
+    ctiCfg.getConfig("receiver")
+  }
+
   def getCTIStreamerCfg: Config = {
     val ctiCfg = cfg.get.getConfig("opencti")
     ctiCfg.getConfig("streamer")

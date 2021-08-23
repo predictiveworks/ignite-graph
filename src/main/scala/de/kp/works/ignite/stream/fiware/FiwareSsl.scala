@@ -58,74 +58,12 @@ object FiwareSsl {
   private def buildSSLContext(securityCfg: Config): SSLContext = {
 
     val sslOptions = getSslOptions(securityCfg)
-    sslOptions.getSSLContext
+    sslOptions.getSslContext
 
   }
 
   private def getSslOptions(securityCfg: Config): SslOptions = {
-
-    val ksFile = {
-      val v = securityCfg.getString("ksFile")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val ksType = {
-      val v = securityCfg.getString("ksType")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val ksPass = {
-      val v = securityCfg.getString("ksPass")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val ksAlgo = {
-      val v = securityCfg.getString("ksAlgo")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val tsFile = {
-      val v = securityCfg.getString("tsFile")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val tsType = {
-      val v = securityCfg.getString("tsType")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val tsPass = {
-      val v = securityCfg.getString("tsPass")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val tsAlgo = {
-      val v = securityCfg.getString("tsAlgo")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val caCertFile = {
-      val v = securityCfg.getString("caCertFile")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val certFile = {
-      val v = securityCfg.getString("certFile")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val privateKeyFile = {
-      val v = securityCfg.getString("privateKeyFile")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    val privateKeyFilePass = {
-      val v = securityCfg.getString("privateKeyFilePass")
-      if (v.isEmpty) None else Option(v)
-    }
-
-    new SslOptions(ksFile, ksType, ksPass, ksAlgo, tsFile, tsType, tsPass, tsAlgo, caCertFile, certFile, privateKeyFile, privateKeyFilePass)
-
+    SslOptions.getOptions(securityCfg)
   }
 
 }

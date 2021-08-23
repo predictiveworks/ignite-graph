@@ -18,32 +18,93 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
+import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
 trait CTIEventCallback {
 
   def connectionLost():Unit
 
-  def eventArrived(notification:CTIEvent):Unit
+  def eventArrived(event:SseEvent):Unit
 
 }
 
 class CTIStreamer[K,V]
-  extends StreamAdapter[CTIEvent, K, V] with CTIEventCallback {
+  extends StreamAdapter[SseEvent, K, V] with CTIEventCallback {
 
-  override def connectionLost(): Unit = ???
+  /** Logger */
+  private val log:IgniteLogger = getIgnite.log()
 
-  override def eventArrived(notification: CTIEvent): Unit = ???
+  /** OpenCTI Service */
+
+  private var service:Option[CTIService] = None
+
+  /** State keeping. */
+  private val stopped = true
 
   /** Start streamer  **/
 
   def start():Unit = {
+
+    if (!stopped)
+      throw new IgniteException("Attempted to start an already started OpenCTI Streamer.")
+
+    service = Some(new CTIService())
+    service.get.setCallback(this)
+
+    service.get.start()
 
   }
 
   /** Stop streamer **/
 
   def stop():Unit = {
+
+    if (stopped)
+      throw new IgniteException("Failed to stop OpenCTI Streamer (already stopped).")
+
+    if (service.isEmpty)
+      throw new IgniteException("Failed to stop the OpenCTI Server (never started).")
+    /*
+     * Stopping the streamer equals stopping
+     * the OpenCTI event server
+     */
+    service.get.stop()
+
+
+  }
+
+  /********************************
+   *
+   *  OpenCTI service callback methods
+   *
+   *******************************/
+
+  override def connectionLost(): Unit = {/* Do nothing */}
+
+  override def eventArrived(event: SseEvent): Unit = {
+    /*
+     * The leveraged extractors below must be explicitly
+     * defined when initiating this streamer
+     */
+    if (getMultipleTupleExtractor != null) {
+
+      val entries:java.util.Map[K,V] = getMultipleTupleExtractor.extract(event)
+      if (log.isTraceEnabled)
+        log.trace("Adding cache entries: " + entries)
+
+      getStreamer.addData(entries)
+
+    }
+    else {
+
+      val entry:java.util.Map.Entry[K,V] = getSingleTupleExtractor.extract(event)
+      if (log.isTraceEnabled)
+        log.trace("Adding cache entry: " + entry)
+
+      getStreamer.addData(entry)
+
+    }
 
   }
 

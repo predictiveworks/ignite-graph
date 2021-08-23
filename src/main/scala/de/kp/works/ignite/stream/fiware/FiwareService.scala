@@ -42,7 +42,7 @@ import scala.util.{Failure, Success}
  * The notification endpoint, the Orion Context Broker
  * sends (subscribed) notifications to.
  */
-class FiwareServer {
+class FiwareService {
 
   private var callback:Option[FiwareNotificationCallback] = None
 
@@ -69,7 +69,7 @@ class FiwareServer {
    * The current implementation leverages the Fiware
    * Streamer as callback
    */
-  def setCallback(callback:FiwareNotificationCallback):FiwareServer = {
+  def setCallback(callback:FiwareNotificationCallback):FiwareService = {
     this.callback = Some(callback)
     this
   }
@@ -78,13 +78,13 @@ class FiwareServer {
    * to the Orion Context Broker for receiving NGSI event notifications
    */
   def launch():Unit = {
+    if (callback.isEmpty)
+      throw new Exception("[FiwareService] No callback specified to send notifications to.")
+
     /*
      * The FiwareActor is used to receive NGSI events and delegate
      * them to the provided callback
      */
-    if (callback.isEmpty)
-      throw new Exception("[FiwareServer] No callback specified to send notifications to.")
-
     lazy val fiwareActor = system
       .actorOf(Props(new FiwareActor(callback.get)), "FiwareActor")
 

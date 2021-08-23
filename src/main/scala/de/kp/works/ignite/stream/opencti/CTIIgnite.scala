@@ -171,26 +171,37 @@ class CTIIgnite(connect:IgniteConnect) {
 
     val fields = new java.util.LinkedHashMap[String,String]()
     /*
-     * The payload that is associated with the event
+     * The event identifier
      */
-    fields.put(CTIConstants.FIELD_PAYLOAD,"java.lang.String")
+    fields.put(CTIConstants.FIELD_ID,"java.lang.String")
+    /*
+     * The event type
+     */
+    fields.put(CTIConstants.FIELD_TYPE,"java.lang.String")
+    /*
+     * The data that is associated with the event
+     */
+    fields.put(CTIConstants.FIELD_DATA,"java.lang.String")
 
     queryEntity.setFields(fields)
     queryEntity
 
   }
 
-  private def createCTIExtractor: StreamSingleTupleExtractor[CTIEvent, String, BinaryObject] = {
+  private def createCTIExtractor: StreamSingleTupleExtractor[SseEvent, String, BinaryObject] = {
 
-    new StreamSingleTupleExtractor[CTIEvent,String,BinaryObject]() {
+    new StreamSingleTupleExtractor[SseEvent,String,BinaryObject]() {
 
-      override def extract(event:CTIEvent):java.util.Map.Entry[String,BinaryObject] = {
+      override def extract(event:SseEvent):java.util.Map.Entry[String,BinaryObject] = {
 
         val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
         try {
 
           val builder = ignite.binary().builder(CTIConstants.OPENCTI_CACHE)
-          builder.setField(CTIConstants.FIELD_PAYLOAD, event.payload)
+          builder.setField(CTIConstants.FIELD_ID, event.eventId)
+
+          builder.setField(CTIConstants.FIELD_TYPE, event.eventType)
+          builder.setField(CTIConstants.FIELD_DATA, event.data)
 
           val cacheValue = builder.build()
           /*
@@ -199,8 +210,13 @@ class CTIIgnite(connect:IgniteConnect) {
            *
            * (see CTIProcessor)
            */
+          val serialized = Seq(
+            event.eventId,
+            event.eventType,
+            event.data).mkString("#")
+
           val cacheKey = new String(MessageDigest.getInstance("MD5")
-            .digest(event.payload.getBytes("UTF-8")))
+            .digest(serialized.getBytes("UTF-8")))
 
           entries.put(cacheKey,cacheValue)
 

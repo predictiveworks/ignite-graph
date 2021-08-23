@@ -26,7 +26,7 @@ import java.nio.file.{Files, Paths}
 import java.security.cert.X509Certificate
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.{KeyFactory, KeyStore, PrivateKey}
-import javax.net.ssl.{KeyManager, KeyManagerFactory, TrustManager, TrustManagerFactory}
+import javax.net.ssl.{KeyManagerFactory, TrustManager, TrustManagerFactory}
 
 object SslUtil {
 
@@ -46,7 +46,7 @@ object SslUtil {
 
   /** KEY MANAGER SUPPORT * */
 
-  def getStoreKeyManagers(keystoreFile: String, keystoreType: String, keystorePass: String, keystoreAlgo: String): Array[KeyManager] = {
+  def getStoreKeyManagerFactory(keystoreFile: String, keystoreType: String, keystorePass: String, keystoreAlgo: String): KeyManagerFactory = {
 
     var keystore = loadKeystore(keystoreFile, keystoreType, keystorePass)
     /*
@@ -72,7 +72,100 @@ object SslUtil {
       if (keystorePass == null) null else keystorePass.toCharArray
 
     factory.init(keystore, password)
-    factory.getKeyManagers
+    factory
+
+  }
+
+  def getCertFileKeyManagerFactory(crtFile: String, keyFile: String, keyPass: String): KeyManagerFactory = {
+
+    val cert = getX509CertFromPEM(crtFile)
+    val privateKey = getPrivateKeyFromPEM(keyFile, keyPass)
+
+    getCertKeyManagerFactory(cert, privateKey, keyPass)
+
+  }
+
+  def getCertKeyManagerFactory(cert: X509Certificate, privateKey: PrivateKey, password: String): KeyManagerFactory = {
+
+    val keystore = createKeystore
+    /*
+     * Add client certificate to key store, the client certificate alias is
+     * 'certificate' (see IBM Watson IoT platform)
+     */
+    val certAlias = CERT_ALIAS
+    keystore.setCertificateEntry(certAlias, cert)
+
+    /*
+     * Add private key to keystore and distinguish between use case with and without
+     * password
+     */
+    val passwordArray = if (password != null) password.toCharArray else null
+
+    val keyAlias = PRIVATE_KEY_ALIAS
+    keystore.setKeyEntry(keyAlias, privateKey, passwordArray, Array(cert))
+
+    /*
+     * Initialize key manager from the key store; note, the default algorithm also
+     * supported by IBM Watson IoT platform is PKIX
+     */
+    val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+    factory.init(keystore, passwordArray)
+
+    factory
+
+  }
+
+  /** TRUST MANAGER SUPPORT * */
+
+  def getAllTrustManagers: Array[TrustManager] = {
+    Array[TrustManager](new AllTrustManager())
+  }
+
+  def getStoreTrustManagerFactory(truststoreFile: String, truststoreType: String, truststorePass: String, truststoreAlgo: String): TrustManagerFactory = {
+
+    var factory:TrustManagerFactory = null
+    val trustStore = SslUtil.loadKeystore(truststoreFile, truststoreType, truststorePass)
+
+    if (trustStore != null) {
+
+      val algo =
+        if (isNullOrEmpty(truststoreAlgo)) TrustManagerFactory.getDefaultAlgorithm else truststoreAlgo
+
+      val factory = TrustManagerFactory.getInstance(algo)
+      factory.init(trustStore)
+
+    }
+
+    factory
+
+  }
+
+  def getCertFileTrustManagerFactory(caCrtFile: String): TrustManagerFactory = {
+
+    val caCert = getX509CertFromPEM(caCrtFile)
+    getCertTrustManagerFactory(caCert)
+
+  }
+
+
+  def getCertTrustManagerFactory(caCert: X509Certificate): TrustManagerFactory = {
+
+    val keyStore = createKeystore
+    /*
+     * Add CA certificate to keystore; note, the CA certificate alias is set to
+     * 'ca-certificate' (see IBM Watson IoT platform)
+     */
+    val caCertAlias = CA_CERT_ALIAS
+    keyStore.setCertificateEntry(caCertAlias, caCert)
+
+    /*
+     * Establish certificate trust chain; note, the default algorithm also supported
+     * by IBM Watson IoT platform is PKIX
+     */
+    val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+    factory.init(keyStore)
+
+    factory
 
   }
 
@@ -108,97 +201,6 @@ object SslUtil {
     keystore.load(null, null)
 
     keystore
-
-  }
-
-  def getCertFileKeyManagers(crtFile: String, keyFile: String, keyPass: String): Array[KeyManager] = {
-
-    val cert = getX509CertFromPEM(crtFile)
-    val privateKey = getPrivateKeyFromPEM(keyFile, keyPass)
-
-    getCertKeyManagers(cert, privateKey, keyPass)
-
-  }
-
-  private def getCertKeyManagers(cert: X509Certificate, privateKey: PrivateKey, password: String): Array[KeyManager] = {
-
-    val keystore = createKeystore
-    /*
-     * Add client certificate to key store, the client certificate alias is
-     * 'certificate' (see IBM Watson IoT platform)
-     */
-    val certAlias = CERT_ALIAS
-    keystore.setCertificateEntry(certAlias, cert)
-
-    /*
-     * Add private key to keystore and distinguish between use case with and without
-     * password
-     */
-    val passwordArray = if (password != null) password.toCharArray else null
-
-    val keyAlias = PRIVATE_KEY_ALIAS
-    keystore.setKeyEntry(keyAlias, privateKey, passwordArray, Array(cert))
-
-    /*
-     * Initialize key manager from the key store; note, the default algorithm also
-     * supported by IBM Watson IoT platform is PKIX
-     */
-    val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
-    factory.init(keystore, passwordArray)
-
-    factory.getKeyManagers
-
-  }
-
-  /** TRUSTMANAGER SUPPORT * */
-
-  def getStoreTrustManagers(truststoreFile: String, truststoreType: String, truststorePass: String, truststoreAlgo: String): Array[TrustManager] = {
-
-    var trustManagers: Array[TrustManager] = null
-    val trustStore = SslUtil.loadKeystore(truststoreFile, truststoreType, truststorePass)
-
-    if (trustStore != null) {
-
-      val algo =
-        if (isNullOrEmpty(truststoreAlgo)) TrustManagerFactory.getDefaultAlgorithm else truststoreAlgo
-
-      val factory = TrustManagerFactory.getInstance(algo)
-      factory.init(trustStore)
-
-      trustManagers = factory.getTrustManagers
-
-    }
-
-    trustManagers
-
-  }
-
-  def getCertFileTrustManagers(caCrtFile: String): Array[TrustManager] = {
-
-    val caCert = getX509CertFromPEM(caCrtFile)
-    getCertTrustManagers(caCert)
-
-  }
-
-
-  private def getCertTrustManagers(caCert: X509Certificate): Array[TrustManager] = {
-
-    val keyStore = createKeystore
-    /*
-     * Add CA certificate to keystore; note, the CA certificate alias is set to
-     * 'ca-certificate' (see IBM Watson IoT platform)
-     */
-    val caCertAlias = CA_CERT_ALIAS
-    keyStore.setCertificateEntry(caCertAlias, caCert)
-
-    /*
-     * Establish certificate trust chain; note, the default algorithm also supported
-     * by IBM Watson IoT platform is PKIX
-     */
-    val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
-    factory.init(keyStore)
-
-    factory.getTrustManagers
 
   }
 

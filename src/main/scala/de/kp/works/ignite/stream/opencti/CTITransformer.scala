@@ -18,4 +18,13 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-case class CTIEvent(payload:String)
+import de.kp.works.ignite.client.mutate.IgnitePut
+
+object CTITransformer {
+
+  def transform(events:Seq[SseEvent]):(Seq[IgnitePut], Seq[IgnitePut]) = {
+    // TODO
+    null
+  }
+
+}
