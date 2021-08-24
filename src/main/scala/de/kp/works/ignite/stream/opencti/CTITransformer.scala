@@ -18,13 +18,118 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-import de.kp.works.ignite.client.mutate.IgnitePut
+import de.kp.works.ignite.client.mutate.{IgniteDelete, IgniteMutation, IgnitePut}
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import de.kp.works.ignite.stream.opencti.transformer.STIX
+
+import scala.collection.mutable
 
 object CTITransformer {
 
-  def transform(events:Seq[SseEvent]):(Seq[IgnitePut], Seq[IgnitePut]) = {
-    // TODO
-    null
+  private val mapper = new ObjectMapper()
+  mapper.registerModule(DefaultScalaModule)
+
+  def transform(sseEvents:Seq[SseEvent]):(Seq[IgniteMutation], Seq[IgniteMutation]) = {
+
+    val vertices = mutable.ArrayBuffer.empty[IgniteMutation]
+    val edges    = mutable.ArrayBuffer.empty[IgniteMutation]
+
+    sseEvents.foreach(sseEvent => {
+      /*
+       * The event type specifies the data operation
+       * associated with the event; this implementation
+       * currently supports `create`, `delete` and `update`
+       * operations
+       */
+      val event = sseEvent.eventType
+      val payload = mapper.readValue(sseEvent.data, classOf[Map[String, Any]])
+
+      val (v,e) = event match {
+        case "create" =>
+          transformCreate(payload)
+        case "delete" =>
+          transformDelete(payload)
+        case "merge" | "sync" => (None, None)
+        case "update" =>
+          transformUpdate(payload)
+        case _ =>
+          val now = new java.util.Date().toString
+          throw new Exception(s"[ERROR] $now - Unknown event type detected: $event")
+      }
+
+      if (v.isDefined) vertices ++= v.get
+      if (e.isDefined) edges    ++= e.get
+
+    })
+
+    (vertices, edges)
+
   }
 
+  private def transformCreate(payload:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+
+    val entityId = payload.getOrElse("id", "").asInstanceOf[String]
+    val entityType = payload.getOrElse("type", "").asInstanceOf[String]
+
+    if (entityId.isEmpty || entityType.isEmpty) return (None, None)
+    /*
+     * The current implementation takes non-edges as nodes;
+     * an edge can a `relationship` or `sighting`, and also
+     * a meta and cyber observable relationship
+     */
+    val isEdge = STIX.isStixEdge(entityType.toLowerCase)
+    if (isEdge) {
+      // TODO
+      throw new Exception("Not implement yet")
+    }
+    else {
+      // TODO
+      throw new Exception("Not implement yet")
+    }
+  }
+
+  private def transformDelete(payload:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+
+    val entityId = payload.getOrElse("id", "").asInstanceOf[String]
+    val entityType = payload.getOrElse("type", "").asInstanceOf[String]
+
+    if (entityId.isEmpty || entityType.isEmpty) return (None, None)
+    /*
+     * The current implementation takes non-edges as nodes;
+     * an edge can a `relationship` or `sighting`, and also
+     * a meta and cyber observable relationship
+     */
+    val isEdge = STIX.isStixEdge(entityType.toLowerCase)
+    if (isEdge) {
+      // TODO
+      throw new Exception("Not implement yet")
+    }
+    else {
+      // TODO
+      throw new Exception("Not implement yet")
+    }
+  }
+
+  private def transformUpdate(payload:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+
+    val entityId = payload.getOrElse("id", "").asInstanceOf[String]
+    val entityType = payload.getOrElse("type", "").asInstanceOf[String]
+
+    if (entityId.isEmpty || entityType.isEmpty) return (None, None)
+    /*
+     * The current implementation takes non-edges as nodes;
+     * an edge can a `relationship` or `sighting`, and also
+     * a meta and cyber observable relationship
+     */
+    val isEdge = STIX.isStixEdge(entityType.toLowerCase)
+    if (isEdge) {
+      // TODO
+      throw new Exception("Not implement yet")
+    }
+    else {
+      // TODO
+      throw new Exception("Not implement yet")
+    }
+  }
 }

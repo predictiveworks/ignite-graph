@@ -24,7 +24,9 @@ import de.kp.works.ignite.stream.fiware.{FiwareNotification, FiwareTransformer}
 object FiwareAgriFood extends FiwareTransformer {
 
   override def transformNotification(notification: FiwareNotification): (Seq[IgnitePut], Seq[IgnitePut]) = {
-
+    /*
+     * This is a sample of how Fiware notifications are built
+     */
     val service = notification.service
     val servicePath = notification.servicePath
 

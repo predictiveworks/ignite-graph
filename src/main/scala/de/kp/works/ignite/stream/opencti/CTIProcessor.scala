@@ -21,7 +21,7 @@ package de.kp.works.ignite.stream.opencti
 import com.google.gson.JsonParser
 import de.kp.works.conf.CommonConfig
 import de.kp.works.ignite.client.{IgniteConnect, IgniteTable}
-import de.kp.works.ignite.client.mutate.IgnitePut
+import de.kp.works.ignite.client.mutate.{IgniteDelete, IgniteIncrement, IgniteMutation, IgniteMutationType, IgnitePut}
 import de.kp.works.ignite.stream.IgniteProcessor
 import de.kp.works.ignitegraph.IgniteConstants
 import org.apache.ignite.IgniteCache
@@ -125,21 +125,39 @@ class CTIProcessor(
 
   }
 
-  private def writeEdges(edges:Seq[IgnitePut]):Unit = {
+  private def writeEdges(edges:Seq[IgniteMutation]):Unit = {
 
     val name = s"${connect.graphNS}_${IgniteConstants.EDGES}"
     val table = new IgniteTable(name, connect)
 
-    edges.foreach(edge => table.put(edge))
+    edges.foreach(edge => {
+      edge.mutationType match {
+        case IgniteMutationType.DELETE =>
+          table.delete(edge.asInstanceOf[IgniteDelete])
+        case IgniteMutationType.INCREMENT =>
+          table.increment(edge.asInstanceOf[IgniteIncrement])
+        case IgniteMutationType.PUT =>
+          table.put(edge.asInstanceOf[IgnitePut])
+      }
+    })
 
   }
 
-  private def writeVertices(vertices:Seq[IgnitePut]):Unit = {
+  private def writeVertices(vertices:Seq[IgniteMutation]):Unit = {
 
     val name = s"${connect.graphNS}_${IgniteConstants.VERTICES}"
     val table = new IgniteTable(name, connect)
 
-    vertices.foreach(vertex => table.put(vertex))
+    vertices.foreach(vertex => {
+      vertex.mutationType match {
+        case IgniteMutationType.DELETE =>
+          table.delete(vertex.asInstanceOf[IgniteDelete])
+        case IgniteMutationType.INCREMENT =>
+          table.increment(vertex.asInstanceOf[IgniteIncrement])
+        case IgniteMutationType.PUT =>
+          table.put(vertex.asInstanceOf[IgnitePut])
+      }
+    })
 
   }
 
