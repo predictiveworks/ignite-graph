@@ -18,10 +18,10 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-import de.kp.works.ignite.client.mutate.{IgniteDelete, IgniteMutation, IgnitePut}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import de.kp.works.ignite.stream.opencti.transformer.STIX
+import de.kp.works.ignite.client.mutate.{IgniteMutation, IgnitePut}
+import de.kp.works.ignite.stream.opencti.transformer._
 
 import scala.collection.mutable
 
@@ -45,21 +45,34 @@ object CTITransformer {
       val event = sseEvent.eventType
       val payload = mapper.readValue(sseEvent.data, classOf[Map[String, Any]])
 
-      val (v,e) = event match {
-        case "create" =>
-          transformCreate(payload)
-        case "delete" =>
-          transformDelete(payload)
-        case "merge" | "sync" => (None, None)
-        case "update" =>
-          transformUpdate(payload)
-        case _ =>
-          val now = new java.util.Date().toString
-          throw new Exception(s"[ERROR] $now - Unknown event type detected: $event")
-      }
+      val entityId = payload.getOrElse("id", "").asInstanceOf[String]
+      val entityType = payload.getOrElse("type", "").asInstanceOf[String]
 
-      if (v.isDefined) vertices ++= v.get
-      if (e.isDefined) edges    ++= e.get
+      if (entityId.isEmpty || entityType.isEmpty) {
+        /* Do nothing */
+      }
+      else {
+
+        val filter = Seq("id", "type")
+        val data = payload.filterKeys(k => !filter.contains(k))
+
+        val (v,e) = event match {
+          case "create" =>
+            transformCreate(entityId, entityType, data)
+          case "delete" =>
+            transformDelete(entityId, entityType, data)
+          case "merge" | "sync" => (None, None)
+          case "update" =>
+            transformUpdate(entityId, entityType, data)
+          case _ =>
+            val now = new java.util.Date().toString
+            throw new Exception(s"[ERROR] $now - Unknown event type detected: $event")
+        }
+
+        if (v.isDefined) vertices ++= v.get
+        if (e.isDefined) edges    ++= e.get
+
+      }
 
     })
 
@@ -67,12 +80,37 @@ object CTITransformer {
 
   }
 
-  private def transformCreate(payload:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+  private def transformCreate(entityId:String, entityType:String, data:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+    /*
+     * The current implementation takes non-edges as nodes;
+     * an edge can a `relationship` or `sighting`, and also
+     * a meta and cyber observable relationship
+     */
+    val isEdge = STIX.isStixEdge(entityType.toLowerCase)
+    if (isEdge) {
 
-    val entityId = payload.getOrElse("id", "").asInstanceOf[String]
-    val entityType = payload.getOrElse("type", "").asInstanceOf[String]
+      if (STIX.isStixRelationship(entityType.toLowerCase)) {
+        return EdgeTransformer.createRelationship(entityId, entityType, data)
+      }
 
-    if (entityId.isEmpty || entityType.isEmpty) return (None, None)
+      if (STIX.isStixSighting(entityType.toLowerCase)) {
+        return EdgeTransformer.createSighting(entityId, entityType, data)
+      }
+
+      // TODO
+      throw new Exception("Not implement yet")
+    }
+    else {
+
+      if (STIX.isCyberObservable(entityType)) {
+        VertexTransformer.createObservable(entityId, entityType, data)
+      }
+      // TODO
+      throw new Exception("Not implement yet")
+    }
+  }
+
+  private def transformDelete(entityId:String, entityType:String, data:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
     /*
      * The current implementation takes non-edges as nodes;
      * an edge can a `relationship` or `sighting`, and also
@@ -88,35 +126,12 @@ object CTITransformer {
       throw new Exception("Not implement yet")
     }
   }
-
-  private def transformDelete(payload:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
-
-    val entityId = payload.getOrElse("id", "").asInstanceOf[String]
-    val entityType = payload.getOrElse("type", "").asInstanceOf[String]
-
-    if (entityId.isEmpty || entityType.isEmpty) return (None, None)
-    /*
-     * The current implementation takes non-edges as nodes;
-     * an edge can a `relationship` or `sighting`, and also
-     * a meta and cyber observable relationship
-     */
-    val isEdge = STIX.isStixEdge(entityType.toLowerCase)
-    if (isEdge) {
-      // TODO
-      throw new Exception("Not implement yet")
-    }
-    else {
-      // TODO
-      throw new Exception("Not implement yet")
-    }
-  }
-
-  private def transformUpdate(payload:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
-
-    val entityId = payload.getOrElse("id", "").asInstanceOf[String]
-    val entityType = payload.getOrElse("type", "").asInstanceOf[String]
-
-    if (entityId.isEmpty || entityType.isEmpty) return (None, None)
+  /**
+   * Create & update request result in a list of [IgnitePut], but
+   * must be processed completely different as OpenCTI leverages
+   * a complex `x_opencti_patch` field to specify updates.
+   */
+  private def transformUpdate(entityId:String, entityType:String, data:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
     /*
      * The current implementation takes non-edges as nodes;
      * an edge can a `relationship` or `sighting`, and also

@@ -197,16 +197,16 @@ object STIX {
       `type` == ABSTRACT_STIX_DOMAIN_OBJECT
   }
 
-  def isStixCyberObservableHashedObservable(`type`: String): Boolean = {
-    STIX_CYBER_OBSERVABLES_HASHED_OBSERVABLES.contains(`type`)
+  def isStixHashedObservable(entityType: String): Boolean = {
+    STIX_CYBER_OBSERVABLES_HASHED_OBSERVABLES.contains(entityType)
   }
 
-  def isStixCyberObservable(`type`: String): Boolean = {
-    STIX_CYBER_OBSERVABLES.contains(`type`) || `type` == ABSTRACT_STIX_CYBER_OBSERVABLE
+  def isCyberObservable(entityType: String): Boolean = {
+    STIX_CYBER_OBSERVABLES.contains(entityType) || isStixHashedObservable(entityType)
   }
 
   def isStixCoreObject(`type`: String): Boolean = {
-    isStixDomainObject(`type`) || isStixCyberObservable(`type`) || `type` == ABSTRACT_STIX_CORE_OBJECT
+    isStixDomainObject(`type`) || isCyberObservable(`type`) || `type` == ABSTRACT_STIX_CORE_OBJECT
   }
 
   def isStixMetaObject(`type`: String): Boolean = {
@@ -312,10 +312,10 @@ object STIX {
       RELATION_LINKED
   )
 
-  def isStixCoreRelationship(`type`: String): Boolean = {
+  def isStixRelationship(`type`: String): Boolean = {
     `type` == STIX_CORE_RELATIONSHIP
   }
-  def isStixSightingRelationship(`type`: String): Boolean = {
+  def isStixSighting(`type`: String): Boolean = {
     `type` == STIX_SIGHTING_RELATIONSHIP
   }
 
@@ -328,8 +328,8 @@ object STIX {
   }
 
   def isStixEdge(`type`: String): Boolean = {
-    isStixCoreRelationship(`type`)     ||
-    isStixSightingRelationship(`type`) ||
+    isStixRelationship(`type`)     ||
+    isStixSighting(`type`) ||
     isStixMetaRelationship(`type`)     ||
     isStixCyberObservableRelationship(`type`)
   }
