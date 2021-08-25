@@ -80,7 +80,8 @@ object CTITransformer {
 
   }
 
-  private def transformCreate(entityId:String, entityType:String, data:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+  private def transformCreate(entityId:String, entityType:String, data:Map[String, Any]):
+  (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
     /*
      * The current implementation takes non-edges as nodes;
      * an edge can a `relationship` or `sighting`, and also
