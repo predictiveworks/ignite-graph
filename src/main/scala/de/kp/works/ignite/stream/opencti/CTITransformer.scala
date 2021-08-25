@@ -20,7 +20,7 @@ package de.kp.works.ignite.stream.opencti
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import de.kp.works.ignite.client.mutate.{IgniteMutation, IgnitePut}
+import de.kp.works.ignite.client.mutate.{IgniteDelete, IgniteMutation, IgnitePut}
 import de.kp.works.ignite.stream.opencti.transformer._
 
 import scala.collection.mutable
@@ -88,7 +88,6 @@ object CTITransformer {
      */
     val isEdge = STIX.isStixEdge(entityType.toLowerCase)
     if (isEdge) {
-
       if (STIX.isStixRelationship(entityType.toLowerCase)) {
         return EdgeTransformer.createRelationship(entityId, entityType, data)
       }
@@ -97,8 +96,8 @@ object CTITransformer {
         return EdgeTransformer.createSighting(entityId, entityType, data)
       }
 
-      // TODO
-      throw new Exception("Not implement yet")
+      val now = new java.util.Date().toString
+      throw new Exception(s"[ERROR] $now - Unknown relation type detected.")
     }
     else {
 
@@ -110,7 +109,8 @@ object CTITransformer {
     }
   }
 
-  private def transformDelete(entityId:String, entityType:String, data:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+  private def transformDelete(entityId:String, entityType:String, data:Map[String, Any]):
+  (Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
     /*
      * The current implementation takes non-edges as nodes;
      * an edge can a `relationship` or `sighting`, and also
@@ -118,8 +118,17 @@ object CTITransformer {
      */
     val isEdge = STIX.isStixEdge(entityType.toLowerCase)
     if (isEdge) {
-      // TODO
-      throw new Exception("Not implement yet")
+
+      if (STIX.isStixRelationship(entityType.toLowerCase)) {
+        return EdgeTransformer.deleteRelationship(entityId)
+      }
+
+      if (STIX.isStixSighting(entityType.toLowerCase)) {
+        return EdgeTransformer.deleteSighting(entityId)
+      }
+
+      val now = new java.util.Date().toString
+      throw new Exception(s"[ERROR] $now - Unknown relation type detected.")
     }
     else {
       // TODO
