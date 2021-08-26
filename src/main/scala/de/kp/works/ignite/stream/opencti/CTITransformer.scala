@@ -155,7 +155,8 @@ object CTITransformer {
    * must be processed completely different as OpenCTI leverages
    * a complex `x_opencti_patch` field to specify updates.
    */
-  private def transformUpdate(entityId:String, entityType:String, data:Map[String, Any]):(Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+  private def transformUpdate(entityId:String, entityType:String, data:Map[String, Any]):
+  (Option[Seq[IgniteMutation]], Option[Seq[IgniteMutation]]) = {
     /*
      * The current implementation takes non-edges as nodes;
      * an edge can a `relationship` or `sighting`, and also

@@ -21,6 +21,7 @@ package de.kp.works.ignite.client;
 import de.kp.works.ignite.client.mutate.IgniteDelete;
 import de.kp.works.ignite.client.mutate.IgniteIncrement;
 import de.kp.works.ignite.client.mutate.IgnitePut;
+import de.kp.works.ignite.client.query.IgniteEdgeQuery;
 import de.kp.works.ignite.client.query.IgniteEdgesExistQuery;
 import de.kp.works.ignite.client.query.IgniteGetQuery;
 import de.kp.works.ignitegraph.ElementType;
@@ -116,9 +117,39 @@ public class IgniteBaseTable {
             updateVertex(ignitePut, vertex);
     }
 
-    protected void deleteEdge(IgniteDelete igniteDelete) {
+    /**
+     * The current version of [IgniteGraph] supports two different
+     * approaches to retrieve an instance of an [Edge]:
+     *
+     * Either by identifier or by `from` and `to` fields
+     */
+    protected void deleteEdge(IgniteDelete igniteDelete) throws Exception {
+
+        List<IgniteEdgeEntry> edge;
         Object edgeId = igniteDelete.getId();
-        List<IgniteEdgeEntry> edge = getEdge(edgeId);
+        if (edgeId != null) {
+            /*
+             * This is the default approach to retrieve the
+             * instance of an [Edge]
+             */
+            edge = getEdge(edgeId);
+        }
+        else {
+            /*
+             * Retrieve `from` and `to` columns
+             */
+            IgniteColumn fromColumn = igniteDelete.getColumn(IgniteConstants.FROM_COL_NAME);
+            IgniteColumn toColumn = igniteDelete.getColumn(IgniteConstants.TO_COL_NAME);
+
+            if (fromColumn == null || toColumn == null)
+                throw new Exception("At least one of the columns `from` and `or` are missing.");
+
+            Object fromId = fromColumn.getColValue();
+            Object toId = toColumn.getColValue();
+
+            edge = getEdge(fromId, toId);
+
+        }
 
         if (!edge.isEmpty()) deleteEdge(igniteDelete, edge);
     }
@@ -139,6 +170,11 @@ public class IgniteBaseTable {
      */
     protected List<IgniteEdgeEntry> getEdge(Object id) {
         IgniteGetQuery igniteQuery = new IgniteGetQuery(name, connect, id);
+        return igniteQuery.getEdgeEntries();
+    }
+
+    protected List<IgniteEdgeEntry> getEdge(Object fromId, Object toId) {
+        IgniteEdgeQuery igniteQuery = new IgniteEdgeQuery(name, connect, fromId, toId);
         return igniteQuery.getEdgeEntries();
     }
     /**

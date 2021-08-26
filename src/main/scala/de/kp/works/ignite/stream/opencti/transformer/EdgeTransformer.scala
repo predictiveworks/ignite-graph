@@ -321,6 +321,10 @@ object EdgeTransformer extends BaseTransformer {
       "confidence",
       "count",
       "created",
+      /*
+       * `created_by_ref` is implemented as property as
+       * edge to edge relationships are not supported
+       */
       "created_by_ref",
       "description",
       "first_seen",
@@ -351,8 +355,8 @@ object EdgeTransformer extends BaseTransformer {
    * of the update implementation (with patch action `remove`)
    */
   def deleteMetaRelationship(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
-    val delete = new IgniteDelete(entityId, ElementType.EDGE)
-    (None, Some(Seq(delete)))
+    val edge = new IgniteDelete(entityId, ElementType.EDGE)
+    (None, Some(Seq(edge)))
   }
   /**
    * This method deletes an [Edge] object from the respective
@@ -360,8 +364,8 @@ object EdgeTransformer extends BaseTransformer {
    * of the update implementation (with patch action `remove`)
    */
   def deleteObservableRelationship(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
-    val delete = new IgniteDelete(entityId, ElementType.EDGE)
-    (None, Some(Seq(delete)))
+    val edge = new IgniteDelete(entityId, ElementType.EDGE)
+    (None, Some(Seq(edge)))
   }
   /**
    * This method deletes an [Edge] object from the respective
@@ -369,8 +373,8 @@ object EdgeTransformer extends BaseTransformer {
    * of the update implementation (with patch action `remove`)
    */
   def deleteRelationship(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
-    val delete = new IgniteDelete(entityId, ElementType.EDGE)
-    (None, Some(Seq(delete)))
+    val edge = new IgniteDelete(entityId, ElementType.EDGE)
+    (None, Some(Seq(edge)))
   }
   /**
    * This method deletes an [Edge] object from the respective
@@ -378,8 +382,8 @@ object EdgeTransformer extends BaseTransformer {
    * of the update implementation (with patch action `remove`)
    */
   def deleteSighting(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
-    val delete = new IgniteDelete(entityId, ElementType.EDGE)
-    (None, Some(Seq(delete)))
+    val edge = new IgniteDelete(entityId, ElementType.EDGE)
+    (None, Some(Seq(edge)))
   }
   /**
    * A metadata relationship does not contain additional
@@ -483,8 +487,46 @@ object EdgeTransformer extends BaseTransformer {
      */
     val patch = getPatch(data)
     if (patch.isDefined) {
-      // TODO
-      throw new Exception("Not implemented yet.")
+
+      val patchData = patch.get
+      patchData.keySet.foreach(operation => {
+        val properties = patchData(operation).asInstanceOf[Map[String, List[Any]]]
+        val fields = Seq(
+          "attribute_count",
+          "confidence",
+          "count",
+          "created",
+          "created_by_ref",
+          "description",
+          "first_seen",
+          "last_seen",
+          "modified",
+          "name")
+
+        fields.foreach(field => {
+          if (properties.contains(field)) {
+            field match {
+              case "attribute_count" | "confidence" | "count" =>
+                val value =
+                  if (operation == "add" || operation == "replace") {
+                    properties(field).head.asInstanceOf[Int]
+                  } else 0
+
+                edge.addColumn(field, "INT", value.toString)
+
+              case _ =>
+                val value =
+                  if (operation == "add" || operation == "replace") {
+                    properties(field).head.asInstanceOf[String]
+                  } else ""
+
+                edge.addColumn(field, "STRING", value)
+            }
+          }
+        })
+      })
+
+      (None, Some(Seq(edge)))
 
     } else {
       (None, None)
@@ -492,12 +534,39 @@ object EdgeTransformer extends BaseTransformer {
 
   }
 
+  def createCreatedBy(entityId:String, reference:String):Option[IgnitePut] = {
+
+    try {
+      /*
+       * The identifier of the respective edge is system
+       * generated
+       */
+      val edgeId = s"created-by-${java.util.UUID.randomUUID.toString}"
+      val edge = initializeEdge(edgeId, HAS_CREATED_BY, "create")
+
+      /* FROM */
+      edge.addColumn(
+        IgniteConstants.FROM_COL_NAME, "STRING", entityId)
+
+      /* TO */
+      edge.addColumn(
+        IgniteConstants.TO_COL_NAME, "STRING", reference)
+
+      Some(edge)
+
+    } catch {
+      case t: Throwable =>
+        LOGGER.error("Creating created_by failed: ", t)
+        None
+    }
+
+  }
   /**
    * This method creates an [Edge] object for an SDO
    * to describe the relationship to the `Identity`
    * that created the object
    */
-  def createCreatedBy(entityId:String, data:Map[String, Any]):Option[Seq[IgnitePut]] = {
+  def createCreatedBy(entityId:String, data:Map[String, Any]):Option[IgnitePut] = {
 
     val createdBy = data("created_by_ref")
     try {
@@ -538,11 +607,43 @@ object EdgeTransformer extends BaseTransformer {
           throw new Exception(s"[ERROR] $now - The data type of the created_by field is not supported.")
       }
 
-      Some(Seq(edge))
+      Some(edge)
 
     } catch {
       case t: Throwable =>
         LOGGER.error("Creating created_by failed: ", t)
+        None
+    }
+
+  }
+
+  def deleteCreatedBy(entityId:String, reference:String):Option[IgniteDelete] = {
+    deleteEdge(entityId, reference)
+  }
+
+  def createKillChainPhase(entityId:String, reference:String):Option[IgnitePut] = {
+
+    try {
+      /*
+       * The identifier of the respective edge is system
+       * generated
+       */
+      val edgeId = s"kill-chain-phase-${java.util.UUID.randomUUID.toString}"
+      val edge = initializeEdge(edgeId, HAS_KILL_CHAIN_PHASE, "create")
+
+      /* FROM */
+      edge.addColumn(
+        IgniteConstants.FROM_COL_NAME, "STRING", entityId)
+
+      /* TO */
+      edge.addColumn(
+        IgniteConstants.TO_COL_NAME, "STRING", reference)
+
+      Some(edge)
+
+    } catch {
+      case t: Throwable =>
+        LOGGER.error("Creating kill chain phase failed: ", t)
         None
     }
 
@@ -562,7 +663,7 @@ object EdgeTransformer extends BaseTransformer {
          * The identifier of the respective edge is system
          * generated
          */
-        val edgeId = s"external-reference-${java.util.UUID.randomUUID.toString}"
+        val edgeId = s"kill-chain-phase-${java.util.UUID.randomUUID.toString}"
         val edge = initializeEdge(edgeId, HAS_KILL_CHAIN_PHASE, "create")
 
         /* FROM */
@@ -644,6 +745,38 @@ object EdgeTransformer extends BaseTransformer {
 
   }
 
+  def deleteKillChainPhase(entityId:String, reference:String):Option[IgniteDelete] = {
+    deleteEdge(entityId, reference)
+  }
+
+  def createObjectLabel(entityId:String, reference:String):Option[IgnitePut] = {
+
+    try {
+      /*
+       * The identifier of the respective edge is system
+       * generated
+       */
+      val edgeId = s"object-label-${java.util.UUID.randomUUID.toString}"
+      val edge = initializeEdge(edgeId, HAS_OBJECT_LABEL, "create")
+
+      /* FROM */
+      edge.addColumn(
+        IgniteConstants.FROM_COL_NAME, "STRING", entityId)
+
+      /* TO */
+      edge.addColumn(
+        IgniteConstants.TO_COL_NAME, "STRING", reference)
+
+      Some(edge)
+
+    } catch {
+      case t: Throwable =>
+        LOGGER.error("Creating object label failed: ", t)
+        None
+    }
+
+  }
+
   def createObjectLabels(entityId:String, data:Map[String, Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
 
@@ -693,6 +826,7 @@ object EdgeTransformer extends BaseTransformer {
              * Assign created [Edge] to the list of edges
              */
             edges += edge
+
           case value:String =>
             /*
              * In this case, the processing of the Object Label demands
@@ -731,6 +865,37 @@ object EdgeTransformer extends BaseTransformer {
     (Some(vertices), Some(edges))
   }
 
+  def deleteObjectLabel(entityId:String, reference:String):Option[IgniteDelete] = {
+    deleteEdge(entityId, reference)
+  }
+
+  def createObjectMarking(entityId:String, reference:String):Option[IgnitePut] = {
+
+    try {
+      /*
+       * The identifier of the respective edge is system
+       * generated
+       */
+      val edgeId = s"object-marking-${java.util.UUID.randomUUID.toString}"
+      val edge = initializeEdge(edgeId, HAS_OBJECT_MARKING, "create")
+
+      /* FROM */
+      edge.addColumn(
+        IgniteConstants.FROM_COL_NAME, "STRING", entityId)
+
+      /* TO */
+      edge.addColumn(
+        IgniteConstants.TO_COL_NAME, "STRING", reference)
+
+      Some(edge)
+
+    } catch {
+      case t: Throwable =>
+        LOGGER.error("Creating object marking failed: ", t)
+        None
+    }
+
+  }
   /**
    * This method creates edges between a STIX domain object
    * or cyber observable and assigned `object_marking_refs`.
@@ -796,6 +961,38 @@ object EdgeTransformer extends BaseTransformer {
 
   }
 
+  def deleteObjectMarking(entityId:String, reference:String):Option[IgniteDelete] = {
+    deleteEdge(entityId, reference)
+  }
+
+  def createObjectReference(entityId:String, reference:String):Option[IgnitePut] = {
+
+    try {
+      /*
+       * The identifier of the respective edge is system
+       * generated
+       */
+      val edgeId = s"object-reference-${java.util.UUID.randomUUID.toString}"
+      val edge = initializeEdge(edgeId, HAS_OBJECT_REFERENCE, "create")
+
+      /* FROM */
+      edge.addColumn(
+        IgniteConstants.FROM_COL_NAME, "STRING", entityId)
+
+      /* TO */
+      edge.addColumn(
+        IgniteConstants.TO_COL_NAME, "STRING", reference)
+
+      Some(edge)
+
+    } catch {
+      case t: Throwable =>
+        LOGGER.error("Creating object reference failed: ", t)
+        None
+    }
+
+  }
+
   def createObjectReferences(entityId:String, data:Map[String, Any]):Option[Seq[IgnitePut]] = {
 
     val references = data("object_refs").asInstanceOf[List[Any]]
@@ -856,6 +1053,38 @@ object EdgeTransformer extends BaseTransformer {
 
   }
 
+  def deleteObjectReference(entityId:String, reference:String):Option[IgniteDelete] = {
+    deleteEdge(entityId, reference)
+  }
+
+  def createExternalReference(entityId:String, reference:String):Option[IgnitePut] = {
+
+    try {
+      /*
+       * The identifier of the respective edge is system
+       * generated
+       */
+      val edgeId = s"external-reference-${java.util.UUID.randomUUID.toString}"
+      val edge = initializeEdge(edgeId, HAS_EXTERNAL_REFERENCE, "create")
+
+      /* FROM */
+      edge.addColumn(
+        IgniteConstants.FROM_COL_NAME, "STRING", entityId)
+
+      /* TO */
+      edge.addColumn(
+        IgniteConstants.TO_COL_NAME, "STRING", reference)
+
+      Some(edge)
+
+    } catch {
+      case t: Throwable =>
+        LOGGER.error("Creating created_by failed: ", t)
+        None
+    }
+
+  }
+
   def createExternalReferences(entityId:String, data:Map[String, Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
 
@@ -898,12 +1127,10 @@ object EdgeTransformer extends BaseTransformer {
                 IgniteConstants.TO_COL_NAME, "STRING", value("value").asInstanceOf[String])
               /*
                * The `reference` field specifies the source name of the
-               * external object
-               */
-              edge.addColumn(
-                "source_name", "STRING", value("reference").asInstanceOf[String])
-              /*
-               * Assign created [Edge] to the list of edges
+               * external object; in order to be in sync with update
+               * requests, however, the `source_name` is not stored.
+               *
+               * Finally, assign created [Edge] to the list of edges
                */
               edges += edge
             }
@@ -970,6 +1197,10 @@ object EdgeTransformer extends BaseTransformer {
     }
 
     (Some(vertices), Some(edges))
+  }
+
+  def deleteExternalReference(entityId:String, reference:String):Option[IgniteDelete] = {
+    deleteEdge(entityId, reference)
   }
 
 }

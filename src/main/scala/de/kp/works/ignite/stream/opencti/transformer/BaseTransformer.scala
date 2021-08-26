@@ -18,7 +18,7 @@ package de.kp.works.ignite.stream.opencti.transformer
  *
  */
 
-import de.kp.works.ignite.client.mutate.IgnitePut
+import de.kp.works.ignite.client.mutate.{IgniteDelete, IgnitePut}
 import de.kp.works.ignitegraph.{ElementType, IgniteConstants}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -41,6 +41,22 @@ trait BaseTransformer {
   val HAS_OBJECT_LABEL: String = "has-object-label"
   val HAS_OBJECT_MARKING: String = "has-object-marking"
   val HAS_OBJECT_REFERENCE: String = "has-object-reference"
+
+  protected def deleteEdge(fromId:String, toId:String):Option[IgniteDelete] = {
+    /*
+     * This [edge] must be deleted by referencing the
+     * `from` and `to` identifier
+     */
+    val edge = new IgniteDelete(null, ElementType.EDGE)
+    edge.addColumn(
+      IgniteConstants.FROM_COL_NAME, "STRING", fromId)
+
+    edge.addColumn(
+      IgniteConstants.TO_COL_NAME, "STRING", toId)
+
+    Some(edge)
+
+  }
 
   /**
    * A helper method to create an [IgnitePut] and assign

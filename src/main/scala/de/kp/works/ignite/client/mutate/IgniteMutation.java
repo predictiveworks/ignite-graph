@@ -49,6 +49,18 @@ public class IgniteMutation {
                 .collect(Collectors.toList());
     }
 
+    public IgniteColumn getColumn(String columnName) {
+
+        List<IgniteColumn> filtered = columns
+                .stream()
+                .filter((column) ->
+                        column.getColName().equals(columnName)).collect(Collectors.toList());
+
+        if (filtered.isEmpty()) return null;
+        return filtered.get(0);
+
+    }
+
     public Stream<IgniteColumn> getProperties() {
         return columns.stream()
                 .filter(column -> {

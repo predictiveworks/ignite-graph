@@ -32,4 +32,9 @@ public class IgniteDelete extends IgniteMutation {
     public void addColumn(String colName) {
         columns.add(new IgniteColumn(colName));
     }
+
+    public void addColumn(String colName, String colType, String colValue) {
+        columns.add(new IgniteColumn(colName, colType, colValue));
+    }
+
 }

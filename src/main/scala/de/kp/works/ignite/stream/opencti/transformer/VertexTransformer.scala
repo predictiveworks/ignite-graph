@@ -18,9 +18,10 @@ package de.kp.works.ignite.stream.opencti.transformer
  *
  */
 
-import de.kp.works.ignite.client.mutate.{IgniteDelete, IgnitePut}
+import de.kp.works.ignite.client.mutate.{IgniteDelete, IgniteMutation, IgnitePut}
 import de.kp.works.ignitegraph.ElementType
 
+import java.util.Date
 import scala.collection.mutable
 
 object VertexTransformer extends BaseTransformer {
@@ -52,7 +53,7 @@ object VertexTransformer extends BaseTransformer {
        * Creator is transformed to an edge
        */
       val e = EdgeTransformer.createCreatedBy(entityId, filteredData)
-      if (e.isDefined) edges ++= e.get
+      if (e.isDefined) edges += e.get
       /*
        * Remove 'created_by_ref' from the provided dataset
        * to restrict further processing to object properties
@@ -208,12 +209,12 @@ object VertexTransformer extends BaseTransformer {
   }
 
   def updateStixObject(entityId:String, entityType:String, data:Map[String, Any]):
-  (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+  (Option[Seq[IgniteMutation]], Option[Seq[IgniteMutation]]) = {
     /*
      * Associated (internal) vertices & edges
      */
-    val vertices = mutable.ArrayBuffer.empty[IgnitePut]
-    val edges    = mutable.ArrayBuffer.empty[IgnitePut]
+    val vertices = mutable.ArrayBuffer.empty[IgniteMutation]
+    val edges    = mutable.ArrayBuffer.empty[IgniteMutation]
 
     val vertex = initializeVertex(entityId, entityType, "update")
      /*
@@ -221,8 +222,273 @@ object VertexTransformer extends BaseTransformer {
      */
     val patch = getPatch(data)
     if (patch.isDefined) {
-      // TODO
-      throw new Exception("Not implemented yet.")
+
+      val patchData = patch.get
+
+      patchData.keySet.foreach(operation => {
+        var properties = patchData(operation).asInstanceOf[Map[String, List[Any]]]
+        if (properties.contains("created_by_ref")) {
+          /**
+           * CREATED BY
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to Identity
+           * objects
+           */
+          val values = properties("created_by_ref")
+          values match {
+            case references: List[String] =>
+              references.foreach(reference => {
+                if (operation == "add") {
+
+                  val e = EdgeTransformer.createCreatedBy(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else if (operation == "remove") {
+                  /*
+                   * Retrieve the [Edge] that refers to the `from`
+                   * and `to` operator
+                   */
+                  val e = EdgeTransformer.deleteCreatedBy(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else {
+                  /*
+                   * The current implementation does not support
+                   * `replace` operations for references
+                   */
+                }
+              })
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `created_by_ref` patch is not a List[String].")
+          }
+          /*
+           * Remove `created_by_ref` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "created_by_ref"))
+        }
+        if (properties.contains("external_references")) {
+          /**
+           * EXTERNAL REFERENCES
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * objects
+           */
+          val values = properties("external_references")
+          values match {
+            case references: List[String] =>
+              references.foreach(reference => {
+                if (operation == "add") {
+
+                  val e = EdgeTransformer.createExternalReference(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else if (operation == "remove") {
+                  /*
+                     * Retrieve the [Edge] that refers to the `from`
+                     * and `to` operator
+                     */
+                  val e = EdgeTransformer.deleteExternalReference(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else {
+                  /*
+                   * The current implementation does not support
+                   * `replace` operations for references
+                   */
+                }
+              })
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `external_references` patch is not a List[String].")
+          }
+          /*
+           * Remove `external_references` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "external_references"))
+        }
+        if (properties.contains("kill_chain_phases")) {
+          /**
+           * KILL CHAIN PHASES
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * kill chain objects
+           */
+          val values = properties("kill_chain_phases")
+          values match {
+            case references: List[String] =>
+              references.foreach(reference => {
+                if (operation == "add") {
+
+                  val e = EdgeTransformer.createKillChainPhase(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else if (operation == "remove") {
+                  /*
+                     * Retrieve the [Edge] that refers to the `from`
+                     * and `to` operator
+                     */
+                  val e = EdgeTransformer.deleteKillChainPhase(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else {
+                  /*
+                     * The current implementation does not support
+                     * `replace` operations for references
+                     */
+                }
+              })
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `kill_chain_phases` patch is not a List[String].")
+          }
+          /*
+           * Remove `kill_chain_phases` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "kill_chain_phases"))
+        }
+        if (properties.contains("labels")) {
+          /**
+           * OBJECT LABELS
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * object label objects
+           */
+          val values = properties("labels")
+          values match {
+            case references: List[String] =>
+              references.foreach(reference => {
+                if (operation == "add") {
+
+                  val e = EdgeTransformer.createObjectLabel(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else if (operation == "remove") {
+                  /*
+                     * Retrieve the [Edge] that refers to the `from`
+                     * and `to` operator
+                     */
+                  val e = EdgeTransformer.deleteObjectLabel(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else {
+                  /*
+                   * The current implementation does not support
+                   * `replace` operations for references
+                   */
+                }
+              })
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `labels` patch is not a List[String].")
+          }
+          /*
+           * Remove `labels` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "labels"))
+        }
+        if (properties.contains("object_marking_refs")) {
+          /**
+           * OBJECT MARKINGS
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * object marking objects
+           */
+          val values = properties("object_marking_refs")
+          values match {
+            case references: List[String] =>
+              references.foreach(reference => {
+                if (operation == "add") {
+
+                  val e = EdgeTransformer.createObjectMarking(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else if (operation == "remove") {
+                  /*
+                     * Retrieve the [Edge] that refers to the `from`
+                     * and `to` operator
+                     */
+                  val e = EdgeTransformer.deleteObjectMarking(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else {
+                  /*
+                   * The current implementation does not support
+                   * `replace` operations for references
+                   */
+                }
+              })
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `object_marking_refs` patch is not a List[String].")
+          }
+          /*
+           * Remove `object_marking_refs` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "object_marking_refs"))
+        }
+        if (properties.contains("object_refs")) {
+          /**
+           * OBJECT REFERENCES
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * object references
+           */
+          val values = properties("object_refs")
+          values match {
+            case references: List[String] =>
+              references.foreach(reference => {
+                if (operation == "add") {
+
+                  val e = EdgeTransformer.createObjectReference(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else if (operation == "remove") {
+                  /*
+                     * Retrieve the [Edge] that refers to the `from`
+                     * and `to` operator
+                     */
+                  val e = EdgeTransformer.deleteObjectReference(entityId, reference)
+                  if (e.isDefined) edges += e.get
+
+                } else {
+                  /*
+                   * The current implementation does not support
+                   * `replace` operations for references
+                   */
+                }
+              })
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `object_refs` patch is not a List[String].")
+          }
+          /*
+           * Remove `object_refs` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "object_refs"))
+        }
+        if (properties.contains("hashes")) {
+          /** HASHES * */
+          // TODO
+          /*
+           * Remove `hashes` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "hashes"))
+        }
+        /*
+         * Update remaining properties of the SDO or SCO
+         */
+        properties.keySet.foreach(propKey => {
+          // TODO
+        })
+
+      })
 
       (Some(vertices), Some(edges))
 
