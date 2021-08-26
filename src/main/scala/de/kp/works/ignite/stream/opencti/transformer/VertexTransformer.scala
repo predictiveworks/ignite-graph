@@ -18,63 +18,26 @@ package de.kp.works.ignite.stream.opencti.transformer
  *
  */
 
-import de.kp.works.ignite.client.mutate.IgnitePut
-import de.kp.works.ignite.stream.opencti.CTIProcessor
-import de.kp.works.ignitegraph.{ElementType, IgniteConstants}
-import org.slf4j.{Logger, LoggerFactory}
+import de.kp.works.ignite.client.mutate.{IgniteDelete, IgnitePut}
+import de.kp.works.ignitegraph.ElementType
 
-import java.util.Date
 import scala.collection.mutable
 
-object VertexTransformer {
-
-  private val LOGGER = LoggerFactory.getLogger(classOf[CTIProcessor])
-
+object VertexTransformer extends BaseTransformer {
   /**
-   * INTERNAL EDGE LABELS
+   * A STIX object is either a STIX Domain Object (SDO)
+   * or a STIX Cyber Observable (SCO)
    */
-  val HAS_OBJECT_MARKING:String = "has-object-marking"
-
-  /**
-   * A helper method to create an [IgnitePut] and assign
-   * identifier and type.
-   */
-  private def initializePut(entityId:String, entityType:String):IgnitePut = {
-
-    val put = new IgnitePut(entityId, ElementType.VERTEX)
-    /*
-     * The data type is known [String] and synchronized with ValueType;
-     * note, the provided entity type is used to specify the vertex label
-     */
-    put.addColumn(
-      IgniteConstants.ID_COL_NAME, "STRING", entityId)
-
-    put.addColumn(
-      IgniteConstants.LABEL_COL_NAME, "STRING", entityType.toLowerCase())
-
-    put
-  }
-
-  def createDomainObject(entityId:String, entityType:String, data:Map[String, Any]):
+  def createStixObject(entityId:String, entityType:String, data:Map[String, Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
     /*
-     * Associated (internal) edges
+     * Associated (internal) vertices & edges
      */
-    val edges = mutable.ArrayBuffer.empty[IgnitePut]
+    val vertices = mutable.ArrayBuffer.empty[IgnitePut]
+    val edges    = mutable.ArrayBuffer.empty[IgnitePut]
 
-    val put = initializePut(entityId, entityType)
+    val vertex = initializeVertex(entityId, entityType)
     var filteredData = data
-    /*
-     * Assign time management fields: These fields are internal
-     * fields and are not synchronized with potentially existing
-     * ones that have the same meaning.
-     */
-    val timestamp = System.currentTimeMillis()
-    put.addColumn(
-      IgniteConstants.CREATED_AT_COL_NAME, "LONG", timestamp.toString)
-
-    put.addColumn(
-      IgniteConstants.UPDATED_AT_COL_NAME, "LONG", timestamp.toString)
 
     /*
      * The remaining part of this method distinguishes between fields
@@ -82,44 +45,77 @@ object VertexTransformer {
      * properties.
      */
 
+    /** CREATED BY **/
+
+    if (filteredData.contains("created_by_ref")) {
+      /*
+       * Creator is transformed to an edge
+       */
+      val e = EdgeTransformer.createCreatedBy(entityId, filteredData)
+      if (e.isDefined) edges ++= e.get
+      /*
+       * Remove 'created_by_ref' from the provided dataset
+       * to restrict further processing to object properties
+       */
+      filteredData = filteredData.filterKeys(k => !(k == "created_by_ref"))
+
+    }
+
     /** EXTERNAL REFERENCES **/
 
     if (filteredData.contains("external_references")) {
-      val externalReferences = filteredData("external_references").asInstanceOf[List[Any]]
       /*
-       * OpenCTI supports two different formats to describe
-       * external references:
-       *
-       * (1) fields: 'source_name', 'description', 'url', 'hashes', 'external_id'
-       *
-       * (2) fields: 'reference', 'value', 'x_opencti_internal_id'
+       * External references are mapped onto vertices
+       * and edges
        */
-      // TODO
-      /*
-       * Remove 'external_references' from the provided dataset
-       * to restrict further processing to object properties
-       */
+      val (v, e) = EdgeTransformer.createExternalReferences(entityId, filteredData)
+
+      if (v.isDefined) vertices ++= v.get
+      if (e.isDefined) edges    ++= e.get
+
       filteredData = filteredData.filterKeys(k => !(k == "external_references"))
     }
 
-    /** KILL CHAIN PHASES **/
-
+    /** KILL CHAIN PHASES
+     *
+     * This refers to Attack-Pattern, Indicator, Malware and Tools
+     */
     if (filteredData.contains("kill_chain_phases")) {
-      val killChainPhases = filteredData("kill_chain_phases").asInstanceOf[List[Any]]
       /*
-       * OpenCTI supports two different formats to describe
-       * kill chain phases:
-       *
-       * (1) fields: 'kill_chain_name', 'phase_name'
-       *
-       * (2) fields: 'reference', 'value', 'x_opencti_internal_id'
+       * Kill chain phases are mapped onto vertices
+       * and edges
        */
-      // TODO
+      val (v, e) = EdgeTransformer.createKillChainPhases(entityId, filteredData)
+
+      if (v.isDefined) vertices ++= v.get
+      if (e.isDefined) edges    ++= e.get
       /*
        * Remove 'kill_chain_phases' from the provided dataset
        * to restrict further processing to object properties
        */
       filteredData = filteredData.filterKeys(k => !(k == "kill_chain_phases"))
+    }
+
+    /** OBJECT LABELS
+     *
+     * Create edges from the current SDO to the Object Label;
+     * if no Object Label is referenced, a respective vertex
+     * is created
+     */
+    if (filteredData.contains("labels")) {
+      /*
+       * Object labels are mapped onto vertices and edges
+       */
+      val (v, e) = EdgeTransformer.createObjectLabels(entityId, filteredData)
+
+      if (v.isDefined) vertices ++= v.get
+      if (e.isDefined) edges    ++= e.get
+      /*
+       * Remove 'labels' from the provided dataset to restrict
+       * further processing to object properties
+       */
+      filteredData = filteredData.filterKeys(k => !(k == "labels"))
+
     }
 
     /** OBJECT MARKINGS
@@ -128,7 +124,11 @@ object VertexTransformer {
      * marking definitions
      */
     if (filteredData.contains("object_marking_refs")) {
-      val e = createObjectMarkings(entityId, filteredData)
+      /*
+       * Object markings are transformed (in contrast to external
+       * reference) to edges only
+       */
+      val e = EdgeTransformer.createObjectMarkings(entityId, filteredData)
       if (e.isDefined) edges ++= e.get
       /*
        * Remove 'object_marking_refs' from the provided dataset
@@ -140,17 +140,12 @@ object VertexTransformer {
     /** OBJECT REFERENCES **/
 
     if (filteredData.contains("object_refs")) {
-      val objectReferences = filteredData("object_refs").asInstanceOf[List[Any]]
       /*
-       * OpenCTI supports two different formats to describe
-       * kill chain phases:
-       *
-       * (1) List[String] - identifiers
-       *
-       * (2) List[Map[String, String]]
-       *     fields: 'reference', 'value', 'x_opencti_internal_id'
+       * Object references are transformed (in contrast to external
+       * reference) to edges only
        */
-      // TODO
+      val e = EdgeTransformer.createObjectReferences(entityId, filteredData)
+      if (e.isDefined) edges ++= e.get
       /*
        * Remove 'object_refs' from the provided dataset
        * to restrict further processing to object properties
@@ -159,97 +154,22 @@ object VertexTransformer {
     }
 
     /*
-     * Add properties to the SDO
+     * Add properties to the SDO or SCO
      */
     // TODO
 
-    (Some(Seq(put)), Some(edges.toSeq))
+    vertices += vertex
+    (Some(vertices), Some(edges))
   }
+
   /**
-   * This method creates edges between a STIX domain object
-   * or cyber observable and assigned `object_marking_refs`.
+   * This method deletes a [Vertex] object from the respective
+   * Ignite cache. Removing selected vertex properties is part
+   * of the update implementation (with patch action `remove`)
    */
-  private def createObjectMarkings(entityId:String, data:Map[String, Any]):Option[Seq[IgnitePut]] = {
-
-    val markings = data("object_marking_refs").asInstanceOf[List[Any]]
-    val edges = try {
-      markings.map(marking => {
-        /*
-         * The identifier of the respective edge is system
-         * generated
-         */
-        val id = s"object-marking-${java.util.UUID.randomUUID.toString}"
-        val put = new IgnitePut(id, ElementType.EDGE)
-        /*
-         * The data type is known [String] and synchronized with ValueType
-         */
-        put.addColumn(
-          IgniteConstants.ID_COL_NAME, "STRING", id)
-
-        put.addColumn(
-          IgniteConstants.LABEL_COL_NAME, "STRING", HAS_OBJECT_MARKING)
-
-        /* FROM */
-        put.addColumn(
-          IgniteConstants.FROM_COL_NAME, "STRING", entityId)
-
-        /* TO
-         *
-         * OpenCTI ships with two different formats to describe
-         * an object marking:
-         *
-         * (1) List[String] - identifiers
-         *
-         * (2) List[Map[String, String]]
-         *     fields: 'reference', 'value', 'x_opencti_internal_id'
-         */
-        marking match {
-          case value: String =>
-            put.addColumn(
-              IgniteConstants.TO_COL_NAME, "STRING", value)
-
-          case value: Map[String, Any] =>
-            /*
-             * The `value` of the provided Map refers to the
-             * Object Marking object (see OpenCTI data model).
-             */
-            put.addColumn(
-              IgniteConstants.TO_COL_NAME, "STRING", value("value").asInstanceOf[String])
-
-          case _ =>
-            val now = new Date().toString
-            throw new Exception(s"[ERROR] $now - The data type of the provided object marking is not supported.")
-        }
-        /*
-         * Assign time management fields: These fields are internal
-         * fields and are not synchronized with potentially existing
-         * ones that have the same meaning.
-         */
-        val timestamp = System.currentTimeMillis()
-        put.addColumn(
-          IgniteConstants.CREATED_AT_COL_NAME, "LONG", timestamp.toString)
-
-        put.addColumn(
-          IgniteConstants.UPDATED_AT_COL_NAME, "LONG", timestamp.toString)
-
-        /*
-         * This internal edge does not contain any further properties
-         * and is just used to connect and SDO and its Object Markings.
-         */
-        put
-      })
-
-    } catch {
-      case t:Throwable =>
-        LOGGER.error("Creating object markings failed: ", t)
-        Seq.empty[IgnitePut]
-    }
-
-    Some(edges)
-
-  }
-
-  def createObservable(entityId:String, entityType:String, data:Map[String, Any]):Unit = {
+  def deleteStixObject(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
+    val delete = new IgniteDelete(entityId, ElementType.EDGE)
+    (None, Some(Seq(delete)))
   }
 
 }

@@ -280,7 +280,7 @@ object STIX {
 
   val STIX_META_RELATIONSHIPS: Array[String] = STIX_EXTERNAL_META_RELATIONSHIPS ++ STIX_INTERNAL_META_RELATIONSHIPS
 
-  val STIX_CYBER_OBSERVABLE_RELATIONSHIPS: Array[String] = Array(
+  val STIX_OBSERVABLE_RELATIONSHIPS: Array[String] = Array(
       RELATION_OPERATING_SYSTEM,
       RELATION_SAMPLE,
       RELATION_CONTAINS,
@@ -319,18 +319,22 @@ object STIX {
     `type` == STIX_SIGHTING_RELATIONSHIP
   }
 
+  def isStixInternalMetaRelationship(`type`: String): Boolean = {
+    STIX_INTERNAL_META_RELATIONSHIPS.contains(`type`)
+  }
+
   def isStixMetaRelationship(`type`: String): Boolean = {
     STIX_META_RELATIONSHIPS.contains(`type`)
   }
 
-  def isStixCyberObservableRelationship(`type`: String): Boolean = {
-    STIX_CYBER_OBSERVABLE_RELATIONSHIPS.contains(`type`)
+  def isStixObservableRelationship(`type`: String): Boolean = {
+    STIX_OBSERVABLE_RELATIONSHIPS.contains(`type`)
   }
 
   def isStixEdge(`type`: String): Boolean = {
-    isStixRelationship(`type`)     ||
+    isStixRelationship(`type`) ||
     isStixSighting(`type`) ||
-    isStixMetaRelationship(`type`)     ||
-    isStixCyberObservableRelationship(`type`)
+    isStixMetaRelationship(`type`) ||
+    isStixObservableRelationship(`type`)
   }
 }
