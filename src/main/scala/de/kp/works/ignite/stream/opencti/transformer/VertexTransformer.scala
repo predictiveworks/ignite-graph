@@ -36,7 +36,7 @@ object VertexTransformer extends BaseTransformer {
     val vertices = mutable.ArrayBuffer.empty[IgnitePut]
     val edges    = mutable.ArrayBuffer.empty[IgnitePut]
 
-    val vertex = initializeVertex(entityId, entityType)
+    val vertex = initializeVertex(entityId, entityType, "create")
     var filteredData = data
 
     /*
@@ -209,8 +209,46 @@ object VertexTransformer extends BaseTransformer {
 
   def updateStixObject(entityId:String, entityType:String, data:Map[String, Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
-    // TODO
-    throw new Exception("Not implemented yet.")
+    /*
+     * Associated (internal) vertices & edges
+     */
+    val vertices = mutable.ArrayBuffer.empty[IgnitePut]
+    val edges    = mutable.ArrayBuffer.empty[IgnitePut]
+
+    val vertex = initializeVertex(entityId, entityType, "update")
+    var filteredData = data
+    /*
+     * Retrieve patch from filtered data
+     */
+    val patch = getPatch(filteredData)
+    if (patch.isDefined) {
+      /*
+       * The patch contains a set of operations,
+       * where an operation can be `add`, `remove`
+       * or `replace`
+       */
+      val operations = patch.get.keySet
+      operations.foreach {
+        case "add" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "remove" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "replace" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case _ =>
+          val now = new java.util.Date().toString
+          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
+      }
+
+      (Some(vertices), Some(edges))
+
+    }
+    else {
+      (None, None)
+    }
   }
 
 }

@@ -29,23 +29,24 @@ trait BaseTransformer {
 
   val LOGGER: Logger = LoggerFactory.getLogger(classOf[BaseTransformer])
 
-  val EXTERNAL_REFERENCE:String = "external-reference"
-  val KILL_CHAIN_PHASE:String   = "kill-chain-phase"
-  val OBJECT_LABEL:String       = "object-label"
+  val EXTERNAL_REFERENCE: String = "external-reference"
+  val KILL_CHAIN_PHASE: String = "kill-chain-phase"
+  val OBJECT_LABEL: String = "object-label"
   /**
    * INTERNAL EDGE LABELS
    */
-  val HAS_CREATED_BY:String         = "has-created-by"
-  val HAS_EXTERNAL_REFERENCE:String = "has-external-reference"
-  val HAS_KILL_CHAIN_PHASE:String   = "has-kill-chain-phase"
-  val HAS_OBJECT_LABEL:String       = "has-object-label"
-  val HAS_OBJECT_MARKING:String     = "has-object-marking"
-  val HAS_OBJECT_REFERENCE:String   = "has-object-reference"
+  val HAS_CREATED_BY: String = "has-created-by"
+  val HAS_EXTERNAL_REFERENCE: String = "has-external-reference"
+  val HAS_KILL_CHAIN_PHASE: String = "has-kill-chain-phase"
+  val HAS_OBJECT_LABEL: String = "has-object-label"
+  val HAS_OBJECT_MARKING: String = "has-object-marking"
+  val HAS_OBJECT_REFERENCE: String = "has-object-reference"
+
   /**
    * A helper method to create an [IgnitePut] and assign
    * identifier and type.
    */
-  protected def initializeEdge(entityId:String, entityType:String):IgnitePut = {
+  protected def initializeEdge(entityId: String, entityType: String, action:String): IgnitePut = {
 
     val edge = new IgnitePut(entityId, ElementType.EDGE)
     /*
@@ -63,19 +64,22 @@ trait BaseTransformer {
      * ones that have the same meaning.
      */
     val timestamp = System.currentTimeMillis()
-    edge.addColumn(
-      IgniteConstants.CREATED_AT_COL_NAME, "LONG", timestamp.toString)
+    if (action == "create") {
+      edge.addColumn(
+        IgniteConstants.CREATED_AT_COL_NAME, "LONG", timestamp.toString)
+    }
 
     edge.addColumn(
       IgniteConstants.UPDATED_AT_COL_NAME, "LONG", timestamp.toString)
 
     edge
   }
+
   /**
    * A helper method to create an [IgnitePut] and assign
    * identifier and type.
    */
-  protected def initializeVertex(entityId:String, entityType:String):IgnitePut = {
+  protected def initializeVertex(entityId: String, entityType: String, action:String): IgnitePut = {
 
     val vertex = new IgnitePut(entityId, ElementType.VERTEX)
     /*
@@ -93,8 +97,10 @@ trait BaseTransformer {
      * ones that have the same meaning.
      */
     val timestamp = System.currentTimeMillis()
-    vertex.addColumn(
-      IgniteConstants.CREATED_AT_COL_NAME, "LONG", timestamp.toString)
+    if (action == "create") {
+      vertex.addColumn(
+        IgniteConstants.CREATED_AT_COL_NAME, "LONG", timestamp.toString)
+    }
 
     vertex.addColumn(
       IgniteConstants.UPDATED_AT_COL_NAME, "LONG", timestamp.toString)
@@ -102,7 +108,7 @@ trait BaseTransformer {
     vertex
   }
 
-  protected def transformHashes(hashes:Any): List[(String,String)] = {
+  protected def transformHashes(hashes: Any): List[(String, String)] = {
 
     val result = mutable.HashMap.empty[String, String]
     /*
@@ -128,7 +134,7 @@ trait BaseTransformer {
 
   }
 
-  protected def putValues(propKey:String, basicType:String, propVal:List[Any], put:IgnitePut):Unit = {
+  protected def putValues(propKey: String, basicType: String, propVal: List[Any], put: IgnitePut): Unit = {
 
     val propType = s"List[$basicType]"
     basicType match {
@@ -208,7 +214,7 @@ trait BaseTransformer {
 
   }
 
-  protected def putValue(propKey:String, propType:String, propVal:Any, put:IgnitePut):Unit = {
+  protected def putValue(propKey: String, propType: String, propVal: Any, put: IgnitePut): Unit = {
     propType match {
       /*
        * Basic data types
@@ -285,30 +291,30 @@ trait BaseTransformer {
     }
   }
 
-  protected def getBasicType(attrVal:Any): String = {
+  protected def getBasicType(attrVal: Any): String = {
     attrVal match {
       /*
        * Basic data types: these data type descriptions
        * are harmonized with [ValueType]
        */
       case _: BigDecimal => "DECIMAL"
-      case _: Boolean    => "BOOLEAN"
-      case _: Byte       => "BYTE"
-      case _: Double     => "DOUBLE"
-      case _: Float      => "FLOAT"
-      case _: Int        => "INT"
-      case _: Long       => "LONG"
-      case _: Short      => "SHORT"
-      case _: String     => "STRING"
+      case _: Boolean => "BOOLEAN"
+      case _: Byte => "BYTE"
+      case _: Double => "DOUBLE"
+      case _: Float => "FLOAT"
+      case _: Int => "INT"
+      case _: Long => "LONG"
+      case _: Short => "SHORT"
+      case _: String => "STRING"
       /*
        * Datetime support
        */
-      case _: java.util.Date          => "DATE"
-      case _: java.sql.Date           => "DATE"
-      case _: java.time.LocalDate     => "DATE"
+      case _: java.util.Date => "DATE"
+      case _: java.sql.Date => "DATE"
+      case _: java.time.LocalDate => "DATE"
       case _: java.time.LocalDateTime => "DATE"
-      case _: java.sql.Timestamp      => "TIMESTAMP"
-      case _: java.time.LocalTime     => "TIMESTAMP"
+      case _: java.sql.Timestamp => "TIMESTAMP"
+      case _: java.time.LocalTime => "TIMESTAMP"
       /*
        * Handpicked data types
        */
@@ -317,6 +323,34 @@ trait BaseTransformer {
         val now = new java.util.Date().toString
         throw new Exception(s"[ERROR] $now - Basic data type not supported.")
     }
+
+  }
+
+  /*
+   * SAMPLE UPDATE EVENT
+   *
+   *   data: {
+   *     x_opencti_patch: {
+   *       replace: { threat_actor_types: { current: ['competitor', 'crime-syndicate'], previous: ['competitor'] } },
+   *     },
+   *     id: 'threat-actor--b3486bf4-2cf8-527c-ab40-3fd2ff54de77',
+   *     x_opencti_id: 'f499ceab-b3bf-4f39-827d-aea43beed391',
+   *     type: 'threat-actor',
+   *   }
+   *
+   */
+  def getPatch(data: Map[String, Any]): Option[Map[String,Any]] = {
+
+    val patch = {
+      if (data.contains("x_opencti_patch")) {
+        data("x_opencti_patch").asInstanceOf[Map[String, Any]]
+      }
+      else
+        Map.empty[String, Any]
+    }
+
+    if (patch.isEmpty) return None
+    Some(patch)
 
   }
 }

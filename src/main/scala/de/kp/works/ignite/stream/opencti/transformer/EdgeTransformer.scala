@@ -33,7 +33,7 @@ object EdgeTransformer extends BaseTransformer {
   def createMetaRelationship(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
 
-    val edge = initializeEdge(entityId, entityType)
+    val edge = initializeEdge(entityId, entityType, "create")
 
     /** FROM
      *
@@ -124,7 +124,7 @@ object EdgeTransformer extends BaseTransformer {
   def createObservableRelationship(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
 
-    val edge = initializeEdge(entityId, entityType)
+    val edge = initializeEdge(entityId, entityType, "create")
 
     /** FROM
      *
@@ -169,7 +169,7 @@ object EdgeTransformer extends BaseTransformer {
   def createRelationship(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
 
-    val edge = initializeEdge(entityId, entityType)
+    val edge = initializeEdge(entityId, entityType, "create")
     var filteredData = data
 
     /** FROM
@@ -258,7 +258,7 @@ object EdgeTransformer extends BaseTransformer {
   def createSighting(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
 
-    val edge = initializeEdge(entityId, entityType)
+    val edge = initializeEdge(entityId, entityType, "create")
     var filteredData = data
 
     /** FROM
@@ -389,26 +389,158 @@ object EdgeTransformer extends BaseTransformer {
 
   def updateMetaRelationship(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
-    // TODO
-    throw new Exception("Not implemented yet")
+
+    val edge = initializeEdge(entityId, entityType, "update")
+    var filteredData = data
+    /*
+     * Retrieve patch from filtered data
+     */
+    val patch = getPatch(filteredData)
+    if (patch.isDefined) {
+      /*
+       * The patch contains a set of operations,
+       * where an operation can be `add`, `remove`
+       * or `replace`
+       */
+      val operations = patch.get.keySet
+      operations.foreach {
+        case "add" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "remove" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "replace" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case _ =>
+          val now = new java.util.Date().toString
+          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
+      }
+
+      (None, None)
+
+    } else {
+      (None, None)
+    }
+
   }
 
   def updateObservableRelationship(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
-    // TODO
-    throw new Exception("Not implemented yet")
+
+    val edge = initializeEdge(entityId, entityType, "update")
+    var filteredData = data
+    /*
+     * Retrieve patch from filtered data
+     */
+    val patch = getPatch(filteredData)
+    if (patch.isDefined) {
+      /*
+       * The patch contains a set of operations,
+       * where an operation can be `add`, `remove`
+       * or `replace`
+       */
+      val operations = patch.get.keySet
+      operations.foreach {
+        case "add" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "remove" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "replace" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case _ =>
+          val now = new java.util.Date().toString
+          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
+      }
+
+      (None, None)
+
+    } else {
+      (None, None)
+    }
+
   }
 
   def updateRelationship(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
-    // TODO
-    throw new Exception("Not implemented yet")
+
+    val edge = initializeEdge(entityId, entityType, "update")
+    var filteredData = data
+    /*
+     * Retrieve patch from filtered data
+     */
+    val patch = getPatch(filteredData)
+    if (patch.isDefined) {
+      /*
+       * The patch contains a set of operations,
+       * where an operation can be `add`, `remove`
+       * or `replace`
+       */
+      val operations = patch.get.keySet
+      operations.foreach {
+        case "add" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "remove" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "replace" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case _ =>
+          val now = new java.util.Date().toString
+          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
+      }
+
+      (None, None)
+
+    } else {
+      (None, None)
+    }
+
   }
 
   def updateSighting(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
-    // TODO
-    throw new Exception("Not implemented yet")
+
+    val edge = initializeEdge(entityId, entityType, "update")
+    var filteredData = data
+    /*
+     * Retrieve patch from filtered data
+     */
+    val patch = getPatch(filteredData)
+    if (patch.isDefined) {
+      /*
+       * The patch contains a set of operations,
+       * where an operation can be `add`, `remove`
+       * or `replace`
+       */
+      val operations = patch.get.keySet
+      operations.foreach {
+        case "add" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "remove" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case "replace" =>
+          // TODO
+          throw new Exception("Not implemented yet.")
+        case _ =>
+          val now = new java.util.Date().toString
+          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
+      }
+
+      (None, None)
+
+    } else {
+      (None, None)
+    }
+
   }
 
   /**
@@ -425,7 +557,7 @@ object EdgeTransformer extends BaseTransformer {
        * generated
        */
       val edgeId = s"created-by-${java.util.UUID.randomUUID.toString}"
-      val edge = initializeEdge(edgeId, HAS_CREATED_BY)
+      val edge = initializeEdge(edgeId, HAS_CREATED_BY, "create")
 
       /* FROM */
       edge.addColumn(
@@ -482,7 +614,7 @@ object EdgeTransformer extends BaseTransformer {
          * generated
          */
         val edgeId = s"external-reference-${java.util.UUID.randomUUID.toString}"
-        val edge = initializeEdge(edgeId, HAS_KILL_CHAIN_PHASE)
+        val edge = initializeEdge(edgeId, HAS_KILL_CHAIN_PHASE, "create")
 
         /* FROM */
         edge.addColumn(
@@ -530,7 +662,7 @@ object EdgeTransformer extends BaseTransformer {
               edge.addColumn(
                 IgniteConstants.TO_COL_NAME, "STRING", vertexId)
 
-              val vertex = initializeVertex(vertexId, KILL_CHAIN_PHASE)
+              val vertex = initializeVertex(vertexId, KILL_CHAIN_PHASE, "create")
 
               /* kill_chain_name */
               val kill_chain_name = data.getOrElse("kill_chain_name", "").asInstanceOf[String]
@@ -578,7 +710,7 @@ object EdgeTransformer extends BaseTransformer {
          * generated
          */
         val edgeId = s"object-label-${java.util.UUID.randomUUID.toString}"
-        val edge = initializeEdge(edgeId, HAS_OBJECT_LABEL)
+        val edge = initializeEdge(edgeId, HAS_OBJECT_LABEL, "create")
 
         /* FROM */
         edge.addColumn(
@@ -624,7 +756,7 @@ object EdgeTransformer extends BaseTransformer {
             edge.addColumn(
               IgniteConstants.TO_COL_NAME, "STRING", vertexId)
 
-            val vertex = initializeVertex(vertexId, OBJECT_LABEL)
+            val vertex = initializeVertex(vertexId, OBJECT_LABEL, "create")
 
             /* object_label */
             vertex.addColumn("object_label", "STRING", value)
@@ -665,7 +797,7 @@ object EdgeTransformer extends BaseTransformer {
          * generated
          */
         val id = s"object-marking-${java.util.UUID.randomUUID.toString}"
-        val edge = initializeEdge(id, HAS_OBJECT_MARKING)
+        val edge = initializeEdge(id, HAS_OBJECT_MARKING, "create")
 
         /* FROM */
         edge.addColumn(
@@ -725,7 +857,7 @@ object EdgeTransformer extends BaseTransformer {
          * generated
          */
         val id = s"object-reference-${java.util.UUID.randomUUID.toString}"
-        val edge = initializeEdge(id, HAS_OBJECT_REFERENCE)
+        val edge = initializeEdge(id, HAS_OBJECT_REFERENCE, "create")
 
         /* FROM */
         edge.addColumn(
@@ -790,7 +922,7 @@ object EdgeTransformer extends BaseTransformer {
          * generated
          */
         val edgeId = s"external-reference-${java.util.UUID.randomUUID.toString}"
-        val edge = initializeEdge(edgeId, HAS_EXTERNAL_REFERENCE)
+        val edge = initializeEdge(edgeId, HAS_EXTERNAL_REFERENCE, "create")
 
         /* FROM */
         edge.addColumn(
@@ -838,7 +970,7 @@ object EdgeTransformer extends BaseTransformer {
               edge.addColumn(
                 IgniteConstants.TO_COL_NAME, "STRING", vertexId)
 
-              val vertex = initializeVertex(vertexId, EXTERNAL_REFERENCE)
+              val vertex = initializeVertex(vertexId, EXTERNAL_REFERENCE, "create")
 
               /* source_name */
               val source_name = data.getOrElse("source_name", "").asInstanceOf[String]
