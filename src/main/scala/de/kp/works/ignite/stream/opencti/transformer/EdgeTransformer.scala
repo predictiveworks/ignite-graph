@@ -237,13 +237,11 @@ object EdgeTransformer extends BaseTransformer {
     val fields = Seq("description", "name")
     fields.foreach(field => {
 
-      if (filteredData.contains(field)) {
-        val propKey  = field
-        val (propType, propValu) = ("STRING", data(field).asInstanceOf[String])
+      val propKey  = field
+      val propType = "STRING"
 
-        edge.addColumn(propKey, propType, propValu)
-
-      }
+      val propValu = data.getOrElse(field, "").asInstanceOf[String]
+      edge.addColumn(propKey, propType, propValu)
 
     })
 
@@ -332,18 +330,15 @@ object EdgeTransformer extends BaseTransformer {
 
     fields.foreach(field => {
 
-      if (filteredData.contains(field)) {
-        val propKey  = field
-        val (propType, propValu) = field match {
-          case "attribute_count" | "count" | "confidence" =>
-            ("INT", data(field).asInstanceOf[Int].toString)
-          case _ =>
-            ("STRING", data(field).asInstanceOf[String])
-        }
-
-        edge.addColumn(propKey, propType, propValu)
-
+      val (propType, propValu) = field match {
+        case "attribute_count" | "count" | "confidence" =>
+          ("INT", data.getOrElse(field, 0).asInstanceOf[Int].toString)
+        case _ =>
+          ("STRING", data.getOrElse(field, "").asInstanceOf[String])
       }
+
+      val propKey = field
+      edge.addColumn(propKey, propType, propValu)
 
     })
 
@@ -386,117 +381,92 @@ object EdgeTransformer extends BaseTransformer {
     val delete = new IgniteDelete(entityId, ElementType.EDGE)
     (None, Some(Seq(delete)))
   }
-
+  /**
+   * A metadata relationship does not contain additional
+   * properties; therefore, patch operations (add, remove
+   * or replace) must be ignored.
+   *
+   * Changing `from` or `to` identifiers via an update
+   * request is currently not supported and must be mapped
+   * onto (delete) -> (create) operations
+   */
   def updateMetaRelationship(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
-
-    val edge = initializeEdge(entityId, entityType, "update")
-    var filteredData = data
-    /*
-     * Retrieve patch from filtered data
-     */
-    val patch = getPatch(filteredData)
-    if (patch.isDefined) {
-      /*
-       * The patch contains a set of operations,
-       * where an operation can be `add`, `remove`
-       * or `replace`
-       */
-      val operations = patch.get.keySet
-      operations.foreach {
-        case "add" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "remove" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "replace" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case _ =>
-          val now = new java.util.Date().toString
-          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
-      }
-
-      (None, None)
-
-    } else {
-      (None, None)
-    }
-
+    (None, None)
   }
-
+  /**
+   * An observable relationship does not contain additional
+   * properties; therefore, patch operations (add, remove
+   * or replace) must be ignored.
+   *
+   * Changing `from` or `to` identifiers via an update
+   * request is currently not supported and must be mapped
+   * onto (delete) -> (create) operations
+   */
   def updateObservableRelationship(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
-
-    val edge = initializeEdge(entityId, entityType, "update")
-    var filteredData = data
-    /*
-     * Retrieve patch from filtered data
-     */
-    val patch = getPatch(filteredData)
-    if (patch.isDefined) {
-      /*
-       * The patch contains a set of operations,
-       * where an operation can be `add`, `remove`
-       * or `replace`
-       */
-      val operations = patch.get.keySet
-      operations.foreach {
-        case "add" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "remove" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "replace" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case _ =>
-          val now = new java.util.Date().toString
-          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
-      }
-
-      (None, None)
-
-    } else {
-      (None, None)
-    }
-
+    (None, None)
   }
-
+  /**
+   * An object relationship contains two additional properties,
+   * namely `description` and `name`. Although [IgniteGraph]
+   * supports the extension of edge properties, all update
+   * operations whether (add, remove or delete) are mapped
+   * onto a change of already existing property values.
+   */
   def updateRelationship(entityId:String, entityType:String, data:Map[String,Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
 
     val edge = initializeEdge(entityId, entityType, "update")
-    var filteredData = data
     /*
-     * Retrieve patch from filtered data
+     * Retrieve patch from data
      */
-    val patch = getPatch(filteredData)
+    val patch = getPatch(data)
     if (patch.isDefined) {
-      /*
-       * The patch contains a set of operations,
-       * where an operation can be `add`, `remove`
-       * or `replace`
-       */
-      val operations = patch.get.keySet
-      operations.foreach {
-        case "add" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "remove" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "replace" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case _ =>
-          val now = new java.util.Date().toString
-          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
-      }
 
-      (None, None)
+      val patchData = patch.get
+      /*
+       * Object relationships contain additional properties,
+       * namely `description` and `name`, i.e.
+       *
+       * `add` operations are not supported as these properties
+       * are not specified as [List] properties
+       */
+      var description:String = ""
+      var name:String = ""
+
+      patchData.keySet.foreach(operation => {
+        val properties = patchData(operation).asInstanceOf[Map[String, List[Any]]]
+        properties.keySet.foreach {
+          /*
+           * The current implementation enables an individual
+           * update of the supported fields, independent of
+           * whether OpenCTI manages `description` or `name`
+           * as existing or not.
+           */
+          case "description" =>
+            if (operation == "add" || operation == "replace") {
+              description = properties("description").head.asInstanceOf[String]
+            }
+            else
+              description = ""
+
+            edge.addColumn("description", "STRING", description)
+
+          case "name" =>
+            if (operation == "add" || operation == "replace") {
+              name = properties("name").head.asInstanceOf[String]
+            }
+            else
+              name = ""
+
+            edge.addColumn("name", "STRING", name)
+
+          case _ => /* Do nothing */
+        }
+      })
+
+      (None, Some(Seq(edge)))
 
     } else {
       (None, None)
@@ -508,34 +478,13 @@ object EdgeTransformer extends BaseTransformer {
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
 
     val edge = initializeEdge(entityId, entityType, "update")
-    var filteredData = data
     /*
-     * Retrieve patch from filtered data
+     * Retrieve patch from data
      */
-    val patch = getPatch(filteredData)
+    val patch = getPatch(data)
     if (patch.isDefined) {
-      /*
-       * The patch contains a set of operations,
-       * where an operation can be `add`, `remove`
-       * or `replace`
-       */
-      val operations = patch.get.keySet
-      operations.foreach {
-        case "add" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "remove" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "replace" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case _ =>
-          val now = new java.util.Date().toString
-          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
-      }
-
-      (None, None)
+      // TODO
+      throw new Exception("Not implemented yet.")
 
     } else {
       (None, None)

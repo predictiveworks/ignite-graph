@@ -350,7 +350,114 @@ trait BaseTransformer {
     }
 
     if (patch.isEmpty) return None
-    Some(patch)
+    /*
+     * The patch contains a set of operations,
+     * where an operation can be `add`, `remove`
+     * or `replace`
+     */
+    val patchData = mutable.HashMap.empty[String, Any]
+
+    val operations = patch.keySet
+    /*
+     * It is expected that OpenCTI specifies a maximum
+     * of 3 update operations
+     */
+    operations.foreach {
+      case "add" =>
+        /*
+         * The patch specifies a set of object properties
+         * where values must be added
+         */
+        val filteredPatch = patch.get("add").asInstanceOf[Map[String,Any]]
+        /*
+         * Unpack reference properties and the associated
+         * values that must be added; the result is a [Map]
+         * with propKey -> propValues
+         */
+        val properties = filteredPatch.keySet.map(propKey => {
+
+          val propVal = filteredPatch(propKey).asInstanceOf[List[Any]]
+          val values =
+            if (propVal.head.isInstanceOf[Map[String,Any]]) {
+              propVal.map(value => {
+                value.asInstanceOf[Map[String,Any]]("value")
+              })
+            }
+            else
+              propVal
+
+          (propKey, values)
+
+        }).toMap
+
+        patchData += "add" -> properties
+
+      case "remove" =>
+        /*
+         * The patch specifies a set of object properties
+         * where values must be removed
+         */
+        val filteredPatch = patch.get("remove").asInstanceOf[Map[String,Any]]
+        /*
+         * Unpack reference properties and the associated
+         * values that must be removed; the result is a [Map]
+         * with propKey -> propValues
+         */
+        val properties = filteredPatch.keySet.map(propKey => {
+
+          val propVal = filteredPatch(propKey).asInstanceOf[List[Any]]
+          val values =
+            if (propVal.head.isInstanceOf[Map[String,Any]]) {
+              propVal.map(value => {
+                value.asInstanceOf[Map[String,Any]]("value")
+              })
+            }
+            else
+              propVal
+
+          (propKey, values)
+
+        }).toMap
+
+        patchData += "remove" -> properties
+
+      case "replace" =>
+        /*
+        * The patch specifies a set of object properties
+        * where values must be replaced
+        */
+        val filteredPatch = patch.get("replace").asInstanceOf[Map[String,Any]]
+        /*
+         * Unpack reference properties and the current
+         * values that must be set
+         */
+        val properties = filteredPatch.keySet.map(propKey => {
+
+          val propVal = filteredPatch(propKey).asInstanceOf[Map[String,Any]]("current")
+          /*
+           * The referenced value(s) are represented as
+           * a [List] to be compliant with the other patch
+           * operations
+           */
+          val values =
+            if (propVal.isInstanceOf[List[Any]]) {
+              propVal
+            }
+            else
+              List(propVal)
+
+          (propKey, values)
+
+        }).toMap
+
+        patchData += "replace" -> properties
+
+     case _ =>
+        val now = new java.util.Date().toString
+        throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
+    }
+
+    Some(patchData.toMap)
 
   }
 }

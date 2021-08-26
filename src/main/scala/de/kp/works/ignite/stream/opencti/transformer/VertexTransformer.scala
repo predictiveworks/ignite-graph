@@ -216,32 +216,13 @@ object VertexTransformer extends BaseTransformer {
     val edges    = mutable.ArrayBuffer.empty[IgnitePut]
 
     val vertex = initializeVertex(entityId, entityType, "update")
-    var filteredData = data
-    /*
-     * Retrieve patch from filtered data
+     /*
+     * Retrieve patch data from data
      */
-    val patch = getPatch(filteredData)
+    val patch = getPatch(data)
     if (patch.isDefined) {
-      /*
-       * The patch contains a set of operations,
-       * where an operation can be `add`, `remove`
-       * or `replace`
-       */
-      val operations = patch.get.keySet
-      operations.foreach {
-        case "add" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "remove" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case "replace" =>
-          // TODO
-          throw new Exception("Not implemented yet.")
-        case _ =>
-          val now = new java.util.Date().toString
-          throw new Exception(s"[ERROR] $now - Unknown patch operation detected.")
-      }
+      // TODO
+      throw new Exception("Not implemented yet.")
 
       (Some(vertices), Some(edges))
 
