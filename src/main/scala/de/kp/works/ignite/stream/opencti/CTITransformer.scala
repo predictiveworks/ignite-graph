@@ -163,12 +163,34 @@ object CTITransformer {
      */
     val isEdge = STIX.isStixEdge(entityType.toLowerCase)
     if (isEdge) {
-      // TODO
-      throw new Exception("Not implement yet")
+      if (STIX.isStixRelationship(entityType.toLowerCase)) {
+        return EdgeTransformer.updateRelationship(entityId, entityType, data)
+      }
+
+      if (STIX.isStixSighting(entityType.toLowerCase)) {
+        return EdgeTransformer.updateSighting(entityId, entityType, data)
+      }
+      /*
+       * The creation of STIX observable and meta relationships
+       * should not happen as OpenCTI delegates them to updates
+       */
+      if (STIX.isStixObservableRelationship(entityType.toLowerCase)) {
+        return EdgeTransformer.updateObservableRelationship(entityId, entityType, data)
+      }
+
+      if (STIX.isStixMetaRelationship(entityType.toLowerCase)) {
+        return EdgeTransformer.updateMetaRelationship(entityId, entityType, data)
+      }
+
+      val now = new java.util.Date().toString
+      throw new Exception(s"[ERROR] $now - Unknown relation type detected.")
     }
     else {
-      // TODO
-      throw new Exception("Not implement yet")
+      /*
+       * A STIX object is either a STIX Domain Object
+       * or a STIX Cyber Observable
+       */
+      VertexTransformer.updateStixObject(entityId, entityType, data)
     }
   }
 }

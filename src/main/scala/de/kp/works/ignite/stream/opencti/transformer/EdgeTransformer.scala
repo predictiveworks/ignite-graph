@@ -355,7 +355,7 @@ object EdgeTransformer extends BaseTransformer {
    * Ignite cache. Removing selected edge properties is part
    * of the update implementation (with patch action `remove`)
    */
-  def deleteObservableRelationship(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
+  def deleteMetaRelationship(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
     val delete = new IgniteDelete(entityId, ElementType.EDGE)
     (None, Some(Seq(delete)))
   }
@@ -364,11 +364,10 @@ object EdgeTransformer extends BaseTransformer {
    * Ignite cache. Removing selected edge properties is part
    * of the update implementation (with patch action `remove`)
    */
-  def deleteMetaRelationship(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
+  def deleteObservableRelationship(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
     val delete = new IgniteDelete(entityId, ElementType.EDGE)
     (None, Some(Seq(delete)))
   }
-
   /**
    * This method deletes an [Edge] object from the respective
    * Ignite cache. Removing selected edge properties is part
@@ -387,6 +386,31 @@ object EdgeTransformer extends BaseTransformer {
     val delete = new IgniteDelete(entityId, ElementType.EDGE)
     (None, Some(Seq(delete)))
   }
+
+  def updateMetaRelationship(entityId:String, entityType:String, data:Map[String,Any]):
+  (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+    // TODO
+    throw new Exception("Not implemented yet")
+  }
+
+  def updateObservableRelationship(entityId:String, entityType:String, data:Map[String,Any]):
+  (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+    // TODO
+    throw new Exception("Not implemented yet")
+  }
+
+  def updateRelationship(entityId:String, entityType:String, data:Map[String,Any]):
+  (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+    // TODO
+    throw new Exception("Not implemented yet")
+  }
+
+  def updateSighting(entityId:String, entityType:String, data:Map[String,Any]):
+  (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+    // TODO
+    throw new Exception("Not implemented yet")
+  }
+
   /**
    * This method creates an [Edge] object for an SDO
    * to describe the relationship to the `Identity`

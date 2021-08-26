@@ -153,15 +153,50 @@ object VertexTransformer extends BaseTransformer {
       filteredData = filteredData.filterKeys(k => !(k == "object_refs"))
     }
 
+    /** HASHES **/
+
+    if (filteredData.contains("hashes")) {
+      val hashes = transformHashes(data("hashes"))
+      hashes.foreach{case (k,v) =>
+        vertex.addColumn(k, "STRING", v)
+      }
+      filteredData = filteredData.filterKeys(k => !(k == "hashes"))
+    }
     /*
-     * Add properties to the SDO or SCO
+     * Add remaining properties to the SDO or SCO; the current
+     * implementation accepts properties of a basic data type
+     * or a list where the components specify basic data types.
      */
-    // TODO
+    filteredData.keySet.foreach(propKey => {
+
+      val value = filteredData(propKey)
+      value match {
+        case values: List[Any] =>
+          try {
+
+            val basicType = getBasicType(values.head)
+            putValues(propKey, basicType, values, vertex)
+
+          } catch {
+            case _:Throwable => /* Do nothing */
+          }
+
+        case _ =>
+          try {
+
+            val propType = getBasicType(value)
+            putValue(propKey, propType, value, vertex)
+
+          } catch {
+            case _:Throwable => /* Do nothing */
+          }
+      }
+
+    })
 
     vertices += vertex
     (Some(vertices), Some(edges))
   }
-
   /**
    * This method deletes a [Vertex] object from the respective
    * Ignite cache. Removing selected vertex properties is part
@@ -170,6 +205,12 @@ object VertexTransformer extends BaseTransformer {
   def deleteStixObject(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
     val delete = new IgniteDelete(entityId, ElementType.EDGE)
     (None, Some(Seq(delete)))
+  }
+
+  def updateStixObject(entityId:String, entityType:String, data:Map[String, Any]):
+  (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
+    // TODO
+    throw new Exception("Not implemented yet.")
   }
 
 }
