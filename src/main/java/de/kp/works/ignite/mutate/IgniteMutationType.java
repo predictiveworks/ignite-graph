@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware.transformer
+package de.kp.works.ignite.mutate;
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,14 +18,8 @@ package de.kp.works.ignite.stream.fiware.transformer
  *
  */
 
-import de.kp.works.ignite.mutate.IgnitePut
-import de.kp.works.ignite.stream.fiware.{FiwareNotification, FiwareTransformer}
-
-object FiwareIndustry extends FiwareTransformer {
-
-  override def transformNotification(notification: FiwareNotification): (Seq[IgnitePut], Seq[IgnitePut]) = {
-    throw new Exception("Not implemented yet")
-  }
-
+public enum IgniteMutationType {
+    DELETE,
+    INCREMENT,
+    PUT
 }
-

@@ -18,10 +18,10 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-import com.google.gson.JsonParser
 import de.kp.works.conf.CommonConfig
-import de.kp.works.ignite.client.{IgniteConnect, IgniteTable}
-import de.kp.works.ignite.client.mutate.{IgniteDelete, IgniteIncrement, IgniteMutation, IgniteMutationType, IgnitePut}
+import de.kp.works.ignite.IgniteTable
+import de.kp.works.ignite.client.IgniteConnect
+import de.kp.works.ignite.mutate._
 import de.kp.works.ignite.stream.IgniteProcessor
 import de.kp.works.ignitegraph.IgniteConstants
 import org.apache.ignite.IgniteCache

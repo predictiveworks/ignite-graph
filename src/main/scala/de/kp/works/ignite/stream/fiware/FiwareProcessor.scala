@@ -20,8 +20,9 @@ package de.kp.works.ignite.stream.fiware
 
 import com.google.gson.JsonParser
 import de.kp.works.conf.CommonConfig
-import de.kp.works.ignite.client.mutate.IgnitePut
-import de.kp.works.ignite.client.{IgniteConnect, IgniteTable}
+import de.kp.works.ignite.IgniteTable
+import de.kp.works.ignite.client.IgniteConnect
+import de.kp.works.ignite.mutate.IgnitePut
 import de.kp.works.ignite.stream.IgniteProcessor
 import de.kp.works.ignitegraph.IgniteConstants
 import org.apache.ignite.IgniteCache

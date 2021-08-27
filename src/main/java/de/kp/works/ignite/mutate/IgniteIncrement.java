@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware.transformer
+package de.kp.works.ignite.mutate;
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,14 +18,24 @@ package de.kp.works.ignite.stream.fiware.transformer
  *
  */
 
-import de.kp.works.ignite.mutate.IgnitePut
-import de.kp.works.ignite.stream.fiware.{FiwareNotification, FiwareTransformer}
+import de.kp.works.ignite.IgniteColumn;
+import de.kp.works.ignitegraph.ElementType;
 
-object FiwareIndustry extends FiwareTransformer {
+public class IgniteIncrement extends IgniteMutation {
 
-  override def transformNotification(notification: FiwareNotification): (Seq[IgnitePut], Seq[IgnitePut]) = {
-    throw new Exception("Not implemented yet")
-  }
+    private IgniteColumn column = null;
 
+    public IgniteIncrement(Object id, ElementType elementType) {
+        super(id);
+        this.elementType = elementType;
+        mutationType = IgniteMutationType.INCREMENT;
+    }
+
+    public void addColumn(String colName, String colType, Object colValue) {
+        column = new IgniteColumn(colName, colType, colValue);
+    }
+
+    public IgniteColumn getColumn() {
+        return column;
+    }
 }
-

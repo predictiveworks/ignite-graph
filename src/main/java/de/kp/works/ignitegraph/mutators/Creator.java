@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware.transformer
+package de.kp.works.ignitegraph.mutators;
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,14 +18,15 @@ package de.kp.works.ignite.stream.fiware.transformer
  *
  */
 
-import de.kp.works.ignite.mutate.IgnitePut
-import de.kp.works.ignite.stream.fiware.{FiwareNotification, FiwareTransformer}
+import de.kp.works.ignite.mutate.IgnitePut;
+import org.apache.tinkerpop.gremlin.structure.Element;
 
-object FiwareIndustry extends FiwareTransformer {
+import java.util.Iterator;
 
-  override def transformNotification(notification: FiwareNotification): (Seq[IgnitePut], Seq[IgnitePut]) = {
-    throw new Exception("Not implemented yet")
-  }
+public interface Creator {
 
+    Element getElement();
+
+    Iterator<IgnitePut> constructInsertions();
+    RuntimeException alreadyExists();
 }
-

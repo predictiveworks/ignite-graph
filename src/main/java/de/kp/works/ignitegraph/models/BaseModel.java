@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware.transformer
+package de.kp.works.ignitegraph.models;
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,14 +18,25 @@ package de.kp.works.ignite.stream.fiware.transformer
  *
  */
 
-import de.kp.works.ignite.mutate.IgnitePut
-import de.kp.works.ignite.stream.fiware.{FiwareNotification, FiwareTransformer}
+import de.kp.works.ignite.IgniteTable;
+import de.kp.works.ignitegraph.IgniteGraph;
 
-object FiwareIndustry extends FiwareTransformer {
+public abstract class BaseModel {
 
-  override def transformNotification(notification: FiwareNotification): (Seq[IgnitePut], Seq[IgnitePut]) = {
-    throw new Exception("Not implemented yet")
-  }
+    protected final IgniteGraph graph;
+    protected final IgniteTable table;
+
+    public BaseModel(IgniteGraph graph, IgniteTable table) {
+        this.graph = graph;
+        this.table = table;
+    }
+
+    public IgniteGraph getGraph() {
+        return graph;
+    }
+
+    public IgniteTable getTable() {
+        return table;
+    }
 
 }
-

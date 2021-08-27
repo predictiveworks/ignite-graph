@@ -20,7 +20,7 @@ package de.kp.works.ignite.stream.opencti
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import de.kp.works.ignite.client.mutate.{IgniteDelete, IgniteMutation, IgnitePut}
+import de.kp.works.ignite.mutate._
 import de.kp.works.ignite.stream.opencti.transformer._
 
 import scala.collection.mutable

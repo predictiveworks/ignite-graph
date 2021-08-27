@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware.transformer
+package de.kp.works.ignitegraph.readers;
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,14 +18,9 @@ package de.kp.works.ignite.stream.fiware.transformer
  *
  */
 
-import de.kp.works.ignite.mutate.IgnitePut
-import de.kp.works.ignite.stream.fiware.{FiwareNotification, FiwareTransformer}
+import de.kp.works.ignite.query.IgniteResult;
 
-object FiwareIndustry extends FiwareTransformer {
+public interface Reader<T> {
 
-  override def transformNotification(notification: FiwareNotification): (Seq[IgnitePut], Seq[IgnitePut]) = {
-    throw new Exception("Not implemented yet")
-  }
-
+    T parse(IgniteResult result);
 }
-

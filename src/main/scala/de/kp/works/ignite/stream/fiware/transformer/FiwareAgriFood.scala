@@ -18,7 +18,7 @@ package de.kp.works.ignite.stream.fiware.transformer
  *
  */
 
-import de.kp.works.ignite.client.mutate.IgnitePut
+import de.kp.works.ignite.mutate.IgnitePut
 import de.kp.works.ignite.stream.fiware.{FiwareNotification, FiwareTransformer}
 
 object FiwareAgriFood extends FiwareTransformer {

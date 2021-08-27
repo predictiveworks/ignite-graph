@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware.transformer
+package de.kp.works.ignitegraph.readers;
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,14 +18,15 @@ package de.kp.works.ignite.stream.fiware.transformer
  *
  */
 
-import de.kp.works.ignite.mutate.IgnitePut
-import de.kp.works.ignite.stream.fiware.{FiwareNotification, FiwareTransformer}
+import de.kp.works.ignite.query.IgniteResult;
+import de.kp.works.ignitegraph.IgniteGraph;
+import org.apache.tinkerpop.gremlin.structure.Element;
 
-object FiwareIndustry extends FiwareTransformer {
+public abstract class LoadingElementReader<T extends Element> extends ElementReader<T> {
 
-  override def transformNotification(notification: FiwareNotification): (Seq[IgnitePut], Seq[IgnitePut]) = {
-    throw new Exception("Not implemented yet")
-  }
+    public LoadingElementReader(IgniteGraph graph) {
+        super(graph);
+    }
 
+    public abstract void load(T element, IgniteResult result);
 }
-

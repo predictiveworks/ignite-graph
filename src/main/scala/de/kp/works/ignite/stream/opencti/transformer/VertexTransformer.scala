@@ -18,7 +18,7 @@ package de.kp.works.ignite.stream.opencti.transformer
  *
  */
 
-import de.kp.works.ignite.client.mutate.{IgniteDelete, IgniteMutation, IgnitePut}
+import de.kp.works.ignite.mutate._
 import de.kp.works.ignitegraph.ElementType
 
 import java.util.Date
@@ -245,11 +245,11 @@ object VertexTransformer extends BaseTransformer {
            */
           val values = properties("created_by_ref")
           values match {
-            case references: List[String] =>
+            case references: List[_] =>
               references.foreach(reference => {
                 if (operation == "add") {
 
-                  val e = EdgeTransformer.createCreatedBy(entityId, reference)
+                  val e = EdgeTransformer.createCreatedBy(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else if (operation == "remove") {
@@ -257,7 +257,7 @@ object VertexTransformer extends BaseTransformer {
                    * Retrieve the [Edge] that refers to the `from`
                    * and `to` operator
                    */
-                  val e = EdgeTransformer.deleteCreatedBy(entityId, reference)
+                  val e = EdgeTransformer.deleteCreatedBy(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else {
@@ -286,11 +286,11 @@ object VertexTransformer extends BaseTransformer {
            */
           val values = properties("external_references")
           values match {
-            case references: List[String] =>
+            case references: List[_] =>
               references.foreach(reference => {
                 if (operation == "add") {
 
-                  val e = EdgeTransformer.createExternalReference(entityId, reference)
+                  val e = EdgeTransformer.createExternalReference(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else if (operation == "remove") {
@@ -298,7 +298,7 @@ object VertexTransformer extends BaseTransformer {
                      * Retrieve the [Edge] that refers to the `from`
                      * and `to` operator
                      */
-                  val e = EdgeTransformer.deleteExternalReference(entityId, reference)
+                  val e = EdgeTransformer.deleteExternalReference(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else {
@@ -327,11 +327,11 @@ object VertexTransformer extends BaseTransformer {
            */
           val values = properties("kill_chain_phases")
           values match {
-            case references: List[String] =>
+            case references: List[_] =>
               references.foreach(reference => {
                 if (operation == "add") {
 
-                  val e = EdgeTransformer.createKillChainPhase(entityId, reference)
+                  val e = EdgeTransformer.createKillChainPhase(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else if (operation == "remove") {
@@ -339,7 +339,7 @@ object VertexTransformer extends BaseTransformer {
                      * Retrieve the [Edge] that refers to the `from`
                      * and `to` operator
                      */
-                  val e = EdgeTransformer.deleteKillChainPhase(entityId, reference)
+                  val e = EdgeTransformer.deleteKillChainPhase(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else {
@@ -368,11 +368,11 @@ object VertexTransformer extends BaseTransformer {
            */
           val values = properties("labels")
           values match {
-            case references: List[String] =>
+            case references: List[_] =>
               references.foreach(reference => {
                 if (operation == "add") {
 
-                  val e = EdgeTransformer.createObjectLabel(entityId, reference)
+                  val e = EdgeTransformer.createObjectLabel(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else if (operation == "remove") {
@@ -380,7 +380,7 @@ object VertexTransformer extends BaseTransformer {
                      * Retrieve the [Edge] that refers to the `from`
                      * and `to` operator
                      */
-                  val e = EdgeTransformer.deleteObjectLabel(entityId, reference)
+                  val e = EdgeTransformer.deleteObjectLabel(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else {
@@ -409,11 +409,11 @@ object VertexTransformer extends BaseTransformer {
            */
           val values = properties("object_marking_refs")
           values match {
-            case references: List[String] =>
+            case references: List[_] =>
               references.foreach(reference => {
                 if (operation == "add") {
 
-                  val e = EdgeTransformer.createObjectMarking(entityId, reference)
+                  val e = EdgeTransformer.createObjectMarking(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else if (operation == "remove") {
@@ -421,7 +421,7 @@ object VertexTransformer extends BaseTransformer {
                      * Retrieve the [Edge] that refers to the `from`
                      * and `to` operator
                      */
-                  val e = EdgeTransformer.deleteObjectMarking(entityId, reference)
+                  val e = EdgeTransformer.deleteObjectMarking(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else {
@@ -450,11 +450,11 @@ object VertexTransformer extends BaseTransformer {
            */
           val values = properties("object_refs")
           values match {
-            case references: List[String] =>
+            case references: List[_] =>
               references.foreach(reference => {
                 if (operation == "add") {
 
-                  val e = EdgeTransformer.createObjectReference(entityId, reference)
+                  val e = EdgeTransformer.createObjectReference(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else if (operation == "remove") {
@@ -462,7 +462,7 @@ object VertexTransformer extends BaseTransformer {
                      * Retrieve the [Edge] that refers to the `from`
                      * and `to` operator
                      */
-                  val e = EdgeTransformer.deleteObjectReference(entityId, reference)
+                  val e = EdgeTransformer.deleteObjectReference(entityId, reference.asInstanceOf[String])
                   if (e.isDefined) edges += e.get
 
                 } else {
@@ -490,13 +490,15 @@ object VertexTransformer extends BaseTransformer {
            * hash values associated with the hash algorithm.
            */
           val values = properties("hashes")
-          values match {
-            case hashes: List[Map[String,String]] =>
+          values.head match {
+            case _: Map[_,_] =>
+              val hashes = values.asInstanceOf[List[Map[String,String]]]
               /*
                * We expect the hash properties as [Map] with fields
                * `algorithm` and `hash`.
                */
               hashes.foreach(hash => {
+
                 if (operation == "add" || operation == "replace") {
                   vertex.addColumn(hash("algorithm"), "STRING", hash("hash"))
                 }

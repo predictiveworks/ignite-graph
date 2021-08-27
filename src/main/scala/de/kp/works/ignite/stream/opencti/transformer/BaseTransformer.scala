@@ -18,7 +18,7 @@ package de.kp.works.ignite.stream.opencti.transformer
  *
  */
 
-import de.kp.works.ignite.client.mutate.{IgniteDelete, IgnitePut}
+import de.kp.works.ignite.mutate._
 import de.kp.works.ignitegraph.{ElementType, IgniteConstants}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -138,13 +138,17 @@ trait BaseTransformer {
 
           result += k -> v
         })
-      case entries: Map[String, String] =>
-        entries.foreach(entry => {
-          result += entry._1 -> entry._2
-        })
       case _ =>
-        val now = new Date().toString
-        throw new Exception(s"[ERROR] $now - Unknown data type for hashes detected.")
+        try {
+          hashes.asInstanceOf[Map[String,String]].foreach(entry => {
+            result += entry._1 -> entry._2.asInstanceOf[String]
+          })
+
+        } catch {
+          case t:Throwable =>
+            val now = new Date().toString
+            throw new Exception(s"[ERROR] $now - Unknown data type for hashes detected.")
+        }
     }
     result.toMap
 
@@ -189,11 +193,11 @@ trait BaseTransformer {
        */
       case "Date" =>
         propVal.head match {
-          case _: java.util.Date =>
-            val values = propVal.map(_.asInstanceOf[java.util.Date])
-            put.addColumn(propKey, propType, values.mkString(","))
           case _: java.sql.Date =>
             val values = propVal.map(_.asInstanceOf[java.sql.Date])
+            put.addColumn(propKey, propType, values.mkString(","))
+          case _: java.util.Date =>
+            val values = propVal.map(_.asInstanceOf[java.util.Date])
             put.addColumn(propKey, propType, values.mkString(","))
           case _: java.time.LocalDate =>
             val values = propVal.map(_.asInstanceOf[java.time.LocalDate])
@@ -267,11 +271,11 @@ trait BaseTransformer {
        */
       case "DATE" =>
         propVal match {
-          case _: java.util.Date =>
-            val value = propVal.asInstanceOf[java.util.Date]
-            put.addColumn(propKey, propType, value.toString)
           case _: java.sql.Date =>
             val value = propVal.asInstanceOf[java.sql.Date]
+            put.addColumn(propKey, propType, value.toString)
+          case _: java.util.Date =>
+            val value = propVal.asInstanceOf[java.util.Date]
             put.addColumn(propKey, propType, value.toString)
           case _: java.time.LocalDate =>
             val value = propVal.asInstanceOf[java.time.LocalDate]
@@ -325,11 +329,11 @@ trait BaseTransformer {
       /*
        * Datetime support
        */
-      case _: java.util.Date => "DATE"
       case _: java.sql.Date => "DATE"
+      case _: java.sql.Timestamp => "TIMESTAMP"
+      case _: java.util.Date => "DATE"
       case _: java.time.LocalDate => "DATE"
       case _: java.time.LocalDateTime => "DATE"
-      case _: java.sql.Timestamp => "TIMESTAMP"
       case _: java.time.LocalTime => "TIMESTAMP"
       /*
        * Handpicked data types
@@ -394,7 +398,7 @@ trait BaseTransformer {
 
           val propVal = filteredPatch(propKey).asInstanceOf[List[Any]]
           val values =
-            if (propVal.head.isInstanceOf[Map[String,Any]]) {
+            if (propVal.head.isInstanceOf[Map[_,_]]) {
               propVal.map(value => {
                 value.asInstanceOf[Map[String,Any]]("value")
               })
@@ -423,7 +427,7 @@ trait BaseTransformer {
 
           val propVal = filteredPatch(propKey).asInstanceOf[List[Any]]
           val values =
-            if (propVal.head.isInstanceOf[Map[String,Any]]) {
+            if (propVal.head.isInstanceOf[Map[_,_]]) {
               propVal.map(value => {
                 value.asInstanceOf[Map[String,Any]]("value")
               })

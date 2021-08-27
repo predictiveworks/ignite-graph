@@ -18,7 +18,7 @@ package de.kp.works.ignite.stream.opencti.transformer
  *
  */
 
-import de.kp.works.ignite.client.mutate.{IgniteDelete, IgnitePut}
+import de.kp.works.ignite.mutate._
 import de.kp.works.ignitegraph.{ElementType, IgniteConstants}
 
 import java.util.Date
@@ -594,9 +594,10 @@ object EdgeTransformer extends BaseTransformer {
        * the creator (identity object)
        */
       createdBy match {
-        case value: Map[String, Any] =>
+        case value: Map[_, _] =>
+          val toId = value.asInstanceOf[Map[String,String]]("value")
           edge.addColumn(
-            IgniteConstants.TO_COL_NAME, "STRING", value("value").asInstanceOf[String])
+            IgniteConstants.TO_COL_NAME, "STRING", toId)
 
         case value: String =>
           edge.addColumn(
@@ -681,7 +682,8 @@ object EdgeTransformer extends BaseTransformer {
          */
 
         killChainPhase match {
-          case value: Map[String, Any] =>
+          case _: Map[_, _] =>
+            val value = killChainPhase.asInstanceOf[Map[String, Any]]
             if (value.contains("value")) {
               /*
                * In this case, the processing of a kill chain phase is
@@ -808,7 +810,8 @@ object EdgeTransformer extends BaseTransformer {
          * (2) fields: 'reference', 'value', 'x_opencti_internal_id'
          */
         label match {
-          case value: Map[String, Any] =>
+          case _: Map[_, _] =>
+            val value = label.asInstanceOf[Map[String,Any]]
             /*
              * In this case, the processing of an object label is
              * restricted to create an [Edge]; the `value` field
@@ -932,7 +935,8 @@ object EdgeTransformer extends BaseTransformer {
             edge.addColumn(
               IgniteConstants.TO_COL_NAME, "STRING", value)
 
-          case value: Map[String, Any] =>
+          case _: Map[_, _] =>
+            val value = marking.asInstanceOf[Map[String,Any]]
             /*
              * The `value` of the provided Map refers to the
              * Object Marking object (see OpenCTI data model).
@@ -1024,7 +1028,8 @@ object EdgeTransformer extends BaseTransformer {
             edge.addColumn(
               IgniteConstants.TO_COL_NAME, "STRING", value)
 
-          case value: Map[String, Any] =>
+          case _: Map[_, _] =>
+            val value = reference.asInstanceOf[Map[String,Any]]
             /*
              * The `value` of the provided Map refers to the
              * Object Marking object (see OpenCTI data model).
@@ -1116,7 +1121,8 @@ object EdgeTransformer extends BaseTransformer {
          * (2) fields: 'reference', 'value', 'x_opencti_internal_id'
          */
         reference match {
-          case value: Map[String, Any] =>
+          case _: Map[_, _] =>
+            val value = reference.asInstanceOf[Map[String,Any]]
             if (value.contains("value")) {
               /*
                * In this case, the processing of an external reference is

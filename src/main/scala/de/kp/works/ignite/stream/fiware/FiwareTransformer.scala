@@ -18,7 +18,7 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
-import de.kp.works.ignite.client.mutate.IgnitePut
+import de.kp.works.ignite.mutate.IgnitePut
 import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
 
