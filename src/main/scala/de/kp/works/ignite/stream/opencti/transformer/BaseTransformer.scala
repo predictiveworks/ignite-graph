@@ -124,7 +124,7 @@ trait BaseTransformer {
     vertex
   }
 
-  protected def transformHashes(hashes: Any): List[(String, String)] = {
+  protected def transformHashes(hashes: Any): Map[String, String] = {
 
     val result = mutable.HashMap.empty[String, String]
     /*
@@ -146,7 +146,7 @@ trait BaseTransformer {
         val now = new Date().toString
         throw new Exception(s"[ERROR] $now - Unknown data type for hashes detected.")
     }
-    result.toList
+    result.toMap
 
   }
 
@@ -231,13 +231,13 @@ trait BaseTransformer {
   }
 
   protected def putValue(propKey: String, propType: String, propVal: Any, put: IgnitePut): Unit = {
-    propType match {
+     propType match {
       /*
        * Basic data types
        */
       case "DECIMAL" =>
-        val value = propVal.asInstanceOf[BigDecimal]
-        put.addColumn(propKey, propType, value.toString)
+        val value = propVal.asInstanceOf[BigDecimal].toString
+        put.addColumn(propKey, propType, value)
       case "BOOLEAN" =>
         val value = propVal.asInstanceOf[Boolean]
         put.addColumn(propKey, propType, value.toString)

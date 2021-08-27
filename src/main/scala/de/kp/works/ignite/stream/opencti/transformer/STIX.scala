@@ -187,6 +187,24 @@ object STIX {
       ENTITY_X_OPENCTI_TEXT
   )
 
+  /** HASHES **/
+  val MD5      = "MD5"
+  val SHA_1    = "SHA-1"
+  val SHA_256  = "SHA-256"
+  val SHA_512  = "SHA-512"
+  val SHA3_256 = "SHA3-256"
+  val SHA3_512 = "SHA3-512"
+  val SSDEEP   = "SSDEEP"
+
+  val STANDARD_HASHES: Array[String] = Array(
+    MD5,
+    SHA_1,
+    SHA_256,
+    SHA_512,
+    SHA3_256,
+    SHA3_512,
+    SSDEEP)
+
   def isStixDomainObjectContainer(`type`:String):Boolean = {
     STIX_DOMAIN_OBJECT_CONTAINERS.contains(`type`) || `type` == ENTITY_TYPE_CONTAINER
   }

@@ -157,10 +157,18 @@ object VertexTransformer extends BaseTransformer {
     /** HASHES **/
 
     if (filteredData.contains("hashes")) {
+      /*
+       * This approach adds all standard hash algorithms as
+       * properties to the vertex, irrespective of whether
+       * the values are defined or not. This makes update
+       * request a lot easier.
+       */
       val hashes = transformHashes(data("hashes"))
-      hashes.foreach{case (k,v) =>
-        vertex.addColumn(k, "STRING", v)
-      }
+      STIX.STANDARD_HASHES.foreach(hash => {
+        val value = hashes.getOrElse(hash, "")
+        vertex.addColumn(hash, "STRING", value)
+      })
+
       filteredData = filteredData.filterKeys(k => !(k == "hashes"))
     }
     /*
@@ -204,7 +212,7 @@ object VertexTransformer extends BaseTransformer {
    * of the update implementation (with patch action `remove`)
    */
   def deleteStixObject(entityId:String):(Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
-    val delete = new IgniteDelete(entityId, ElementType.EDGE)
+    val delete = new IgniteDelete(entityId, ElementType.VERTEX)
     (None, Some(Seq(delete)))
   }
 
@@ -474,8 +482,31 @@ object VertexTransformer extends BaseTransformer {
           properties = properties.filterKeys(k => !(k == "object_refs"))
         }
         if (properties.contains("hashes")) {
-          /** HASHES * */
-          // TODO
+          /**
+           * HASHES
+           *
+           * This implementation expects that `hashes` is an attribute
+           * name within a certain patch; relevant, however, are the
+           * hash values associated with the hash algorithm.
+           */
+          val values = properties("hashes")
+          values match {
+            case hashes: List[Map[String,String]] =>
+              /*
+               * We expect the hash properties as [Map] with fields
+               * `algorithm` and `hash`.
+               */
+              hashes.foreach(hash => {
+                if (operation == "add" || operation == "replace") {
+                  vertex.addColumn(hash("algorithm"), "STRING", hash("hash"))
+                }
+                else
+                  vertex.addColumn(hash("algorithm"), "STRING", "")
+              })
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `hashes` patch is not a List[Map[String,String].")
+          }
           /*
            * Remove `hashes` from properties
            */
@@ -485,11 +516,80 @@ object VertexTransformer extends BaseTransformer {
          * Update remaining properties of the SDO or SCO
          */
         properties.keySet.foreach(propKey => {
-          // TODO
+          val values = properties(propKey)
+          /*
+           * The patch mechanism represents all attribute values
+           * as [List] even there is only a single value specified
+           */
+          if (values.size == 1) {
+            val value = values.head
+            value match {
+              case _: List[Any] =>
+
+                val propType = getBasicType(value)
+                if (operation == "add" || operation == "replace") {
+                  putValues(propKey, propType, values, vertex)
+                }
+                else {
+                  /*
+                   * In this case a delete operation must be defined
+                   */
+                  val delete = new IgniteDelete(entityId, ElementType.VERTEX)
+                  delete.addColumn(propKey)
+
+                  vertices += delete
+                }
+              case _ =>
+                try {
+
+                  val propType = getBasicType(value)
+                  if (operation == "add" || operation == "replace") {
+                    putValue(propKey, propType, value, vertex)
+                  }
+                  else {
+                    /*
+                     * In this case a delete operation must be defined
+                     */
+                    val delete = new IgniteDelete(entityId, ElementType.VERTEX)
+                    delete.addColumn(propKey)
+
+                    vertices += delete
+                  }
+
+                } catch {
+                  case _:Throwable => /* Do nothing */
+                }
+
+            }
+          } else {
+            /*
+             * This is genuine [List] of values: it is expected that
+             * this list contains basic values only
+             */
+            try {
+
+              val basicType = getBasicType(values.head)
+
+              if (operation == "add" || operation == "replace") {
+                putValues(propKey, basicType, values, vertex)
+              }
+              else
+                putValues(propKey, basicType, List.empty[Any], vertex)
+
+            } catch {
+              case _:Throwable => /* Do nothing */
+            }
+
+          }
         })
 
       })
 
+      /*
+       * Finally append the [Vertex] representing the STIX
+       * object to the list of vertices
+       */
+      vertices += vertex
       (Some(vertices), Some(edges))
 
     }
