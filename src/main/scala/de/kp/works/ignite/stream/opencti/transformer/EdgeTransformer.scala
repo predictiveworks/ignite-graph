@@ -594,14 +594,22 @@ object EdgeTransformer extends BaseTransformer {
        * the creator (identity object)
        */
       createdBy match {
+        /*
+         * This is the expected default description of references
+         * to object markings
+         */
+        case value: String =>
+          edge.addColumn(
+            IgniteConstants.TO_COL_NAME, "STRING", value)
+        /*
+         * The OpenCTI code base also specifies the subsequent format
+         * to describe reference to the author or creator of a STIX
+         * object.
+         */
         case value: Map[_, _] =>
           val toId = value.asInstanceOf[Map[String,String]]("value")
           edge.addColumn(
             IgniteConstants.TO_COL_NAME, "STRING", toId)
-
-        case value: String =>
-          edge.addColumn(
-            IgniteConstants.TO_COL_NAME, "STRING", value)
 
         case _ =>
           val now = new Date().toString
@@ -829,7 +837,11 @@ object EdgeTransformer extends BaseTransformer {
              * Assign created [Edge] to the list of edges
              */
             edges += edge
-
+          /*
+           * We expect this as the default approach to exchange
+           * object labels of STIX objects. In this case, an extra
+           * vertex is created to specify the respective label.
+           */
           case value:String =>
             /*
              * In this case, the processing of the Object Label demands
@@ -931,10 +943,17 @@ object EdgeTransformer extends BaseTransformer {
          *     fields: 'reference', 'value', 'x_opencti_internal_id'
          */
         marking match {
+          /*
+           * This is the expected default description of references
+           * to object markings
+           */
           case value: String =>
             edge.addColumn(
               IgniteConstants.TO_COL_NAME, "STRING", value)
-
+          /*
+           * The OpenCTI code base also specifies the subsequent format
+           * to describe reference to object markings for a STIX object.
+           */
           case _: Map[_, _] =>
             val value = marking.asInstanceOf[Map[String,Any]]
             /*

@@ -46,8 +46,13 @@ object VertexTransformer extends BaseTransformer {
      * properties.
      */
 
-    /** CREATED BY **/
-
+    /** CREATED BY
+     *
+     * This field contains the reference (identifier) of the Identity
+     * object that created the STIX object. When creating a STIX object
+     * vertex, this reference is used to also create an associated edge,
+     * from (STIX object) to (Identity).
+     */
     if (filteredData.contains("created_by_ref")) {
       /*
        * Creator is transformed to an edge
@@ -59,7 +64,6 @@ object VertexTransformer extends BaseTransformer {
        * to restrict further processing to object properties
        */
       filteredData = filteredData.filterKeys(k => !(k == "created_by_ref"))
-
     }
 
     /** EXTERNAL REFERENCES **/
@@ -99,9 +103,15 @@ object VertexTransformer extends BaseTransformer {
 
     /** OBJECT LABELS
      *
-     * Create edges from the current SDO to the Object Label;
-     * if no Object Label is referenced, a respective vertex
-     * is created
+     * This field either contains a list of object labels (default)
+     * or references to Object Label objects. When creating a STIX
+     * object, the label reference is used to create an associated
+     * edge. In case of a provided object label value, another vertex
+     * containing the label value and an associated edge is created
+     * to connect STIX object and respective label.
+     *
+     * Exposing object labels as vertices enables graph analytics to
+     * identify the most (influencing) labels or tags.
      */
     if (filteredData.contains("labels")) {
       /*
@@ -121,8 +131,12 @@ object VertexTransformer extends BaseTransformer {
 
     /** OBJECT MARKINGS
      *
-     * Create edges from the current SDO to the referenced
-     * marking definitions
+     * This field contains a list of references (identifiers) of
+     * Object Markings that are associated with the STIX object.
+     *
+     * When creating the STIX object also a list of associated
+     * edges is created, pointing from the STIX object to the
+     * respective Object Marking.
      */
     if (filteredData.contains("object_marking_refs")) {
       /*
