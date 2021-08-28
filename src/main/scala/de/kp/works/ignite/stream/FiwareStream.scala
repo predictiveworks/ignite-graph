@@ -20,38 +20,24 @@ package de.kp.works.ignite.stream
 
 import de.kp.works.conf.CommonConfig
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.fiware.FiwareIgnite
+import de.kp.works.ignite.stream.fiware.FiwareEngine
 import de.kp.works.spark.Session
 import scopt.OptionParser
+/**
+ * [FiwareStream] is the FIWARE streaming application
+ * of [IgniteGraph]
+ */
 
-object FiwareStream {
+object FiwareStream extends BaseStream {
 
-  private case class CliConfig(
-    /*
-     * The command line interface supports the provisioning
-     * of a typesafe config compliant configuration file
-     */
-    conf:String = null
-  )
+  override var programName: String = "FiwareStream"
+  override var programDesc: String = "Ignite streaming support for Fiware notifications."
 
-  private var connect:Option[IgniteConnect] = None
-  private var service:Option[IgniteStreamContext] = None
-
-  def main(args:Array[String]):Unit = {
-    launch(args)
-  }
-
-  def launch(args:Array[String]):Unit = {
+  override def launch(args:Array[String]):Unit = {
 
     /* Command line argument parser */
-    val parser = new OptionParser[CliConfig]("FiwareStream") {
+    val parser = buildParser()
 
-      head("Fiware Stream: Streaming support for Fiware notifications.")
-      opt[String]("c")
-        .text("The path to the configuration file.")
-        .action((x, c) => c.copy(conf = x))
-
-    }
     /* Parse the argument and then run */
     parser.parse(args, CliConfig()).map{c =>
 
@@ -87,6 +73,13 @@ object FiwareStream {
           CommonConfig.toIgniteConfiguration,
           CommonConfig.getFiwareGraphNS))
 
+        /*
+         * Build streaming context and finally start the
+         * service that listens to Fiware events.
+         */
+        val fiwareIgnite = new FiwareEngine(connect.get)
+        service = fiwareIgnite.buildStream
+
         start()
 
         println("[INFO] -------------------------------------------------")
@@ -109,25 +102,6 @@ object FiwareStream {
       sys.exit(1)
     }
 
-  }
-
-  def start():Unit = {
-    /*
-     * Build streaming context
-     */
-    val fiwareIgnite = new FiwareIgnite(connect.get)
-    service = fiwareIgnite.buildStream
-
-    if (service.isEmpty)
-      throw new Exception("Initialization of the Fiware Streamer failed.")
-
-    service.get.start()
-
-  }
-
-  def stop():Unit = {
-    if (service.isDefined)
-      service.get.stop()
   }
 
 }
