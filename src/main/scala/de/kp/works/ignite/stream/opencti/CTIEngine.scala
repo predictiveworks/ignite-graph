@@ -41,7 +41,17 @@ class CTIEngine(connect:IgniteConnect) extends BaseEngine(connect) {
     throw new Exception("[CTIIgnite] No configuration initialized. Streaming cannot be started.")
 
   private val conf = CommonConfig.getCTIStreamerCfg
-
+  /**
+   * This is the main method to build the OpenCTI
+   * streaming service (see CTIStream object).
+   *
+   * The respective [IgniteCTIContext] combines
+   * the plain Ignite streamer with the cache
+   * and its specific processor.
+   *
+   * The context also comprises the connector to
+   * the OpenCTI event stream.
+   */
   def buildStream:Option[IgniteStreamContext] = {
 
     try {
@@ -53,7 +63,7 @@ class CTIEngine(connect:IgniteConnect) extends BaseEngine(connect) {
         override val processor = new CTIProcessor(cache, connect)
       }
 
-      Some(new IgniteCTIContext(stream,streamer, numThreads))
+      Some(new IgniteCTIContext(stream, streamer, numThreads))
 
     } catch {
       case t: Throwable =>
