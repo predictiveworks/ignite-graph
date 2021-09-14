@@ -23,7 +23,7 @@ import de.kp.works.ignite.ssl.SslOptions
 
 class CTIService {
 
-  private var callback:Option[CTIEventHandler] = None
+  private var eventHandler:Option[CTIEventHandler] = None
   /**
    * Specify the callback to be used by this service
    * to send OpenCTI events to the respective Ignite
@@ -32,8 +32,8 @@ class CTIService {
    * The current implementation leverages the CTI
    * Streamer as callback
    */
-  def setCallback(callback:CTIEventHandler):CTIService = {
-    this.callback = Some(callback)
+  def setEventHandler(handler:CTIEventHandler):CTIService = {
+    this.eventHandler = Some(handler)
     this
   }
   /**
@@ -42,7 +42,7 @@ class CTIService {
    */
   def start():Unit = {
 
-    if (callback.isEmpty)
+    if (eventHandler.isEmpty)
       throw new Exception("[CTIService] No callback specified to send events to.")
     /*
      * After having started the Http(s) server,
@@ -54,7 +54,7 @@ class CTIService {
      * The receiver is an SSE client that listens
      * to published threat intelligence events.
      */
-    val receiverCfg = WorksConf.getCTIReceiverCfg
+    val receiverCfg = WorksConf.getReceiverCfg(WorksConf.OPENCTI_CONF)
     val endpoint = receiverCfg.getString("endpoint")
 
     val authToken = {
@@ -71,7 +71,7 @@ class CTIService {
     val numThreads = receiverCfg.getInt("numThreads")
     val receiver = new CTIReceiver(
       endpoint,
-      callback.get,
+      eventHandler.get,
       authToken,
       Some(sslOptions),
       numThreads
@@ -81,8 +81,6 @@ class CTIService {
 
   }
 
-  def stop():Unit = {
-
-  }
+  def stop():Unit = {}
 
 }

@@ -50,7 +50,7 @@ class CTIStreamer[K,V]
       throw new IgniteException("Attempted to start an already started OpenCTI Streamer.")
 
     service = Some(new CTIService())
-    service.get.setCallback(this)
+    service.get.setEventHandler(this)
 
     service.get.start()
 
@@ -64,13 +64,12 @@ class CTIStreamer[K,V]
       throw new IgniteException("Failed to stop OpenCTI Streamer (already stopped).")
 
     if (service.isEmpty)
-      throw new IgniteException("Failed to stop the OpenCTI Server (never started).")
+      throw new IgniteException("Failed to stop the OpenCTI Service (never started).")
     /*
      * Stopping the streamer equals stopping
-     * the OpenCTI event server
+     * the OpenCTI event service
      */
     service.get.stop()
-
 
   }
 

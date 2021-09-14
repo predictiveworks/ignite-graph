@@ -117,7 +117,29 @@ object WorksConf {
         throw new Exception(s"Namespace for `$name` is not supported.")
     }
   }
+  /**
+   * This method offers the configuration for those
+   * Apache Ignite streamers, that are based on a
+   * Receiver
+   */
+  def getReceiverCfg(name:String):Config = {
+    name match {
+      case OPENCTI_CONF =>
+        val conf = cfg.get.getConfig("opencti")
+        conf.getConfig("receiver")
+      case ZEEK_CONF =>
+        val conf = cfg.get.getConfig("zeek")
+        conf.getConfig("receiver")
+      case _ =>
+        throw new Exception(s"Receiver configuration for `$name` is not supported.")
+    }
+  }
 
+  /**
+   * This method offers the configuration for those
+   * Apache Ignite streamers, that are based on a
+   * HTTP(s) server
+   */
   def getServerCfg(name:String):Config = {
     name match {
       case FIWARE_CONF =>
@@ -207,13 +229,6 @@ object WorksConf {
 
   def getIgniteCfg: Config = {
     cfg.get.getConfig("ignite")
-  }
-
-  /** OPENCTI CONFIGURATION **/
-
-  def getCTIReceiverCfg: Config = {
-    val ctiCfg = cfg.get.getConfig("opencti")
-    ctiCfg.getConfig("receiver")
   }
 
   /** SPARK CONFIGURATION **/

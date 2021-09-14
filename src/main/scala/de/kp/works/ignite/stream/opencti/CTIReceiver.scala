@@ -47,7 +47,7 @@ class CTIReceiver(
    /*
     * The callback used to send events to
     */
-   callback: CTIEventHandler,
+   eventHandler: CTIEventHandler,
    /*
     * The (optional) authorization token
     * to access the OpenCTI server
@@ -72,7 +72,7 @@ class CTIReceiver(
        * Initialize the connector to the
        * OpenCTI server
        */
-      private val connector = new CTIConnector(endpoint, callback, authToken, sslOptions)
+      private val connector = new CTIConnector(endpoint, eventHandler, authToken, sslOptions)
 
       override def run(): Unit = {
 

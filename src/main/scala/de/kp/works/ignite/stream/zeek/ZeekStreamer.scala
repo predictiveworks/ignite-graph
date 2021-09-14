@@ -18,12 +18,89 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
+import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
 trait ZeekEventHandler {
+
+  def eventArrived(event:ZeekEvent):Unit
+
 }
 
 class ZeekStreamer[K,V]
   extends StreamAdapter[ZeekEvent, K, V] with ZeekEventHandler {
+
+  /** Logger */
+  private val log:IgniteLogger = getIgnite.log()
+
+  /** Zeek Service */
+
+  private var service:Option[ZeekService] = None
+
+  /** State keeping. */
+  private val stopped = true
+
+  /** Start streamer  **/
+
+  def start():Unit = {
+
+    if (!stopped)
+      throw new IgniteException("Attempted to start an already started Zeek Streamer.")
+
+    service = Some(new ZeekService())
+    service.get.setEventHandler(this)
+
+    service.get.start()
+
+  }
+
+  /** Stop streamer **/
+
+  def stop():Unit = {
+
+    if (stopped)
+      throw new IgniteException("Failed to stop Zeek Streamer (already stopped).")
+
+    if (service.isEmpty)
+      throw new IgniteException("Failed to stop the Zeek Service (never started).")
+    /*
+     * Stopping the streamer equals stopping
+     * the Zeek event service
+     */
+    service.get.stop()
+
+  }
+
+  /********************************
+   *
+   *  Zeek event handler method
+   *
+   *******************************/
+
+  override def eventArrived(event: ZeekEvent): Unit = {
+    /*
+     * The leveraged extractors below must be explicitly
+     * defined when initiating this streamer
+     */
+    if (getMultipleTupleExtractor != null) {
+
+      val entries:java.util.Map[K,V] = getMultipleTupleExtractor.extract(event)
+      if (log.isTraceEnabled)
+        log.trace("Adding cache entries: " + entries)
+
+      getStreamer.addData(entries)
+
+    }
+    else {
+
+      val entry:java.util.Map.Entry[K,V] = getSingleTupleExtractor.extract(event)
+      if (log.isTraceEnabled)
+        log.trace("Adding cache entry: " + entry)
+
+      getStreamer.addData(entry)
+
+    }
+
+  }
 
 }
