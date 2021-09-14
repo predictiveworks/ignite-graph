@@ -29,7 +29,7 @@ import java.security.MessageDigest
 import scala.collection.JavaConversions.mapAsJavaMap
 
 /**
- * [CTIIgnite] is responsible for streaming threat intelligence
+ * [CTIEngine] is responsible for streaming threat intelligence
  * events into a temporary cache and also their final processing
  * as edges & vertices of an information network.
  */
@@ -38,7 +38,7 @@ class CTIEngine(connect:IgniteConnect) extends BaseEngine(connect) {
   override var cacheName: String = CTIConstants.OPENCTI_CACHE
 
   if (!WorksConf.isInit)
-    throw new Exception("[CTIIgnite] No configuration initialized. Streaming cannot be started.")
+    throw new Exception("[CTIEngine] No configuration initialized. Streaming cannot be started.")
 
   private val conf = WorksConf.getStreamerCfg(WorksConf.OPENCTI_CONF)
   /**
@@ -56,14 +56,14 @@ class CTIEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
     try {
 
-      val (cache,streamer) = prepareCTIStreamer
+      val (cache,streamer) = prepareStreamer
       val numThreads = conf.getInt("numThreads")
 
       val stream: IgniteStream = new IgniteStream {
         override val processor = new CTIProcessor(cache, connect)
       }
 
-      Some(new IgniteCTIContext(stream, streamer, numThreads))
+      Some(new CTIStreamContext(stream, streamer, numThreads))
 
     } catch {
       case t: Throwable =>
@@ -72,12 +72,12 @@ class CTIEngine(connect:IgniteConnect) extends BaseEngine(connect) {
     }
   }
 
-  private def prepareCTIStreamer:(IgniteCache[String,BinaryObject],CTIStreamer[String,BinaryObject]) = {
+  private def prepareStreamer:(IgniteCache[String,BinaryObject],CTIStreamer[String,BinaryObject]) = {
     /*
      * The auto flush frequency of the stream buffer is
      * internally set to 0.5 sec (500 ms)
      */
-    val autoFlushFrequency = conf.getInt("ignite.autoFlushFrequency")
+    val autoFlushFrequency = conf.getInt("autoFlushFrequency")
     /*
      * The cache is configured with sliding window holding
      * N seconds of the streaming data; note, that we delete
@@ -120,11 +120,58 @@ class CTIEngine(connect:IgniteConnect) extends BaseEngine(connect) {
      * tuple extraction. Additional performance requirements can
      * lead to a channel in the selected extractor
      */
-    val ctiExtractor = createCTIExtractor
+    val ctiExtractor = createExtractor
     ctiStreamer.setSingleTupleExtractor(ctiExtractor)
 
     (cache, ctiStreamer)
 
+  }
+
+  private def createExtractor: StreamSingleTupleExtractor[SseEvent, String, BinaryObject] = {
+
+    new StreamSingleTupleExtractor[SseEvent,String,BinaryObject]() {
+
+      override def extract(event:SseEvent):java.util.Map.Entry[String,BinaryObject] = {
+
+        val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
+        try {
+
+          val (cacheKey, cacheValue) = buildEntry(event)
+          entries.put(cacheKey,cacheValue)
+
+        } catch {
+          case e:Exception => e.printStackTrace()
+        }
+        entries.entrySet().iterator().next
+
+      }
+    }
+  }
+
+  private def buildEntry(event:SseEvent):(String, BinaryObject) = {
+
+    val builder = ignite.binary().builder(CTIConstants.OPENCTI_CACHE)
+    builder.setField(CTIConstants.FIELD_ID, event.eventId)
+
+    builder.setField(CTIConstants.FIELD_TYPE, event.eventType)
+    builder.setField(CTIConstants.FIELD_DATA, event.data)
+
+    val cacheValue = builder.build()
+    /*
+     * The cache key is built from the content
+     * to enable the detection of duplicates.
+     *
+     * (see CTIProcessor)
+     */
+    val serialized = Seq(
+      event.eventId,
+      event.eventType,
+      event.data).mkString("#")
+
+    val cacheKey = new String(MessageDigest.getInstance("MD5")
+      .digest(serialized.getBytes("UTF-8")))
+
+    (cacheKey, cacheValue)
   }
   /**
    * A helper method to build the fields of an Apache
@@ -148,47 +195,6 @@ class CTIEngine(connect:IgniteConnect) extends BaseEngine(connect) {
     fields.put(CTIConstants.FIELD_DATA,"java.lang.String")
     fields
 
-  }
-
-  private def createCTIExtractor: StreamSingleTupleExtractor[SseEvent, String, BinaryObject] = {
-
-    new StreamSingleTupleExtractor[SseEvent,String,BinaryObject]() {
-
-      override def extract(event:SseEvent):java.util.Map.Entry[String,BinaryObject] = {
-
-        val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
-        try {
-
-          val builder = ignite.binary().builder(CTIConstants.OPENCTI_CACHE)
-          builder.setField(CTIConstants.FIELD_ID, event.eventId)
-
-          builder.setField(CTIConstants.FIELD_TYPE, event.eventType)
-          builder.setField(CTIConstants.FIELD_DATA, event.data)
-
-          val cacheValue = builder.build()
-          /*
-           * The cache key is built from the content
-           * to enable the detection of duplicates.
-           *
-           * (see CTIProcessor)
-           */
-          val serialized = Seq(
-            event.eventId,
-            event.eventType,
-            event.data).mkString("#")
-
-          val cacheKey = new String(MessageDigest.getInstance("MD5")
-            .digest(serialized.getBytes("UTF-8")))
-
-          entries.put(cacheKey,cacheValue)
-
-        } catch {
-          case e:Exception => e.printStackTrace()
-        }
-        entries.entrySet().iterator().next
-
-      }
-    }
   }
 
 }

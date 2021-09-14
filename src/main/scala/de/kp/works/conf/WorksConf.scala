@@ -85,6 +85,12 @@ object WorksConf {
 
   /** COMMON CONFIGURATION **/
 
+  /**
+   * The current version of this project supports four different
+   * data sources, Fiware, OpenCTI, Osquery and Zeek. This choice
+   * is based on our Cy(I)IoT initiative to bring endpoints, network
+   * and data to a single platform.
+   */
   def getNSCfg(name:String):String = {
     name match {
       case FIWARE_CONF =>
@@ -93,11 +99,21 @@ object WorksConf {
       case OPENCTI_CONF =>
         val conf = cfg.get.getConfig("opencti")
         conf.getString("namespace")
+      case OSQUERY_CONF =>
+        val conf = cfg.get.getConfig("osquery")
+        conf.getString("namespace")
+      case ZEEK_CONF =>
+        val conf = cfg.get.getConfig("zeek")
+        conf.getString("namespace")
       case _ =>
         throw new Exception(s"Namespace for `$name` is not supported.")
     }
   }
-
+  /**
+   * This method offers the configuration for the
+   * Apache Ignite streamer, that is at the heart
+   * of every data streaming support.
+   */
   def getStreamerCfg(name:String): Config = {
     name match {
       case FIWARE_CONF =>
@@ -105,6 +121,12 @@ object WorksConf {
         conf.getConfig("streamer")
       case OPENCTI_CONF =>
         val conf = cfg.get.getConfig("opencti")
+        conf.getConfig("streamer")
+      case OSQUERY_CONF =>
+        val conf = cfg.get.getConfig("osquery")
+        conf.getConfig("streamer")
+      case ZEEK_CONF =>
+        val conf = cfg.get.getConfig("zeek")
         conf.getConfig("streamer")
       case _ =>
         throw new Exception(s"Streamer configuration for `$name` is not supported.")

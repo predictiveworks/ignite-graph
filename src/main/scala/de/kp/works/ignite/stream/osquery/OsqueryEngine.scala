@@ -18,16 +18,140 @@ package de.kp.works.ignite.stream.osquery
  *
  */
 
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.{BaseEngine, IgniteStreamContext}
+import de.kp.works.ignite.stream.{BaseEngine, IgniteStream, IgniteStreamContext}
+import org.apache.ignite.IgniteCache
+import org.apache.ignite.binary.BinaryObject
+import org.apache.ignite.stream.StreamSingleTupleExtractor
 
 import java.util
-
+import scala.collection.JavaConversions._
+/**
+ * [OsqueryEngine] is responsible for streaming Osquery query results
+ * and status messages into a temporary cache and also for their final
+ * processing as query specific Apache Ignite tables.
+ */
 class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
+  /*
+   * The name of the temporary cache to write Osquery events to
+   */
+  override protected var cacheName: String = OsqueryConstants.OSQUERY_CACHE
 
-  override protected var cacheName: String = _
+  if (!WorksConf.isInit)
+    throw new Exception("[OsqueryEngine] No configuration initialized. Streaming cannot be started.")
+
+  private val conf = WorksConf.getStreamerCfg(WorksConf.OSQUERY_CONF)
+  /**
+   * This is the main method to build the Osquery
+   * streaming service (see OsqueryStream object).
+   *
+   * The respective [IgniteOsqueryContext] combines
+   * the plain Ignite streamer with the cache and its
+   * specific processor.
+   *
+   * The context also comprises the connector to the
+   * Osquery event stream.
+   */
+  override def buildStream: Option[IgniteStreamContext] = {
+
+    try {
+
+      val (cache,streamer) = prepareStreamer
+      val numThreads = conf.getInt("numThreads")
+
+      val stream: IgniteStream = new IgniteStream {
+        override val processor = new OsqueryProcessor(cache, connect)
+      }
+
+      Some(new OsqueryStreamContext(stream,streamer, numThreads))
+
+    } catch {
+      case t:Throwable =>
+        println(s"[ERROR] Stream preparation for 'ingestion' operation failed: ${t.getLocalizedMessage}")
+        None
+    }
+
+  }
+
+  private def prepareStreamer:(IgniteCache[String,BinaryObject],OsqueryStreamer[String,BinaryObject]) = {
+    /*
+     * The auto flush frequency of the stream buffer is
+     * internally set to 0.5 sec (500 ms)
+     */
+    val autoFlushFrequency = conf.getInt("autoFlushFrequency")
+    /*
+     * The cache is configured with sliding window holding
+     * N seconds of the streaming data; note, that we delete
+     * an already equal named cache
+     */
+    deleteCache()
+    /*
+     * The time window specifies the batch window that
+     * is used to gather stream events
+     */
+    val timeWindow = conf.getInt("timeWindow")
+
+    val config = createCacheConfig(timeWindow)
+    val cache = ignite.getOrCreateCache(config)
+
+    val streamer = ignite.dataStreamer[String,BinaryObject](cache.getName)
+    /*
+     * allowOverwrite(boolean) - Sets flag enabling overwriting
+     * existing values in cache. Data streamer will perform better
+     * if this flag is disabled, which is the default setting.
+     */
+    streamer.allowOverwrite(false)
+    /*
+     * IgniteDataStreamer buffers the data and most likely it just
+     * waits for buffers to fill up. We set the time interval after
+     * which buffers will be flushed even if they are not full
+     */
+    streamer.autoFlushFrequency(autoFlushFrequency)
+    val osqueryStreamer = new OsqueryStreamer[String,BinaryObject]()
+
+    osqueryStreamer.setIgnite(ignite)
+    osqueryStreamer.setStreamer(streamer)
+    /*
+     * The Osquery extractor is the linking element between the
+     * Osquery events and its specification as Apache Ignite
+     * cache entry.
+     *
+     * We currently leverage a single tuple extractor as we do
+     * not have experience whether we should introduce multiple
+     * tuple extraction. Additional performance requirements can
+     * lead to a channel in the selected extractor
+     */
+    val osqueryExtractor = createExtractor
+    osqueryStreamer.setSingleTupleExtractor(osqueryExtractor)
+
+    (cache, osqueryStreamer)
+  }
+
+  private def createExtractor: StreamSingleTupleExtractor[OsqueryEvent, String, BinaryObject] = {
+
+    new StreamSingleTupleExtractor[OsqueryEvent,String,BinaryObject]() {
+
+      override def extract(event:OsqueryEvent):java.util.Map.Entry[String,BinaryObject] = {
+
+        val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
+        try {
+
+          val (cacheKey, cacheValue) = buildEntry(event)
+          entries.put(cacheKey,cacheValue)
+
+        } catch {
+          case e:Exception => e.printStackTrace()
+        }
+        entries.entrySet().iterator().next
+
+      }
+    }
+
+  }
+
+  private def buildEntry(event:OsqueryEvent):(String, BinaryObject) = ???
 
   override protected def buildFields(): util.LinkedHashMap[String, String] = ???
 
-  override def buildStream: Option[IgniteStreamContext] = ???
 }

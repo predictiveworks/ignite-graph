@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.opencti
+package de.kp.works.ignite.stream.fiware
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,24 +18,24 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-import de.kp.works.ignite.stream.{IgniteStream, IgniteStreamContext}
+import de.kp.works.ignite.stream.{IgniteStream, IgniteStreamContext, fiware}
 import org.apache.ignite.binary.BinaryObject
 
 import scala.actors.threadpool.Executors
 
-class IgniteCTIContext(
-  val stream:IgniteStream,
-  val streamer:CTIStreamer[String,BinaryObject],
-  numThreads:Int = 1) extends IgniteStreamContext {
+class FiwareStreamContext(
+   val stream:IgniteStream,
+   val streamer:fiware.FiwareStreamer[String,BinaryObject],
+   numThreads:Int = 1) extends IgniteStreamContext {
 
   private val executorService = Executors.newFixedThreadPool(numThreads)
 
   def start():Unit = {
     try {
 
-      /* Start OpenCTI streamer
+      /* Start Fiware streamer
        *
-       * This streamer writes OpenCTI events
+       * This streamer writes Fiware Broker notifications
        * to an intermediate cache.
        */
       streamer.start()
@@ -64,7 +64,7 @@ class IgniteCTIContext(
 
   def stop():Unit = {
 
-    /* Stop OpenCTI streamer */
+    /* Stop Fiware streamer */
     streamer.stop()
 
     /* Shutdown processor */
@@ -76,4 +76,6 @@ class IgniteCTIContext(
 
   }
 }
+
+
 
