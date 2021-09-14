@@ -41,7 +41,7 @@ class FiwareStreamer[K,V]
 
   /** FiwareServer */
 
-  private var service:Option[FiwareService] = None
+  private var service:Option[FiwareServer] = None
 
   /** State keeping. */
   private val stopped = true
@@ -53,7 +53,7 @@ class FiwareStreamer[K,V]
     if (!stopped)
       throw new IgniteException("Attempted to start an already started Fiware Streamer.")
 
-    service = Some(new FiwareService())
+    service = Some(new FiwareServer())
     service.get.setCallback(this)
 
     service.get.launch()

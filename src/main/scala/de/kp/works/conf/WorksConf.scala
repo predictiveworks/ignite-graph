@@ -85,6 +85,20 @@ object WorksConf {
 
   /** COMMON CONFIGURATION **/
 
+  def getCfg(name:String):Config = {
+    name match {
+      case FIWARE_CONF =>
+        cfg.get.getConfig("fiware")
+      case OPENCTI_CONF =>
+        cfg.get.getConfig("opencti")
+      case OSQUERY_CONF =>
+        cfg.get.getConfig("osquery")
+      case ZEEK_CONF =>
+        cfg.get.getConfig("zeek")
+      case _ =>
+        throw new Exception(s"Configuration for `$name` is not supported.")
+    }
+  }
   /**
    * The current version of this project supports four different
    * data sources, Fiware, OpenCTI, Osquery and Zeek. This choice

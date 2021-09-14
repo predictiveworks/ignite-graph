@@ -18,4 +18,4 @@ package de.kp.works.ignite.stream.osquery
  *
  */
 
-case class OsqueryEvent()
+case class OsqueryEvent(eventType:String, eventData:String)

@@ -22,9 +22,11 @@ import org.apache.ignite.stream.StreamAdapter
 
 trait OsqueryEventHandler {
 
+  def eventArrived(event:OsqueryEvent):Unit
+
 }
 
 class OsqueryStreamer[K,V]
   extends StreamAdapter[OsqueryEvent, K, V] with OsqueryEventHandler {
-
+  override def eventArrived(event: OsqueryEvent): Unit = ???
 }

@@ -40,26 +40,26 @@ import java.util.concurrent.Executors
  * exposed SSE endpoint and listens to the OpenCTI event stream.
  */
 class CTIReceiver(
-                   /*
-                    * The endpoint of the OpenCTI server
-                    */
-                   endpoint:String,
-                   /*
-                    * The callback used to send events to
-                    */
-                   callback: CTIEventHandler,
-                   /*
-                    * The (optional) authorization token
-                    * to access the OpenCTI server
-                    */
-                   authToken:Option[String] = None,
-                   /*
-                    * The optional SSL configuration to
-                    * access a secure OpenCTI server
-                    */
-                   sslOptions:Option[SslOptions] = None,
-                   /* The number of threads to use for processing */
-                   numThreads:Int = 1) {
+   /*
+    * The endpoint of the OpenCTI server
+    */
+   endpoint:String,
+   /*
+    * The callback used to send events to
+    */
+   callback: CTIEventHandler,
+   /*
+    * The (optional) authorization token
+    * to access the OpenCTI server
+    */
+   authToken:Option[String] = None,
+   /*
+    * The optional SSL configuration to
+    * access a secure OpenCTI server
+    */
+   sslOptions:Option[SslOptions] = None,
+   /* The number of threads to use for processing */
+   numThreads:Int = 1) {
 
   private val executorService = Executors.newFixedThreadPool(numThreads)
 

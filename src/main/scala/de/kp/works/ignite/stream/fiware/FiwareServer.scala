@@ -42,7 +42,7 @@ import scala.util.{Failure, Success}
  * The notification endpoint, the Orion Context Broker
  * sends (subscribed) notifications to.
  */
-class FiwareService {
+class FiwareServer {
 
   private var callback:Option[FiwareEventHandler] = None
 
@@ -69,7 +69,7 @@ class FiwareService {
    * The current implementation leverages the Fiware
    * Streamer as callback
    */
-  def setCallback(callback:FiwareEventHandler):FiwareService = {
+  def setCallback(callback:FiwareEventHandler):FiwareServer = {
     this.callback = Some(callback)
     this
   }
