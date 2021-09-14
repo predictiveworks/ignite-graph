@@ -1,10 +1,158 @@
 package de.kp.works.ignite.stream.osquery
 
+import akka.actor.{ActorSystem, Props}
+import akka.http.scaladsl.Http
+
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+
+import akka.stream.ActorMaterializer
+import akka.util.Timeout
+
+import de.kp.works.conf.WorksConf
+import de.kp.works.ignite.stream.osquery.actor._
+import de.kp.works.ignite.stream.osquery.db.DBApi
+
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{ExecutionContextExecutor, Future}
+
 /**
  * The TLS endpoint, Osquery agents send query results
  * and status messages to. This Akka-based HTTP(s) server
  * also supports Osquery node configuration and management.
  */
-class OsqueryServer {
+class OsqueryServer(api:DBApi) {
+
+  import OsqueryRoutes._
+
+  private var eventHandler:Option[OsqueryEventHandler] = None
+  private var server:Option[Future[Http.ServerBinding]] = None
+  /**
+   * Akka 2.6 provides a default materializer out of the box, i.e., for Scala
+   * an implicit materializer is provided if there is an implicit ActorSystem
+   * available. This avoids leaking materializers and simplifies most stream
+   * use cases somewhat.
+   */
+  private val systemName = WorksConf.getSystemName(WorksConf.OSQUERY_CONF)
+  implicit val system: ActorSystem = ActorSystem(systemName)
+
+  implicit lazy val context: ExecutionContextExecutor = system.dispatcher
+
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  /**
+   * Common timeout for all Akka connection
+   */
+  implicit val timeout: Timeout = Timeout(5.seconds)
+  /**
+   * Specify the event handler to be used by this server
+   * to send Osquery events to the respective Ignite cache.
+   *
+   * The current implementation leverages the Osquery
+   * Streamer as event handler
+   */
+  def setEventHandler(handler:OsqueryEventHandler):OsqueryServer = {
+    this.eventHandler = Some(handler)
+    this
+  }
+  /**
+   * This method launches the Osquery TLS event endpoint
+   */
+  def launch():Unit = {
+
+    if (eventHandler.isEmpty)
+      throw new Exception("[OsqueryServer] No callback specified to send notifications to.")
+
+    /**
+     * The host & port configuration of the HTTP(s) server that
+     * is used as a TLS endpoint for the Osquery agents
+     */
+    val serverCfg = WorksConf.getServerCfg(WorksConf.OSQUERY_CONF)
+    val bindingCfg = serverCfg.getConfig("binding")
+
+    val (host, port) = (bindingCfg.getString("host"), bindingCfg.getInt("port"))
+    /*
+     * Distinguish between SSL/TLS and non-SSL/TLS requests
+     */
+    server = if (OsquerySsl.isServerSsl) {
+      /*
+       * The request protocol in the notification url must be
+       * specified as 'http://'
+       */
+      Some(Http().bindAndHandle(routes , host, port))
+
+    } else {
+      /*
+       * The request protocol in the notification url must
+       * be specified as 'https://'. In this case, an SSL
+       * security context must be specified
+       */
+      val context = OsquerySsl.buildServerContext
+      Some(Http().bindAndHandle(routes, host, port, connectionContext = context))
+
+    }
+
+  }
+
+  private def routes: Route = {
+    /*
+     * NODE MANAGEMENT
+     *
+     * The [OsqueryBeat] can also be used as a gate
+     * to a fleet of machines that are equipped with
+     * Osquery agents.
+     */
+    lazy val configActor = system
+      .actorOf(Props(new ConfigActor(api)), CONFIG_ACTOR)
+
+    lazy val enrollActor = system
+      .actorOf(Props(new EnrollActor(api)), ENROLL_ACTOR)
+    /*
+     * INFORMATION MANAGEMENT
+     */
+    lazy val logActor = system
+      .actorOf(Props(new LogActor(api, eventHandler.get)), LOG_ACTOR)
+
+    lazy val readActor = system
+      .actorOf(Props(new ReadActor(api)), READ_ACTOR)
+
+    lazy val writeActor = system
+      .actorOf(Props(new WriteActor(api, eventHandler.get)), WRITE_ACTOR)
+
+    val actors = Map(
+      CONFIG_ACTOR -> configActor,
+      ENROLL_ACTOR -> enrollActor,
+      LOG_ACTOR    -> logActor,
+      READ_ACTOR   -> readActor,
+      WRITE_ACTOR  -> writeActor
+    )
+
+    val routes = new OsqueryRoutes(actors)
+
+    routes.config ~
+    routes.enroll ~
+    routes.log ~
+    routes.read ~
+    routes.write
+
+  }
+
+  def stop():Unit = {
+
+    if (server.isEmpty)
+      throw new Exception("TLS event server was not launched.")
+
+    server.get
+      /*
+       * rigger unbinding from port
+       */
+      .flatMap(_.unbind())
+      /*
+       * Shut down application
+       */
+      .onComplete(_ => {
+        system.terminate()
+      })
+
+  }
 
 }

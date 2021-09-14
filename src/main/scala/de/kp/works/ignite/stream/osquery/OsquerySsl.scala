@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware
+package de.kp.works.ignite.stream.osquery
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -22,36 +22,22 @@ import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.BaseSsl
 
-object FiwareSsl extends BaseSsl {
-
-  def isFiwareSsl: Boolean = {
-    /*
-      * Distinguish between SSL/TLS and non-SSL/TLS requests;
-      * note, [IgniteConf] must be initialized.
-      */
-    val cfg = WorksConf.getFiwareBrokerSecurity
-    if (cfg.getString("ssl") == "false") false else true
-  }
+object OsquerySsl extends BaseSsl {
 
   /**
    * Distinguish between SSL/TLS and non-SSL/TLS requests;
-   * note, [IgniteConf] must be initialized.
+   * note, [WorksConf] must be initialized.
    */
   def isServerSsl: Boolean = {
-    val serverCfg = WorksConf.getServerCfg(WorksConf.FIWARE_CONF)
+    val serverCfg = WorksConf.getServerCfg(WorksConf.OSQUERY_CONF)
     val securityCfg = serverCfg.getConfig("security")
 
     if (securityCfg.getString("ssl") == "false") false else true
   }
 
-  def buildBrokerContext: HttpsConnectionContext = {
-    val cfg = WorksConf.getFiwareBrokerSecurity
-    ConnectionContext.https(buildSSLContext(cfg))
-  }
-
   def buildServerContext: HttpsConnectionContext = {
 
-    val serverCfg = WorksConf.getServerCfg(WorksConf.FIWARE_CONF)
+    val serverCfg = WorksConf.getServerCfg(WorksConf.OSQUERY_CONF)
     val securityCfg = serverCfg.getConfig("security")
 
     ConnectionContext.https(buildSSLContext(securityCfg))

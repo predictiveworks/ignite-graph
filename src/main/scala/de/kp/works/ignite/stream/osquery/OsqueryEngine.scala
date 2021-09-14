@@ -25,6 +25,7 @@ import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.stream.StreamSingleTupleExtractor
 
+import java.security.MessageDigest
 import java.util
 import scala.collection.JavaConversions._
 /**
@@ -150,8 +151,44 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
   }
 
-  private def buildEntry(event:OsqueryEvent):(String, BinaryObject) = ???
+  private def buildEntry(event:OsqueryEvent):(String, BinaryObject) = {
 
-  override protected def buildFields(): util.LinkedHashMap[String, String] = ???
+    val builder = ignite.binary().builder(OsqueryConstants.OSQUERY_CACHE)
+
+    builder.setField(OsqueryConstants.FIELD_TYPE, event.eventType)
+    builder.setField(OsqueryConstants.FIELD_DATA, event.eventData)
+
+    val cacheValue = builder.build()
+    /*
+     * The cache key is built from the content
+     * to enable the detection of duplicates.
+     *
+     * (see OsqueryProcessor)
+     */
+    val serialized = Seq(
+      event.eventType,
+      event.eventData).mkString("#")
+
+    val cacheKey = new String(MessageDigest.getInstance("MD5")
+      .digest(serialized.getBytes("UTF-8")))
+
+    (cacheKey, cacheValue)
+
+  }
+
+  override protected def buildFields(): util.LinkedHashMap[String, String] = {
+
+    val fields = new java.util.LinkedHashMap[String,String]()
+    /*
+     * The event type
+     */
+    fields.put(OsqueryConstants.FIELD_TYPE,"java.lang.String")
+    /*
+     * The data that is associated with the event
+     */
+    fields.put(OsqueryConstants.FIELD_DATA,"java.lang.String")
+    fields
+
+  }
 
 }

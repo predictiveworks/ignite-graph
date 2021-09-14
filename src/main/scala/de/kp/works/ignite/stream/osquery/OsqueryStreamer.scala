@@ -18,6 +18,8 @@ package de.kp.works.ignite.stream.osquery
  *
  */
 
+import de.kp.works.ignite.stream.osquery.db.DBApi
+import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
 trait OsqueryEventHandler {
@@ -28,5 +30,78 @@ trait OsqueryEventHandler {
 
 class OsqueryStreamer[K,V]
   extends StreamAdapter[OsqueryEvent, K, V] with OsqueryEventHandler {
-  override def eventArrived(event: OsqueryEvent): Unit = ???
+
+  /** Logger */
+  private val log:IgniteLogger = getIgnite.log()
+
+  /** OsqueryServer */
+
+  private var server:Option[OsqueryServer] = None
+
+  /** State keeping. */
+  private val stopped = true
+
+  /** Start streamer  **/
+
+  def start(api:DBApi):Unit = {
+
+    if (!stopped)
+      throw new IgniteException("Attempted to start an already started Osquery Streamer.")
+
+    server = Some(new OsqueryServer(api))
+    server.get.setEventHandler(this)
+
+    server.get.launch()
+
+  }
+
+  /** Stop streamer **/
+
+  def stop():Unit = {
+
+    if (stopped)
+      throw new IgniteException("Failed to stop Osquery Streamer (already stopped).")
+
+    if (server.isEmpty)
+      throw new IgniteException("Failed to stop the Osquery Server (never started).")
+
+    /*
+     * Stopping the streamer equals stopping
+     * the Osquery server
+     */
+    server.get.stop()
+
+  }
+
+  /********************************
+   *
+   * Osquery event handler method
+   *
+   *******************************/
+
+  override def eventArrived(event: OsqueryEvent): Unit = {
+    /*
+     * The leveraged extractors below must be explicitly
+     * defined when initiating this streamer
+     */
+    if (getMultipleTupleExtractor != null) {
+
+      val entries:java.util.Map[K,V] = getMultipleTupleExtractor.extract(event)
+      if (log.isTraceEnabled)
+        log.trace("Adding cache entries: " + entries)
+
+      getStreamer.addData(entries)
+
+    }
+    else {
+
+      val entry:java.util.Map.Entry[K,V] = getSingleTupleExtractor.extract(event)
+      if (log.isTraceEnabled)
+        log.trace("Adding cache entry: " + entry)
+
+      getStreamer.addData(entry)
+
+    }
+
+  }
 }

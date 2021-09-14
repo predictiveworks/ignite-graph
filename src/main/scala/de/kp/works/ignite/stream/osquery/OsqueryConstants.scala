@@ -26,6 +26,9 @@ object OsqueryConstants {
    */
   val OSQUERY_CACHE:String = "osquery_events"
 
+  val FIELD_TYPE:String = "eventType"
+  val FIELD_DATA:String = "eventData"
+
   val ADHOC_EVENT:String  = "osquery_adhoc"
   val RESULT_EVENT:String = "osquery_result"
   val STATUS_EVENT:String = "osquery_status"
@@ -53,6 +56,5 @@ object OsqueryConstants {
   val SNAPSHOT      = "snapshot"
   val TIMESTAMP     = "timestamp"
   val UID           = "uid"
-
 
 }

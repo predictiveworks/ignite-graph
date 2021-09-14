@@ -25,12 +25,6 @@ import org.apache.ignite.logger.java.JavaLogger
 object WorksConf {
 
   private val path = "reference.conf"
-  /*
-   * The following parameters configure the Fiware
-   * notification server and must adapted to the
-   * current environment
-   */
-  private val systemName = "fiware-server"
 
   private var brokerUrl = ""
 
@@ -123,6 +117,19 @@ object WorksConf {
         throw new Exception(s"Namespace for `$name` is not supported.")
     }
   }
+
+  def getServerCfg(name:String):Config = {
+    name match {
+      case FIWARE_CONF =>
+        val conf = cfg.get.getConfig("fiware")
+        conf.getConfig("server")
+      case OSQUERY_CONF =>
+        val conf = cfg.get.getConfig("osquery")
+        conf.getConfig("server")
+      case _ =>
+        throw new Exception(s"Server configuration for `$name` is not supported.")
+    }
+  }
   /**
    * This method offers the configuration for the
    * Apache Ignite streamer, that is at the heart
@@ -145,6 +152,18 @@ object WorksConf {
       case _ =>
         throw new Exception(s"Streamer configuration for `$name` is not supported.")
     }
+  }
+  /**
+   * The name of Actor System used
+   */
+  def getSystemName(name:String): String = {
+    name match {
+      case FIWARE_CONF  => "fiware-server"
+      case OSQUERY_CONF => "osquery-server"
+      case _ =>
+        throw new Exception(s"Actor system for `$name` is not supported.")
+    }
+
   }
 
   /** FIWARE CONFIGURATION **/
@@ -184,29 +203,6 @@ object WorksConf {
     fiwareCfg.getConfig("model")
   }
 
-  /**
-   * The host & port configuration of the HTTP server that
-   * is used as a notification endpoint for an Orion Context
-   * Broker instance
-   */
-  def getFiwareServerBinding: Config = {
-    val fiwareCfg = cfg.get.getConfig("fiware")
-    val serverCfg = fiwareCfg.getConfig("server")
-
-    serverCfg.getConfig("binding")
-  }
-
-  /**
-   * Retrieve the SSL/TLS configuration for notification
-   * requests from the Orion Context Broker
-   */
-  def getFiwareServerSecurity: Config = {
-    val fiwareCfg = cfg.get.getConfig("fiware")
-    val serverCfg = fiwareCfg.getConfig("server")
-
-    serverCfg.getConfig("security")
-  }
-
   /** IGNITE CONFIGURATION **/
 
   def getIgniteCfg: Config = {
@@ -225,11 +221,6 @@ object WorksConf {
   def getSparkCfg: Config = {
     cfg.get.getConfig("spark")
   }
-
-  /**
-   * The name of Actor System used
-   */
-  def getSystemName: String = systemName
 
   /**
    * The current implementation of this method

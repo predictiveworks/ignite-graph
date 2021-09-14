@@ -41,7 +41,7 @@ class FiwareStreamer[K,V]
 
   /** FiwareServer */
 
-  private var service:Option[FiwareServer] = None
+  private var server:Option[FiwareServer] = None
 
   /** State keeping. */
   private val stopped = true
@@ -53,10 +53,10 @@ class FiwareStreamer[K,V]
     if (!stopped)
       throw new IgniteException("Attempted to start an already started Fiware Streamer.")
 
-    service = Some(new FiwareServer())
-    service.get.setCallback(this)
+    server = Some(new FiwareServer())
+    server.get.setEventHandler(this)
 
-    service.get.launch()
+    server.get.launch()
 
   }
 
@@ -67,19 +67,19 @@ class FiwareStreamer[K,V]
     if (stopped)
       throw new IgniteException("Failed to stop Fiware Streamer (already stopped).")
 
-    if (service.isEmpty)
+    if (server.isEmpty)
       throw new IgniteException("Failed to stop the Fiware Server (never started).")
     /*
      * Stopping the streamer equals stopping
      * the Fiware notification server
      */
-    service.get.stop()
+    server.get.stop()
 
   }
 
   /********************************
    *
-   *  Fiware event handler methods
+   * Fiware event handler methods
    *
    *******************************/
 

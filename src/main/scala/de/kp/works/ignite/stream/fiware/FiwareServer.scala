@@ -44,8 +44,7 @@ import scala.util.{Failure, Success}
  */
 class FiwareServer {
 
-  private var callback:Option[FiwareEventHandler] = None
-
+  private var eventHandler:Option[FiwareEventHandler] = None
   private var server:Option[Future[Http.ServerBinding]] = None
   /**
    * Akka 2.6 provides a default materializer out of the box, i.e., for Scala
@@ -53,24 +52,25 @@ class FiwareServer {
    * available. This avoids leaking materializers and simplifies most stream
    * use cases somewhat.
    */
-  implicit val system: ActorSystem = ActorSystem(WorksConf.getSystemName)
-  implicit lazy val context: ExecutionContextExecutor = system.dispatcher
+  private val systemName = WorksConf.getSystemName(WorksConf.FIWARE_CONF)
+  implicit val system: ActorSystem = ActorSystem(systemName)
 
+  implicit lazy val context: ExecutionContextExecutor = system.dispatcher
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   /**
    * Common timeout for all Akka connection
    */
   implicit val timeout: Timeout = Timeout(5.seconds)
   /**
-   * Specify the callback to be used by this server
+   * Specify the event handler to be used by this server
    * to send Orion notification to the respective
    * Ignite cache.
    *
    * The current implementation leverages the Fiware
    * Streamer as callback
    */
-  def setCallback(callback:FiwareEventHandler):FiwareServer = {
-    this.callback = Some(callback)
+  def setEventHandler(handler:FiwareEventHandler):FiwareServer = {
+    this.eventHandler = Some(handler)
     this
   }
   /**
@@ -78,15 +78,15 @@ class FiwareServer {
    * to the Orion Context Broker for receiving NGSI event notifications
    */
   def launch():Unit = {
-    if (callback.isEmpty)
-      throw new Exception("[FiwareService] No callback specified to send notifications to.")
+    if (eventHandler.isEmpty)
+      throw new Exception("[FiwareServer] No callback specified to send notifications to.")
 
     /*
      * The FiwareActor is used to receive NGSI events and delegate
      * them to the provided callback
      */
     lazy val fiwareActor = system
-      .actorOf(Props(new FiwareActor(callback.get)), "FiwareActor")
+      .actorOf(Props(new FiwareActor(eventHandler.get)), "FiwareActor")
 
     def routes:Route = {
       path("notifications") {
@@ -136,8 +136,14 @@ class FiwareServer {
         }
       }
     }
+    /**
+     * The host & port configuration of the HTTP server that
+     * is used as a notification endpoint for an Orion Context
+     * Broker instance
+     */
+    val serverCfg = WorksConf.getServerCfg(WorksConf.FIWARE_CONF)
+    val bindingCfg = serverCfg.getConfig("binding")
 
-    val bindingCfg = WorksConf.getFiwareServerBinding
     val (host, port) = (bindingCfg.getString("host"), bindingCfg.getInt("port"))
     /*
      * Distinguish between SSL/TLS and non-SSL/TLS requests
