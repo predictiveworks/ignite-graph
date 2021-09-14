@@ -18,12 +18,12 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-import de.kp.works.conf.CommonConfig
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.ssl.SslOptions
 
 class CTIService {
 
-  private var callback:Option[CTIEventCallback] = None
+  private var callback:Option[CTIEventHandler] = None
   /**
    * Specify the callback to be used by this service
    * to send OpenCTI events to the respective Ignite
@@ -32,7 +32,7 @@ class CTIService {
    * The current implementation leverages the CTI
    * Streamer as callback
    */
-  def setCallback(callback:CTIEventCallback):CTIService = {
+  def setCallback(callback:CTIEventHandler):CTIService = {
     this.callback = Some(callback)
     this
   }
@@ -54,7 +54,7 @@ class CTIService {
      * The receiver is an SSE client that listens
      * to published threat intelligence events.
      */
-    val receiverCfg = CommonConfig.getCTIReceiverCfg
+    val receiverCfg = WorksConf.getCTIReceiverCfg
     val endpoint = receiverCfg.getString("endpoint")
 
     val authToken = {

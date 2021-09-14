@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware
+package de.kp.works.ignite.stream.osquery
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,15 +18,12 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
-object FiwareConstants {
+object OsqueryConstants {
   /**
    * The cache name used to temporarily store
-   * Orion Broker notification messages
+   * Osquery agent query results and status
+   * messages
    */
-  val FIWARE_CACHE:String = "fiware_events"
-
-  val FIELD_SERVICE:String      = "service"
-  val FIELD_SERVICE_PATH:String = "service_path"
-  val FIELD_PAYLOAD:String      = "payload"
+  val OSQUERY_CACHE:String = "osquery_events"
 
 }

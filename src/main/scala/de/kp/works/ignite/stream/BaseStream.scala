@@ -18,7 +18,10 @@ package de.kp.works.ignite.stream
  *
  */
 
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
+import de.kp.works.spark.Session
+
 import scopt.OptionParser
 
 trait BaseStream {
@@ -33,6 +36,8 @@ trait BaseStream {
 
   protected var programName:String
   protected var programDesc:String
+
+  protected var channel:String
 
   protected var connect: Option[IgniteConnect] = None
   protected var service: Option[IgniteStreamContext] = None
@@ -53,6 +58,48 @@ trait BaseStream {
 
   }
 
+  protected def buildConnect(c:CliConfig, channel:String):IgniteConnect = {
+    /*
+     * STEP #1: Initialize the common configuration
+     * either from an internal or external config
+     */
+    val cfg = buildConfig(c)
+    WorksConf.init(cfg)
+    /*
+     * STEP #2: Initialize connection to Apache Ignite
+     */
+    val namespace = WorksConf.getNSCfg(channel)
+    val igniteCfg = WorksConf.getIgniteConfiguration
+
+    IgniteConnect.getInstance(Session.getSession, igniteCfg, namespace)
+
+  }
+
+  private def buildConfig(c:CliConfig):Option[String] = {
+
+    if (c.conf == null) {
+
+      println("[INFO] -------------------------------------------------")
+      println(s"[INFO] Launch $programName with internal configuration.")
+      println("[INFO] -------------------------------------------------")
+
+      None
+
+    } else {
+
+      println("[INFO] -------------------------------------------------")
+      println(s"[INFO] Launch $programName with external configuration.")
+      println("[INFO] -------------------------------------------------")
+
+      val source = scala.io.Source.fromFile(c.conf)
+      val config = source.getLines.mkString("\n")
+
+      source.close()
+      Some(config)
+
+    }
+
+  }
   def main(args: Array[String]): Unit = {
     launch(args)
   }

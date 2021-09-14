@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream
+package de.kp.works.ignite.stream.osquery
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -19,36 +19,32 @@ package de.kp.works.ignite.stream
  */
 
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.stream.fiware.FiwareEngine
-/**
- * [FiwareStream] is the FIWARE streaming application
- * of [IgniteGraph]
- */
+import de.kp.works.ignite.stream.BaseStream
 
-object FiwareStream extends BaseStream {
+object OsqueryStream extends BaseStream {
 
-  override var channel:String = WorksConf.FIWARE_CONF
+  override var channel: String = WorksConf.OSQUERY_CONF
 
-  override var programName: String = "FiwareStream"
-  override var programDesc: String = "Ignite streaming support for Fiware notifications."
+  override var programName: String = "OsqueryStream"
+  override var programDesc: String = "Ignite streaming support for Osquery events."
 
-  override def launch(args:Array[String]):Unit = {
+  override def launch(args: Array[String]): Unit = {
 
     /* Command line argument parser */
     val parser = buildParser()
 
     /* Parse the argument and then run */
-    parser.parse(args, CliConfig()).foreach{ c =>
+    parser.parse(args, CliConfig()).foreach { c =>
 
       try {
 
         connect = Some(buildConnect(c, channel))
         /*
          * Build streaming context and finally start the
-         * service that listens to Fiware events.
+         * service that listens to Osquery events.
          */
-        val fiwareIgnite = new FiwareEngine(connect.get)
-        service = fiwareIgnite.buildStream
+        val ctiIgnite = new OsqueryEngine(connect.get)
+        service = ctiIgnite.buildStream
 
         start()
 
@@ -57,20 +53,20 @@ object FiwareStream extends BaseStream {
         println("[INFO] -------------------------------------------------")
 
       } catch {
-        case t:Throwable =>
+        case t: Throwable =>
           t.printStackTrace()
-          println("[ERROR] -------------------------------------------------")
+          println("[ERROR] --------------------------------------------------")
           println(s"[ERROR] $programName cannot be started: " + t.getMessage)
-          println("[ERROR] -------------------------------------------------")
+          println("[ERROR] --------------------------------------------------")
           /*
            * Sleep for 10 seconds so that one may see error messages
            * in Yarn clusters where logs are not stored.
            */
           Thread.sleep(10000)
           sys.exit(1)
+
       }
     }
 
   }
-
 }

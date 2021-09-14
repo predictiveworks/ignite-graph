@@ -18,7 +18,7 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-import de.kp.works.conf.CommonConfig
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.IgniteTable
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.mutate._
@@ -57,7 +57,7 @@ class CTIProcessor(
    * data to the predefined output is currently set to
    * 2 times of the stream buffer flush frequency
    */
-  private val conf = CommonConfig.getCTIStreamerCfg
+  private val conf = WorksConf.getStreamerCfg(WorksConf.OPENCTI_CONF)
   override val flushWindow:Int = conf.getInt("flushWindow")
 
   /**

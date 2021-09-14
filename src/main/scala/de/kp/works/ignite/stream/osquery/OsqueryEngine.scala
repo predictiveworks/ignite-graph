@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware
+package de.kp.works.ignite.stream.osquery
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,15 +18,16 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
-object FiwareConstants {
-  /**
-   * The cache name used to temporarily store
-   * Orion Broker notification messages
-   */
-  val FIWARE_CACHE:String = "fiware_events"
+import de.kp.works.ignite.client.IgniteConnect
+import de.kp.works.ignite.stream.{BaseEngine, IgniteStreamContext}
 
-  val FIELD_SERVICE:String      = "service"
-  val FIELD_SERVICE_PATH:String = "service_path"
-  val FIELD_PAYLOAD:String      = "payload"
+import java.util
 
+class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
+
+  override protected var cacheName: String = _
+
+  override protected def buildFields(): util.LinkedHashMap[String, String] = ???
+
+  override def buildStream: Option[IgniteStreamContext] = ???
 }

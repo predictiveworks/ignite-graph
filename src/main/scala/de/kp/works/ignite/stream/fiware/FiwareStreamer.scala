@@ -21,7 +21,7 @@ package de.kp.works.ignite.stream.fiware
 import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
-trait FiwareNotificationCallback {
+trait FiwareEventHandler {
 
   def connectionLost():Unit
 
@@ -34,7 +34,7 @@ trait FiwareNotificationCallback {
  * Broker by providing a HTTP notification endpoint.
  */
 class FiwareStreamer[K,V]
-  extends StreamAdapter[FiwareNotification, K, V] with FiwareNotificationCallback {
+  extends StreamAdapter[FiwareNotification, K, V] with FiwareEventHandler {
 
   /** Logger */
   private val log:IgniteLogger = getIgnite.log()
@@ -79,8 +79,7 @@ class FiwareStreamer[K,V]
 
   /********************************
    *
-   *  Fiware Notification server
-   *  callback methods
+   *  Fiware event handler methods
    *
    *******************************/
 

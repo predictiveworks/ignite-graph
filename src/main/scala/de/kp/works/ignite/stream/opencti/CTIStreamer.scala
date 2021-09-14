@@ -21,7 +21,7 @@ package de.kp.works.ignite.stream.opencti
 import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
-trait CTIEventCallback {
+trait CTIEventHandler {
 
   def connectionLost():Unit
 
@@ -30,7 +30,7 @@ trait CTIEventCallback {
 }
 
 class CTIStreamer[K,V]
-  extends StreamAdapter[SseEvent, K, V] with CTIEventCallback {
+  extends StreamAdapter[SseEvent, K, V] with CTIEventHandler {
 
   /** Logger */
   private val log:IgniteLogger = getIgnite.log()
@@ -76,7 +76,7 @@ class CTIStreamer[K,V]
 
   /********************************
    *
-   *  OpenCTI service callback methods
+   *  OpenCTI event handler methods
    *
    *******************************/
 

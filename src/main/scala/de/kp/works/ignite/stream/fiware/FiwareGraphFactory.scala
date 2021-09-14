@@ -18,7 +18,7 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
-import de.kp.works.conf.CommonConfig
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.fiware.transformer._
 
 object FiwareModels extends Enumeration {
@@ -36,7 +36,7 @@ object FiwareGraphFactory {
 
   def getTransformer:FiwareTransformer = {
 
-    val model = CommonConfig.getFiwareDataModel
+    val model = WorksConf.getFiwareDataModel
     val name = model.getString("name")
 
     FiwareModels.withName(name) match {

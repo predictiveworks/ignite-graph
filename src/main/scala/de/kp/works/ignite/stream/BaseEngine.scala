@@ -1,16 +1,4 @@
 package de.kp.works.ignite.stream
-
-import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.opencti.CTIConstants
-import org.apache.ignite.Ignite
-import org.apache.ignite.binary.BinaryObject
-import org.apache.ignite.cache.QueryEntity
-import org.apache.ignite.configuration.CacheConfiguration
-
-import java.util.concurrent.TimeUnit.SECONDS
-import javax.cache.configuration.FactoryBuilder
-import javax.cache.expiry.{CreatedExpiryPolicy, Duration}
-
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -30,10 +18,25 @@ import javax.cache.expiry.{CreatedExpiryPolicy, Duration}
  *
  */
 
-abstract class BaseEngine(connect:IgniteConnect) {
+import de.kp.works.ignite.client.IgniteConnect
+import org.apache.ignite.Ignite
+import org.apache.ignite.binary.BinaryObject
+import org.apache.ignite.cache.QueryEntity
+import org.apache.ignite.configuration.CacheConfiguration
 
+import java.util.concurrent.TimeUnit.SECONDS
+import javax.cache.configuration.FactoryBuilder
+import javax.cache.expiry.{CreatedExpiryPolicy, Duration}
+
+abstract class BaseEngine(connect:IgniteConnect) {
+  /*
+   * The name of the temporary cache external events
+   * are streamed to.
+   */
   protected var cacheName:String
   protected val ignite: Ignite = connect.getIgnite
+
+  def buildStream:Option[IgniteStreamContext]
 
   /**
    * Configuration for the events cache to store the stream

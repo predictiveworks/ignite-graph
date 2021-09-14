@@ -696,15 +696,10 @@ object EdgeTransformer extends BaseTransformer {
               /*
                * In this case, the processing of a kill chain phase is
                * restricted to create an [Edge]; the `value` field is
-               * the identifier of the Kill Chain object
+               * the reference identifier of the Kill Chain object
                */
               edge.addColumn(
                 IgniteConstants.TO_COL_NAME, "STRING", value("value").asInstanceOf[String])
-              /*
-               * The `reference` field specifies the kill chain name
-               */
-              edge.addColumn(
-                "kill_chain_name", "STRING", value("reference").asInstanceOf[String])
               /*
                * Assign created [Edge] to the list of edges
                */
@@ -759,6 +754,12 @@ object EdgeTransformer extends BaseTransformer {
     deleteEdge(entityId, reference)
   }
 
+  /**
+   * OBJECT LABELS
+   *
+   * Object labels refer to the STIX tag mechanism
+   * to assign keywords to STIX objects
+   */
   def createObjectLabel(entityId:String, reference:String):Option[IgnitePut] = {
 
     try {
@@ -988,6 +989,8 @@ object EdgeTransformer extends BaseTransformer {
     deleteEdge(entityId, reference)
   }
 
+  /** OBJECT REFERENCES **/
+
   def createObjectReference(entityId:String, reference:String):Option[IgnitePut] = {
 
     try {
@@ -1043,6 +1046,10 @@ object EdgeTransformer extends BaseTransformer {
          *     fields: 'reference', 'value', 'x_opencti_internal_id'
          */
         reference match {
+          /*
+           * This is the default case, where a STIX object contains
+           * a list of references to other STIX objects.
+           */
           case value: String =>
             edge.addColumn(
               IgniteConstants.TO_COL_NAME, "STRING", value)

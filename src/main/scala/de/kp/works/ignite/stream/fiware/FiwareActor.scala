@@ -24,7 +24,7 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.stream.ActorMaterializer
 import akka.util.{ByteString, Timeout}
 import com.google.gson._
-import de.kp.works.conf.CommonConfig
+import de.kp.works.conf.WorksConf
 
 import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration._
@@ -46,7 +46,7 @@ abstract class BaseActor extends Actor with ActorLogging {
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  private val conf = CommonConfig.getFiwareActorCfg
+  private val conf = WorksConf.getFiwareActorCfg
 
   implicit val timeout: Timeout = {
     val value = conf.getInt("timeout")
@@ -135,7 +135,7 @@ abstract class BaseActor extends Actor with ActorLogging {
  * and, if this is the case, further processing is delegated to
  * the Ignite (Fiware) Streamer
  */
-class FiwareActor(callback:FiwareNotificationCallback) extends BaseActor {
+class FiwareActor(callback:FiwareEventHandler) extends BaseActor {
 
   import FiwareActor._
 

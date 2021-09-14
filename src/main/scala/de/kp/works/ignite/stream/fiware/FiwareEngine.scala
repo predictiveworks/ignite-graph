@@ -17,9 +17,9 @@ package de.kp.works.ignite.stream.fiware
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
-import de.kp.works.conf.CommonConfig
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.{BaseEngine, IgniteFiwareContext, IgniteStream, IgniteStreamContext}
+import de.kp.works.ignite.stream.{BaseEngine, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.stream.StreamSingleTupleExtractor
@@ -35,12 +35,12 @@ class FiwareEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
   override var cacheName:String = FiwareConstants.FIWARE_CACHE
 
-  if (!CommonConfig.isInit)
+  if (!WorksConf.isInit)
     throw new Exception("[FiwareIgnite] No configuration initialized. Streaming cannot be started.")
 
-  private val conf = CommonConfig.getFiwareStreamerCfg
+  private val conf = WorksConf.getStreamerCfg(WorksConf.FIWARE_CONF)
 
-  def buildStream:Option[IgniteStreamContext] = {
+  override def buildStream:Option[IgniteStreamContext] = {
 
     try {
 

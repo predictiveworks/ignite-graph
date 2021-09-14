@@ -28,10 +28,10 @@ import okhttp3.sse.{EventSource, EventSourceListener, EventSources}
  * to the provided output handler.
  */
 class CTIConnector(
-   endpoint: String,
-   callback: CTIEventCallback,
-   authToken: Option[String] = None,
-   sslOptions: Option[SslOptions] = None) {
+                    endpoint: String,
+                    callback: CTIEventHandler,
+                    authToken: Option[String] = None,
+                    sslOptions: Option[SslOptions] = None) {
 
   def stop(): Unit = {
     /* Do nothing */

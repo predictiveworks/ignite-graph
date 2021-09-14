@@ -22,7 +22,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.ignite.configuration.IgniteConfiguration
 import org.apache.ignite.logger.java.JavaLogger
 
-object CommonConfig {
+object WorksConf {
 
   private val path = "reference.conf"
   /*
@@ -37,6 +37,10 @@ object CommonConfig {
   private var httpHost = "127.0.0.1"
   private var httpPort = 9090
 
+  val FIWARE_CONF  = "fiware"
+  val OPENCTI_CONF = "opencti"
+  val OSQUERY_CONF = "osquery"
+  val ZEEK_CONF    = "zeek"
 
   /**
    * This is the reference to the overall configuration
@@ -79,6 +83,34 @@ object CommonConfig {
     cfg.isDefined
   }
 
+  /** COMMON CONFIGURATION **/
+
+  def getNSCfg(name:String):String = {
+    name match {
+      case FIWARE_CONF =>
+        val conf = cfg.get.getConfig("fiware")
+        conf.getString("namespace")
+      case OPENCTI_CONF =>
+        val conf = cfg.get.getConfig("opencti")
+        conf.getString("namespace")
+      case _ =>
+        throw new Exception(s"Namespace for `$name` is not supported.")
+    }
+  }
+
+  def getStreamerCfg(name:String): Config = {
+    name match {
+      case FIWARE_CONF =>
+        val conf = cfg.get.getConfig("fiware")
+        conf.getConfig("streamer")
+      case OPENCTI_CONF =>
+        val conf = cfg.get.getConfig("opencti")
+        conf.getConfig("streamer")
+      case _ =>
+        throw new Exception(s"Streamer configuration for `$name` is not supported.")
+    }
+  }
+
   /** FIWARE CONFIGURATION **/
 
   /**
@@ -92,7 +124,6 @@ object CommonConfig {
     fiwareCfg.getConfig("actor")
 
   }
-
   /**
    * Retrieve the SSL/TLS configuration for subscription
    * requests to the Orion Context Broker
@@ -115,11 +146,6 @@ object CommonConfig {
   def getFiwareDataModel: Config = {
     val fiwareCfg = cfg.get.getConfig("fiware")
     fiwareCfg.getConfig("model")
-  }
-
-  def getFiwareGraphNS: String = {
-    val fiwareCfg = cfg.get.getConfig("fiware")
-    fiwareCfg.getString("namespace")
   }
 
   /**
@@ -145,11 +171,6 @@ object CommonConfig {
     serverCfg.getConfig("security")
   }
 
-  def getFiwareStreamerCfg: Config = {
-    val fiwareCfg = cfg.get.getConfig("fiware")
-    fiwareCfg.getConfig("streamer")
-  }
-
   /** IGNITE CONFIGURATION **/
 
   def getIgniteCfg: Config = {
@@ -158,19 +179,9 @@ object CommonConfig {
 
   /** OPENCTI CONFIGURATION **/
 
-  def getCTIGraphNS: String = {
-    val ctiCfg = cfg.get.getConfig("opencti")
-    ctiCfg.getString("namespace")
-  }
-
   def getCTIReceiverCfg: Config = {
     val ctiCfg = cfg.get.getConfig("opencti")
     ctiCfg.getConfig("receiver")
-  }
-
-  def getCTIStreamerCfg: Config = {
-    val ctiCfg = cfg.get.getConfig("opencti")
-    ctiCfg.getConfig("streamer")
   }
 
   /** SPARK CONFIGURATION **/
@@ -188,7 +199,7 @@ object CommonConfig {
    * The current implementation of this method
    * provides the default configuration
    */
-  def toIgniteConfiguration: IgniteConfiguration = {
+  def getIgniteConfiguration: IgniteConfiguration = {
     /*
      * Configure default java logger which leverages file
      * config/java.util.logging.properties

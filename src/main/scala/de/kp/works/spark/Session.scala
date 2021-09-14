@@ -18,7 +18,7 @@ package de.kp.works.spark
  *
  */
 
-import de.kp.works.conf.CommonConfig
+import de.kp.works.conf.WorksConf
 import org.apache.spark._
 import org.apache.spark.sql._
 
@@ -45,7 +45,7 @@ object Session {
 
     val sparkContext = new SparkContext(conf)
 
-    val checkpointDir = CommonConfig.getSparkCfg.getString("checkpointDir")
+    val checkpointDir = WorksConf.getSparkCfg.getString("checkpointDir")
     sparkContext.setCheckpointDir(checkpointDir)
 
     val spark = new SQLContext(sparkContext).sparkSession

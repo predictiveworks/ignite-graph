@@ -31,7 +31,7 @@ import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.{ByteString, Timeout}
-import de.kp.works.conf.CommonConfig
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.fiware.FiwareActor._
 
 import scala.concurrent.duration._
@@ -44,7 +44,7 @@ import scala.util.{Failure, Success}
  */
 class FiwareService {
 
-  private var callback:Option[FiwareNotificationCallback] = None
+  private var callback:Option[FiwareEventHandler] = None
 
   private var server:Option[Future[Http.ServerBinding]] = None
   /**
@@ -53,7 +53,7 @@ class FiwareService {
    * available. This avoids leaking materializers and simplifies most stream
    * use cases somewhat.
    */
-  implicit val system: ActorSystem = ActorSystem(CommonConfig.getSystemName)
+  implicit val system: ActorSystem = ActorSystem(WorksConf.getSystemName)
   implicit lazy val context: ExecutionContextExecutor = system.dispatcher
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -69,7 +69,7 @@ class FiwareService {
    * The current implementation leverages the Fiware
    * Streamer as callback
    */
-  def setCallback(callback:FiwareNotificationCallback):FiwareService = {
+  def setCallback(callback:FiwareEventHandler):FiwareService = {
     this.callback = Some(callback)
     this
   }
@@ -137,7 +137,7 @@ class FiwareService {
       }
     }
 
-    val bindingCfg = CommonConfig.getFiwareServerBinding
+    val bindingCfg = WorksConf.getFiwareServerBinding
     val (host, port) = (bindingCfg.getString("host"), bindingCfg.getInt("port"))
     /*
      * Distinguish between SSL/TLS and non-SSL/TLS requests

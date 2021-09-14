@@ -18,9 +18,9 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-import de.kp.works.conf.CommonConfig
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.{BaseEngine, IgniteCTIContext, IgniteStream, IgniteStreamContext}
+import de.kp.works.ignite.stream.{BaseEngine, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.stream.StreamSingleTupleExtractor
@@ -37,10 +37,10 @@ class CTIEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
   override var cacheName: String = CTIConstants.OPENCTI_CACHE
 
-  if (!CommonConfig.isInit)
+  if (!WorksConf.isInit)
     throw new Exception("[CTIIgnite] No configuration initialized. Streaming cannot be started.")
 
-  private val conf = CommonConfig.getCTIStreamerCfg
+  private val conf = WorksConf.getStreamerCfg(WorksConf.OPENCTI_CONF)
   /**
    * This is the main method to build the OpenCTI
    * streaming service (see CTIStream object).
@@ -52,7 +52,7 @@ class CTIEngine(connect:IgniteConnect) extends BaseEngine(connect) {
    * The context also comprises the connector to
    * the OpenCTI event stream.
    */
-  def buildStream:Option[IgniteStreamContext] = {
+  override def buildStream:Option[IgniteStreamContext] = {
 
     try {
 
