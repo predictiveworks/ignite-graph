@@ -42,11 +42,11 @@ class ZeekService {
       throw new Exception("[ZeekService] No callback specified to send events to.")
 
     val receiverCfg = WorksConf.getReceiverCfg(WorksConf.ZEEK_CONF)
-    val folderPaths = receiverCfg.getString("folderPaths")
+    val zeekFolder = receiverCfg.getString("zeekFolder")
 
     val numThreads = receiverCfg.getInt("numThreads")
 
-    val receiver = new ZeekReceiver(folderPaths, eventHandler.get, numThreads)
+    val receiver = new ZeekReceiver(zeekFolder, eventHandler.get, numThreads)
     receiver.start()
 
   }

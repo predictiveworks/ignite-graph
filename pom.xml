@@ -14,6 +14,7 @@
 
         <scala.binary.version>2.11</scala.binary.version>
 
+        <alpakka.version>2.0.2</alpakka.version>
         <ignite.version>2.8.1</ignite.version>
         <kryo.version>5.1.1</kryo.version>
         <okhttp.version>3.14.4</okhttp.version>
@@ -161,6 +162,17 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
+        </dependency>
+
+        <!-- ALPAKKA FILESYSTEM
+
+        The version 2.0.2 was selected as it is compliant
+        with other Akka-based libraries of this project.
+        -->
+        <dependency>
+            <groupId>com.lightbend.akka</groupId>
+            <artifactId>akka-stream-alpakka-file_${scala.binary.version}</artifactId>
+            <version>${alpakka.version}</version>
         </dependency>
 
     </dependencies>

@@ -176,12 +176,16 @@ object WorksConf {
     }
   }
   /**
-   * The name of Actor System used
+   * The name of Actor System used: Fiware and Osquery
+   * uses an Actor system as foundation of the HTTP(s)
+   * server, while Zeek leverages an Actor system as
+   * basis for its file monitor.
    */
   def getSystemName(name:String): String = {
     name match {
       case FIWARE_CONF  => "fiware-server"
       case OSQUERY_CONF => "osquery-server"
+      case ZEEK_CONF => "zeek-monitor"
       case _ =>
         throw new Exception(s"Actor system for `$name` is not supported.")
     }
