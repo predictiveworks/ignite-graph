@@ -20,6 +20,7 @@ package de.kp.works.ignite.stream.osquery
 
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
+import de.kp.works.ignite.stream.osquery.db.DBApi
 import de.kp.works.ignite.stream.{BaseEngine, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
@@ -43,6 +44,9 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
     throw new Exception("[OsqueryEngine] No configuration initialized. Streaming cannot be started.")
 
   private val conf = WorksConf.getStreamerCfg(WorksConf.OSQUERY_CONF)
+
+  // TODO
+  private val api:DBApi = ???
   /**
    * This is the main method to build the Osquery
    * streaming service (see OsqueryStream object).
@@ -58,14 +62,25 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
     try {
 
-      val (cache,streamer) = prepareStreamer
-      val numThreads = conf.getInt("numThreads")
+      val (myCache,myStreamer) = prepareStreamer
+      val myThreads = conf.getInt("numThreads")
+      /*
+       * Build stream
+       */
+      val myStream: IgniteStream = new IgniteStream {
+        override val processor = new OsqueryProcessor(myCache, connect)
+      }
+      /*
+       * Build stream context
+       */
+      val myStreamContext: IgniteStreamContext = new IgniteStreamContext {
+        override val stream: IgniteStream = myStream
+        override val streamer: OsqueryStreamer[String, BinaryObject] = myStreamer
 
-      val stream: IgniteStream = new IgniteStream {
-        override val processor = new OsqueryProcessor(cache, connect)
+        override val numThreads: Int = myThreads
       }
 
-      Some(new OsqueryStreamContext(stream,streamer, numThreads))
+      Some(myStreamContext)
 
     } catch {
       case t:Throwable =>
@@ -109,7 +124,7 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
      * which buffers will be flushed even if they are not full
      */
     streamer.autoFlushFrequency(autoFlushFrequency)
-    val osqueryStreamer = new OsqueryStreamer[String,BinaryObject]()
+    val osqueryStreamer = new OsqueryStreamer[String,BinaryObject](api)
 
     osqueryStreamer.setIgnite(ignite)
     osqueryStreamer.setStreamer(streamer)

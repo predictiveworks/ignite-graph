@@ -1,4 +1,7 @@
 package de.kp.works.ignite.stream
+
+import scala.actors.threadpool.Executors
+
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,9 +21,52 @@ package de.kp.works.ignite.stream
  *
  */
 
-abstract class IgniteStreamContext {
+abstract class IgniteStreamContext{
 
-  def start():Unit
-  def stop():Unit
+  val stream:IgniteStream
+  val streamer:IgniteStreamer
 
+  val numThreads:Int = 1
+  private val executorService = Executors.newFixedThreadPool(numThreads)
+
+  def start():Unit = {
+    try {
+
+      /* Start streamer
+       */
+      streamer.start()
+
+      /* Start stream processor
+       *
+       * This stream processor starts from the intermediate
+       * cache and transforms the respective entries into
+       * their final format and destination
+       */
+      stream.processor.start()
+
+      /* Initiate stream execution */
+      executorService.execute(stream)
+
+    } catch {
+      case _:Exception => executorService.shutdown()
+    }
+  }
+  /**
+   * This method shuts down an ExecutorService in two phases,
+   * first by calling 'shutdown' to reject incoming tasks, and
+   * then calling 'shutdownNow'
+   */
+  def stop():Unit = {
+
+    /* Stop Fiware streamer */
+    streamer.stop()
+
+    /* Shutdown processor */
+    stream.processor.shutdown()
+
+    /* Stop stream processing */
+    executorService.shutdown()
+    executorService.shutdownNow()
+
+  }
 }

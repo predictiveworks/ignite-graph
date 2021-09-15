@@ -18,6 +18,7 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
+import de.kp.works.ignite.stream.IgniteStreamer
 import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
@@ -34,7 +35,7 @@ trait FiwareEventHandler {
  * Broker by providing a HTTP notification endpoint.
  */
 class FiwareStreamer[K,V]
-  extends StreamAdapter[FiwareNotification, K, V] with FiwareEventHandler {
+  extends StreamAdapter[FiwareNotification, K, V] with FiwareEventHandler with IgniteStreamer {
 
   /** Logger */
   private val log:IgniteLogger = getIgnite.log()
@@ -48,7 +49,7 @@ class FiwareStreamer[K,V]
 
   /** Start streamer  **/
 
-  def start():Unit = {
+  override def start():Unit = {
 
     if (!stopped)
       throw new IgniteException("Attempted to start an already started Fiware Streamer.")
@@ -62,7 +63,7 @@ class FiwareStreamer[K,V]
 
   /** Stop streamer **/
 
-  def stop():Unit = {
+  override def stop():Unit = {
 
     if (stopped)
       throw new IgniteException("Failed to stop Fiware Streamer (already stopped).")

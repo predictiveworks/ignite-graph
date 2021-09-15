@@ -18,6 +18,7 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
+import de.kp.works.ignite.stream.IgniteStreamer
 import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
@@ -28,7 +29,7 @@ trait ZeekEventHandler {
 }
 
 class ZeekStreamer[K,V]
-  extends StreamAdapter[ZeekEvent, K, V] with ZeekEventHandler {
+  extends StreamAdapter[ZeekEvent, K, V] with ZeekEventHandler with IgniteStreamer {
 
   /** Logger */
   private val log:IgniteLogger = getIgnite.log()
@@ -42,7 +43,7 @@ class ZeekStreamer[K,V]
 
   /** Start streamer  **/
 
-  def start():Unit = {
+  override def start():Unit = {
 
     if (!stopped)
       throw new IgniteException("Attempted to start an already started Zeek Streamer.")
@@ -56,7 +57,7 @@ class ZeekStreamer[K,V]
 
   /** Stop streamer **/
 
-  def stop():Unit = {
+  override def stop():Unit = {
 
     if (stopped)
       throw new IgniteException("Failed to stop Zeek Streamer (already stopped).")

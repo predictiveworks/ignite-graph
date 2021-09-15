@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,15 +18,10 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
-import de.kp.works.ignite.stream.{IgniteStream, IgniteStreamContext}
-import org.apache.ignite.binary.BinaryObject
+trait IgniteStreamer {
 
-class ZeekStreamContext(
-  val stream:IgniteStream,
-  val streamer:ZeekStreamer[String,BinaryObject],
-  numThreads:Int = 1) extends IgniteStreamContext {
+  def start():Unit
 
-  override def start(): Unit = ???
+  def stop():Unit
 
-  override def stop(): Unit = ???
 }

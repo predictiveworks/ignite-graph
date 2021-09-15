@@ -25,6 +25,7 @@ import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.stream.StreamSingleTupleExtractor
 
+import java.security.MessageDigest
 import java.util
 import scala.collection.JavaConversions._
 
@@ -53,14 +54,25 @@ class ZeekEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
     try {
 
-      val (cache,streamer) = prepareStreamer
-      val numThreads = conf.getInt("numThreads")
+      val (myCache,myStreamer) = prepareStreamer
+      val myThreads = conf.getInt("numThreads")
+      /*
+       * Build stream
+       */
+      val myStream: IgniteStream = new IgniteStream {
+        override val processor = new ZeekProcessor(myCache, connect)
+      }
+      /*
+       * Build stream context
+       */
+      val myStreamContext: IgniteStreamContext = new IgniteStreamContext {
+        override val stream: IgniteStream = myStream
+        override val streamer: ZeekStreamer[String, BinaryObject] = myStreamer
 
-      val stream: IgniteStream = new IgniteStream {
-        override val processor = new ZeekProcessor(cache, connect)
+        override val numThreads: Int = myThreads
       }
 
-      Some(new ZeekStreamContext(stream,streamer, numThreads))
+      Some(myStreamContext)
 
     } catch {
       case t:Throwable =>
@@ -146,8 +158,45 @@ class ZeekEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
   }
 
-  private def buildEntry(event:ZeekEvent):(String, BinaryObject) = ???
+  private def buildEntry(event:ZeekEvent):(String, BinaryObject) = {
 
-  override protected def buildFields(): util.LinkedHashMap[String, String] = ???
+    val builder = ignite.binary().builder(ZeekConstants.ZEEK_CACHE)
+
+    builder.setField(ZeekConstants.FIELD_TYPE, event.eventType)
+    builder.setField(ZeekConstants.FIELD_DATA, event.eventData)
+
+    val cacheValue = builder.build()
+    /*
+     * The cache key is built from the content
+     * to enable the detection of duplicates.
+     *
+     * (see ZeekProcessor)
+     */
+    val serialized = Seq(
+      event.eventType,
+      event.eventData).mkString("#")
+
+    val cacheKey = new String(MessageDigest.getInstance("MD5")
+      .digest(serialized.getBytes("UTF-8")))
+
+    (cacheKey, cacheValue)
+
+
+  }
+
+  override protected def buildFields(): util.LinkedHashMap[String, String] = {
+
+    val fields = new java.util.LinkedHashMap[String,String]()
+    /*
+     * The event type
+     */
+    fields.put(ZeekConstants.FIELD_TYPE,"java.lang.String")
+    /*
+     * The data that is associated with the event
+     */
+    fields.put(ZeekConstants.FIELD_DATA,"java.lang.String")
+    fields
+
+  }
 
 }

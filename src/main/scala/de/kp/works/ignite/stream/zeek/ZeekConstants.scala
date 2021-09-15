@@ -25,4 +25,7 @@ object ZeekConstants {
    */
   val ZEEK_CACHE:String = "zeek_events"
 
+  val FIELD_TYPE:String = "eventType"
+  val FIELD_DATA:String = "eventData"
+
 }

@@ -18,4 +18,4 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
-case class ZeekEvent()
+case class ZeekEvent(eventType:String, eventData:String)

@@ -44,14 +44,25 @@ class FiwareEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
     try {
 
-      val (cache,streamer) = prepareStreamer
-      val numThreads = conf.getInt("numThreads")
+      val (myCache,myStreamer) = prepareStreamer
+      val myThreads = conf.getInt("numThreads")
+      /*
+       * Build stream
+       */
+      val myStream: IgniteStream = new IgniteStream {
+        override val processor = new FiwareProcessor(myCache, connect)
+      }
+      /*
+       * Build stream context
+       */
+      val myStreamContext: IgniteStreamContext = new IgniteStreamContext {
+        override val stream: IgniteStream = myStream
+        override val streamer: FiwareStreamer[String, BinaryObject] = myStreamer
 
-      val stream: IgniteStream = new IgniteStream {
-        override val processor = new FiwareProcessor(cache, connect)
+        override val numThreads: Int = myThreads
       }
 
-      Some(new FiwareStreamContext(stream,streamer, numThreads))
+      Some(myStreamContext)
 
     } catch {
       case t:Throwable =>

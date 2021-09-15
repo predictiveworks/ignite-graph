@@ -18,6 +18,7 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
+import de.kp.works.ignite.stream.IgniteStreamer
 import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
@@ -30,7 +31,7 @@ trait CTIEventHandler {
 }
 
 class CTIStreamer[K,V]
-  extends StreamAdapter[SseEvent, K, V] with CTIEventHandler {
+  extends StreamAdapter[SseEvent, K, V] with CTIEventHandler with IgniteStreamer {
 
   /** Logger */
   private val log:IgniteLogger = getIgnite.log()
@@ -44,7 +45,7 @@ class CTIStreamer[K,V]
 
   /** Start streamer  **/
 
-  def start():Unit = {
+  override def start():Unit = {
 
     if (!stopped)
       throw new IgniteException("Attempted to start an already started OpenCTI Streamer.")
@@ -58,7 +59,7 @@ class CTIStreamer[K,V]
 
   /** Stop streamer **/
 
-  def stop():Unit = {
+  override def stop():Unit = {
 
     if (stopped)
       throw new IgniteException("Failed to stop OpenCTI Streamer (already stopped).")

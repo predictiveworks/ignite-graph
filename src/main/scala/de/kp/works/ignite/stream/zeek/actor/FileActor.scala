@@ -23,8 +23,9 @@ import akka.actor.{Actor, ActorLogging, ActorSystem}
 import akka.stream.ActorMaterializer
 import akka.stream.alpakka.file.scaladsl.FileTailSource
 import akka.stream.scaladsl.Source
+import com.google.gson.JsonParser
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.stream.zeek.ZeekEventHandler
+import de.kp.works.ignite.stream.zeek.{ZeekEvent, ZeekEventHandler}
 
 import java.io.FileNotFoundException
 import java.nio.file.Path
@@ -106,5 +107,19 @@ class FileActor(path:Path, eventHandler: ZeekEventHandler) extends Actor with Ac
       throw new Exception(s"Unknown file event detected")
   }
 
-  private def send(line:String):Unit = ???
+  private def send(line:String):Unit = {
+    try {
+      /*
+       * Check whether the provided line is
+       * a JSON line
+       */
+      val json = JsonParser.parseString(line)
+
+      val event = ZeekEvent(eventType = path.toFile.getName, eventData = json.toString)
+      eventHandler.eventArrived(event)
+
+    } catch {
+      case t:Throwable => /* Do nothing */
+    }
+  }
 }

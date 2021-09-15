@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream
+package de.kp.works.ignite.stream.fiware
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -19,7 +19,8 @@ package de.kp.works.ignite.stream
  */
 
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.stream.fiware.FiwareEngine
+import de.kp.works.ignite.stream.BaseStream
+
 /**
  * [FiwareStream] is the FIWARE streaming application
  * of [IgniteGraph]
@@ -27,18 +28,18 @@ import de.kp.works.ignite.stream.fiware.FiwareEngine
 
 object FiwareStream extends BaseStream {
 
-  override var channel:String = WorksConf.FIWARE_CONF
+  override var channel: String = WorksConf.FIWARE_CONF
 
   override var programName: String = "FiwareStream"
   override var programDesc: String = "Ignite streaming support for Fiware notifications."
 
-  override def launch(args:Array[String]):Unit = {
+  override def launch(args: Array[String]): Unit = {
 
     /* Command line argument parser */
     val parser = buildParser()
 
     /* Parse the argument and then run */
-    parser.parse(args, CliConfig()).foreach{ c =>
+    parser.parse(args, CliConfig()).foreach { c =>
 
       try {
 
@@ -57,7 +58,7 @@ object FiwareStream extends BaseStream {
         println("[INFO] -------------------------------------------------")
 
       } catch {
-        case t:Throwable =>
+        case t: Throwable =>
           t.printStackTrace()
           println("[ERROR] -------------------------------------------------")
           println(s"[ERROR] $programName cannot be started: " + t.getMessage)

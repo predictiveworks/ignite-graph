@@ -18,6 +18,7 @@ package de.kp.works.ignite.stream.osquery
  *
  */
 
+import de.kp.works.ignite.stream.IgniteStreamer
 import de.kp.works.ignite.stream.osquery.db.DBApi
 import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
@@ -28,8 +29,8 @@ trait OsqueryEventHandler {
 
 }
 
-class OsqueryStreamer[K,V]
-  extends StreamAdapter[OsqueryEvent, K, V] with OsqueryEventHandler {
+class OsqueryStreamer[K,V](api:DBApi)
+  extends StreamAdapter[OsqueryEvent, K, V] with OsqueryEventHandler with IgniteStreamer {
 
   /** Logger */
   private val log:IgniteLogger = getIgnite.log()
@@ -43,7 +44,7 @@ class OsqueryStreamer[K,V]
 
   /** Start streamer  **/
 
-  def start(api:DBApi):Unit = {
+  override def start():Unit = {
 
     if (!stopped)
       throw new IgniteException("Attempted to start an already started Osquery Streamer.")
@@ -57,7 +58,7 @@ class OsqueryStreamer[K,V]
 
   /** Stop streamer **/
 
-  def stop():Unit = {
+  override def stop():Unit = {
 
     if (stopped)
       throw new IgniteException("Failed to stop Osquery Streamer (already stopped).")
