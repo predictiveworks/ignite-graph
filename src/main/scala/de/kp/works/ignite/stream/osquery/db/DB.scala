@@ -19,8 +19,13 @@ package de.kp.works.ignite.stream.osquery.db
  */
 
 import com.google.gson._
+import de.kp.works.conf.WorksConf
+import org.apache.ignite.Ignite
 import org.apache.ignite.spark.IgniteContext
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.DataFrame
+
+import java.util
+
 /**
  * Osquery uses Apache Ignite as internal database
  * to manage configurations and nodes.
@@ -44,7 +49,7 @@ object DB {
      */
     if (tables.isEmpty) {
 
-      instance.get.buildTables()
+      instance.get.buildTables(ic.ignite())
       tables = Some(true)
 
     }
@@ -60,6 +65,8 @@ class DB(ic:IgniteContext) {
    */
   private val USING = "org.apache.spark.sql.redis"
   private val CREATE_TABLE = "create table if not exists %1(%2) using %3 options (table '%1')"
+
+  private val namespace = WorksConf.getNSCfg(WorksConf.OSQUERY_CONF)
 
   /** NODE **/
 
@@ -484,54 +491,8 @@ class DB(ic:IgniteContext) {
 
   }
 
-  /*
-   * The actual REDIS database consists tables to manage
-   * `nodes`, `queries` and `tasks`. The latter specifies
-   * the relation between a certain node and query.
-   */
-  private def buildTables():Unit = {
-
-    val nodes_sql = {
-
-      val columns = "uuid string, timestamp long, active boolean, enrolled boolean, secret string, key string, host string, checkin long, address string"
-      val createSql = CREATE_TABLE.replace("%1", "nodes").replace("%2", columns).replace("%3", USING)
-
-      createSql
-
-    }
-
-    val queries_sql = {
-
-      val columns = "uuid string, timestamp long, description string, sql string, notbefore long"
-      val createSql = CREATE_TABLE.replace("%1", "queries").replace("%2", columns).replace("%3", USING)
-
-      createSql
-
-    }
-
-    val tasks_sql = {
-
-      val columns = "uuid string, timestamp long, node string, query string, status string"
-      val createSql = CREATE_TABLE.replace("%1", "tasks").replace("%2", columns).replace("%3", USING)
-
-      createSql
-
-    }
-
-    val configurations_sql = {
-
-      val columns = "uuid string, timestamp long, node string, config string"
-      val createSql = CREATE_TABLE.replace("%1", "configurations").replace("%2", columns).replace("%3", USING)
-
-      createSql
-
-    }
-    /*
-    session.sql(nodes_sql)
-    session.sql(queries_sql)
-    session.sql(tasks_sql)
-    session.sql(configurations_sql)
-    */
+  private def buildTables(ignite:Ignite):Unit = {
+    DBUtil.buildTables(ignite, namespace)
   }
 
 }

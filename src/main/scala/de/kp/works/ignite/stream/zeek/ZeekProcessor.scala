@@ -35,6 +35,7 @@ class ZeekProcessor(
   private val conf = WorksConf.getStreamerCfg(WorksConf.ZEEK_CONF)
   override protected val flushWindow: Int = conf.getInt("flushWindow")
 
+  // TODO
   /**
    * A helper method to apply the event query to the selected
    * Ignite cache, retrieve the results and write them to the

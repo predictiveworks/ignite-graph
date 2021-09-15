@@ -119,7 +119,7 @@ class FileActor(path:Path, eventHandler: ZeekEventHandler) extends Actor with Ac
       eventHandler.eventArrived(event)
 
     } catch {
-      case t:Throwable => /* Do nothing */
+      case _:Throwable => /* Do nothing */
     }
   }
 }
