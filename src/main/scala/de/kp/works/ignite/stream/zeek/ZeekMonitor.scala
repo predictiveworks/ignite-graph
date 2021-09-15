@@ -22,6 +22,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.alpakka.file.scaladsl.DirectoryChangesSource
 import akka.util.Timeout
+import com.typesafe.config.Config
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.zeek.actor.FileActor
 
@@ -49,12 +50,15 @@ class ZeekMonitor(zeekFolder: String, eventHandler: ZeekEventHandler) {
    */
   implicit val timeout: Timeout = Timeout(5.seconds)
 
-  val fs: FileSystem = FileSystems.getDefault
+  private val fs: FileSystem = FileSystems.getDefault
 
-  val pollingInterval: FiniteDuration = FiniteDuration(1, "seconds")
-  val maxBufferSize = 1000
+  private val receiverCfg: Config = WorksConf.getReceiverCfg(WorksConf.ZEEK_CONF)
 
-  val postfix = ".log"
+  private val pollingInterval: FiniteDuration =
+    FiniteDuration(receiverCfg.getInt("pollingInterval"), "seconds")
+
+  private val maxBufferSize: Int = receiverCfg.getInt("maxBufferSize")
+  private val postfix: String = receiverCfg.getString("postfix")
   /*
    * The current implementation assigns an Akka actor
    * to each file
