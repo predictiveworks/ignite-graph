@@ -23,6 +23,7 @@ import org.apache.ignite.cache.{CacheMode, QueryEntity}
 import org.apache.ignite.configuration.CacheConfiguration
 import org.apache.ignite.{Ignite, IgniteCache}
 
+import java.security.MessageDigest
 import java.util
 
 object DBUtil {
@@ -41,6 +42,46 @@ object DBUtil {
 
     buildTasks(ignite, namespace)
     buildConfigurations(ignite, namespace)
+
+  }
+
+  /** NODE OPERATIONS **/
+
+  def updateNode(ignite:Ignite, namespace:String, values:Seq[Any]):Unit = {
+
+    val cacheName = namespace + "_nodes"
+    val cache = ignite.cache[String, BinaryObject](cacheName)
+    /*
+     * It is expected that the values are in the same order
+     * as the defined columns:
+     *
+     * 0: uuid string
+     * 1: timestamp long
+     * 2: active boolean
+     * 3: enrolled boolean
+     * 4: secret string
+     * 5: key string
+     * 6: host string
+     * 7: checkin long
+     * 8: address string
+     */
+    val columnNames = Array("uuid", "timestamp", "active", "enrolled", "secret", "key", "host", "checkin", "address" )
+    /*
+     * Build cache value
+     */
+    val builder = ignite.binary().builder(cacheName)
+    columnNames.zip(values).foreach{ case(name, value) => builder.setField(name, value)}
+
+    val cacheValue = builder.build()
+    /*
+     * The cache key is built from the content
+     * to enable the detection of duplicates.
+     */
+    val serialized = values.map(_.toString).mkString("#")
+    val cacheKey = new String(MessageDigest.getInstance("MD5")
+      .digest(serialized.getBytes("UTF-8")))
+
+    cache.put(cacheKey, cacheValue)
 
   }
 
@@ -109,48 +150,35 @@ object DBUtil {
 
   def createCacheIfNotExists(
     ignite:Ignite,
-    table:String,
-    cfg:CacheConfiguration[String, BinaryObject]): Unit = {
-
-    val exists: Boolean = ignite.cacheNames.contains(table)
-    if (!exists) ignite.createCache(cfg)
-
-  }
-
-  def createCacheIfNotExists(
-    ignite:Ignite,
     table: String,
     namespace:String,
     columns:util.LinkedHashMap[String, String]): Unit = {
 
-    val exists: Boolean = ignite.cacheNames.contains(table)
+    val cacheName = namespace + "_" + table
+
+    val exists: Boolean = ignite.cacheNames.contains(cacheName)
     if (!exists) {
-      createCache(ignite, table, namespace, columns)
+      createCache(ignite, cacheName, columns)
     }
   }
 
   def createCache(
     ignite:Ignite,
-    table: String,
-    namespace:String,
+    cacheName: String,
     columns:util.LinkedHashMap[String, String]): IgniteCache[String, BinaryObject] = {
-      createCache(ignite, table, namespace, columns, CacheMode.REPLICATED)
+      createCache(ignite, cacheName, columns, CacheMode.REPLICATED)
   }
 
   def createCache(
      ignite:Ignite,
-     table: String,
-     namespace:String,
+     cacheName: String,
      columns:util.LinkedHashMap[String, String],
      cacheMode: CacheMode): IgniteCache[String, BinaryObject] = {
 
-    val cacheName = namespace + "_" + table
     val cfg = createCacheCfg(cacheName, columns, cacheMode)
-
     ignite.createCache(cfg)
 
   }
-
   /**
    * This method creates an Ignite cache configuration
    * for a database tables that does not exist
@@ -184,7 +212,7 @@ object DBUtil {
     cfg
   }
 
-  private def buildQueryEntity(table: String, columns:util.LinkedHashMap[String, String]): QueryEntity = {
+  def buildQueryEntity(table: String, columns:util.LinkedHashMap[String, String]): QueryEntity = {
 
     val qe = new QueryEntity
     /*

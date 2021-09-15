@@ -49,7 +49,7 @@ object DB {
      */
     if (tables.isEmpty) {
 
-      instance.get.buildTables(ic.ignite())
+      instance.get.buildTables()
       tables = Some(true)
 
     }
@@ -66,48 +66,13 @@ class DB(ic:IgniteContext) {
   private val USING = "org.apache.spark.sql.redis"
   private val CREATE_TABLE = "create table if not exists %1(%2) using %3 options (table '%1')"
 
+  private val ignite = ic.ignite()
   private val namespace = WorksConf.getNSCfg(WorksConf.OSQUERY_CONF)
 
   /** NODE **/
 
-  def createNode(values:Seq[String]):Unit = {
-    /*
-     * It is expected that the values are in the same order
-     * as the defined columns:
-     *
-     * 0: uuid string
-     * 1: timestamp long
-     * 2: active boolean
-     * 3: enrolled boolean
-     * 4: secret string
-     * 5: key string
-     * 6: host string
-     * 7: checkin long
-     * 8: address string
-     */
-    val sqlTpl = "insert into nodes values ('%0', %1, %2, %3, '%4', '%5', '%6', %7, '%8')"
-    insert(values, sqlTpl)
-
-  }
-
-  def updateNode(values:Seq[String]):Unit = {
-    /*
-     * It is expected that the values are in the same order
-     * as the defined columns:
-     *
-     * 0: uuid string
-     * 1: timestamp long
-     * 2: active boolean
-     * 3: enrolled boolean
-     * 4: secret string
-     * 5: key string
-     * 6: host string
-     * 7: checkin long
-     * 8: address string
-     */
-    val sqlTpl = "insert into nodes values ('%0', %1, %2, %3, '%4', '%5', '%6', %7, '%8')"
-    insert(values, sqlTpl)
-
+  def updateNode(values:Seq[Any]):Unit = {
+    DBUtil.updateNode(ignite, namespace, values)
   }
 
   /** QUERY **/
@@ -491,7 +456,7 @@ class DB(ic:IgniteContext) {
 
   }
 
-  private def buildTables(ignite:Ignite):Unit = {
+  def buildTables():Unit = {
     DBUtil.buildTables(ignite, namespace)
   }
 

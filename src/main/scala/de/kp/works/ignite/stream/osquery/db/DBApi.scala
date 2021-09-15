@@ -238,7 +238,7 @@ class DBApi(ic:IgniteContext) {
       node.nodeKey,
       node.hostIdentifier,
       node.lastCheckIn,
-      node.lastAddress).map(_.toString)
+      node.lastAddress)
 
      db.updateNode(values)
 
