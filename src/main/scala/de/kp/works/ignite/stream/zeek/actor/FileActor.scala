@@ -18,10 +18,18 @@ package de.kp.works.ignite.stream.zeek.actor
  *
  */
 
-import akka.actor.{Actor, ActorLogging}
+import akka.NotUsed
+import akka.actor.{Actor, ActorLogging, ActorSystem}
+import akka.stream.ActorMaterializer
+import akka.stream.alpakka.file.scaladsl.FileTailSource
+import akka.stream.scaladsl.Source
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.zeek.ZeekEventHandler
 
+import java.io.FileNotFoundException
 import java.nio.file.Path
+import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.duration.DurationInt
 
 object FileActor {
 
@@ -36,13 +44,67 @@ object FileActor {
 class FileActor(path:Path, eventHandler: ZeekEventHandler) extends Actor with ActorLogging {
 
   import FileActor._
+  /**
+   * The actor system is implicitly accompanied by a materializer,
+   * and this materializer is required to retrieve the bytestring
+   */
+  implicit val system: ActorSystem = context.system
+  implicit val ec: ExecutionContextExecutor = system.dispatcher
+
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  /**
+   * The [FileTailSource] starts at a given offset in a file and emits chunks of bytes until
+   * reaching the end of the file, it will then poll the file for changes and emit new changes
+   * as they are written to the file (unless there is backpressure).
+   *
+   * A very common use case is combining reading bytes with parsing the bytes into lines, therefore
+   * FileTailSource contains a few factory methods to create a source that parses the bytes into
+   * lines and emits those.
+   */
+  private var fileSource: Option[Source[String, NotUsed]] = None
+
+  private val receiverCfg = WorksConf.getReceiverCfg(WorksConf.ZEEK_CONF)
+  private val maxLineSize = receiverCfg.getInt("maxLineSize")
+  /*
+   * The polling interval for file changes
+   * is predefined
+   */
+  private val pollingInterval = 250.millis
 
   override def receive: Receive = {
-    case event:Created =>
-    case event:Deleted =>
-    case event:Modified =>
+    case _:Created =>
+      /*
+       * Initialize the file source and stream lines
+       * to event handler
+       */
+      val fileTailSource = FileTailSource.lines(
+        path = path,
+        maxLineSize = maxLineSize,
+        pollingInterval = pollingInterval
+      )
+      .recoverWithRetries(1, {
+        case _: FileNotFoundException => Source.empty
+      })
+
+      fileSource = Some(fileTailSource)
+      fileSource.get.runForeach(line => send(line))
+
+    case _:Deleted =>
+      /*
+       * Do nothing as the file source is configured
+       * (see `recoverWithRetries`) to automatically
+       * shutdown, if the respective fill is deleted
+       */
+      context.stop(self)
+
+    case _:Modified =>
+      /*
+       * Do nothing as the file source is implemented
+       * to automatically detected changes
+       */
     case _ =>
       throw new Exception(s"Unknown file event detected")
   }
 
+  private def send(line:String):Unit = ???
 }

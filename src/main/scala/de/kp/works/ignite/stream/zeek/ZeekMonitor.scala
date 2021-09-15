@@ -105,11 +105,11 @@ class ZeekMonitor(zeekFolder: String, eventHandler: ZeekEventHandler) {
      * created.
      */
     val fileName = path.toFile.getName
-    if (!actors.contains(fileName)) {
-      actors += fileName -> buildFileActor(path)
-    }
+    if (actors.contains(fileName)) return
 
+    actors += fileName -> buildFileActor(path)
     actors(fileName) ! Created
+
   }
 
   private def onDeleted(path:Path):Unit = {
@@ -127,9 +127,7 @@ class ZeekMonitor(zeekFolder: String, eventHandler: ZeekEventHandler) {
     if (!isLogFile(path)) return
 
     val fileName = path.toFile.getName
-    if (!actors.contains(fileName)) {
-      actors += fileName -> buildFileActor(path)
-    }
+    if (!actors.contains(fileName)) return
 
     actors(fileName) ! Modified
 
