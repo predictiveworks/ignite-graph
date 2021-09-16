@@ -44,7 +44,7 @@ class CTIProcessor(
    * Apache Ignite SQL query to retrieve the content of
    * the temporary notification cache including the _key
    */
-  private val eventQuery =
+  override protected val eventQuery =
     new SqlFieldsQuery(s"select $eventFields from ${CTIConstants.OPENCTI_CACHE}")
   /**
    * This store is introduced to collect the result from the
@@ -86,18 +86,6 @@ class CTIProcessor(
     cache.clearAll(keys)
 
   }
-  /**
-   * This method is responsible for retrieving the streaming
-   * events, i.e. entries of the Apache Ignite stream cache
-   */
-  private def readEvents():java.util.List[java.util.List[_]] = {
-    /*
-     * The default processing retrieves all entries of the
-     * Apache Ignite stream cache without preprocessing
-     */
-    cache.query(eventQuery).getAll
-  }
-
   /**
    * A helper method to process the extracted cache entries
    * and transform and write to predefined output

@@ -23,10 +23,31 @@ import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.IgniteProcessor
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
+import org.apache.ignite.cache.query.SqlFieldsQuery
+
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 class ZeekProcessor(
    cache:IgniteCache[String,BinaryObject],
    connect:IgniteConnect) extends IgniteProcessor(cache) {
+
+  private val eventFields = Array(
+    "_key",
+    ZeekConstants.FIELD_TYPE,
+    ZeekConstants.FIELD_DATA).mkString(",")
+  /**
+   * Apache Ignite SQL query to retrieve the content of
+   * the temporary notification cache including the _key
+   */
+  override protected val eventQuery =
+    new SqlFieldsQuery(s"select $eventFields from ${ZeekConstants.ZEEK_CACHE}")
+  /**
+   * This store is introduced to collect the result from the
+   * event query in a distinct manner; the eventStore is used
+   * as a buffer before it is flushed and cleared
+   */
+  private val eventStore = mutable.HashMap.empty[String,ZeekEvent]
   /**
    * The frequency we flush the internal store and write
    * data to the predefined output is currently set to
@@ -34,18 +55,37 @@ class ZeekProcessor(
    */
   private val conf = WorksConf.getStreamerCfg(WorksConf.ZEEK_CONF)
   override protected val flushWindow: Int = conf.getInt("flushWindow")
-
-  // TODO
   /**
    * A helper method to apply the event query to the selected
    * Ignite cache, retrieve the results and write them to the
    * eventStore
    */
-  override protected def extractEntries(): Unit = ???
+  override protected def extractEntries(): Unit = {
 
+    val keys = new java.util.HashSet[String]()
+    /*
+     * Extract & transform cache entries
+     */
+    readEvents().foreach(values => {
+      val k = values.head.asInstanceOf[String]
+      keys.add(k)
+
+      val mutable.Buffer(eventType, eventData) =
+        values.tail.map(_.asInstanceOf[String])
+
+      eventStore += k -> ZeekEvent(eventType, eventData)
+    })
+    /*
+     * Clear extracted cache entries fast
+     */
+    cache.clearAll(keys)
+
+  }
   /**
    * A helper method to process the extracted cache entries
    * and transform and write to predefined output
    */
-  override protected def processEntries(): Unit = ???
+  override protected def processEntries(): Unit = {
+    // TODO
+  }
 }

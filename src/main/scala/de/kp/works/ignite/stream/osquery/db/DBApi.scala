@@ -274,7 +274,7 @@ class DBApi(ic:IgniteContext) {
       task.status
     ).map(_.toString)
 
-    db.updateTask(values)
+    db.createOrUpdateTask(values)
 
   }
 

@@ -36,7 +36,7 @@ class FiwareProcessor(
   cache:IgniteCache[String,BinaryObject],
   connect:IgniteConnect) extends IgniteProcessor(cache) {
 
-  private val notificationFields = Array(
+  private val eventFields = Array(
     "_key",
     FiwareConstants.FIELD_SERVICE,
     FiwareConstants.FIELD_SERVICE_PATH,
@@ -45,14 +45,14 @@ class FiwareProcessor(
    * Apache Ignite SQL query to retrieve the content of
    * the temporary notification cache including the _key
    */
-  private val notificationQuery =
-    new SqlFieldsQuery(s"select $notificationFields from ${FiwareConstants.FIWARE_CACHE}")
+  override protected val eventQuery =
+    new SqlFieldsQuery(s"select $eventFields from ${FiwareConstants.FIWARE_CACHE}")
   /**
    * This store is introduced to collect the result from the
    * event query in a distinct manner; the eventStore is used
    * as a buffer before it is flushed and cleared
    */
-  private val notificationStore = mutable.HashMap.empty[String,FiwareNotification]
+  private val eventStore = mutable.HashMap.empty[String,FiwareNotification]
   /**
    * The frequency we flush the internal store and write
    * data to the predefined output is currently set to
@@ -60,7 +60,6 @@ class FiwareProcessor(
    */
   private val conf = WorksConf.getStreamerCfg(WorksConf.FIWARE_CONF)
   override val flushWindow:Int = conf.getInt("flushWindow")
-
   /**
    * A helper method to apply the event query to the selected
    * Ignite cache, retrieve the results and write them to the
@@ -79,25 +78,13 @@ class FiwareProcessor(
       val mutable.Buffer(service, servicePath, payload) =
         values.tail.map(_.asInstanceOf[String])
 
-      notificationStore += k -> FiwareNotification(service,servicePath, JsonParser.parseString(payload).getAsJsonObject)
+      eventStore += k -> FiwareNotification(service,servicePath, JsonParser.parseString(payload).getAsJsonObject)
     })
     /*
      * Clear extracted cache entries fast
      */
     cache.clearAll(keys)
   }
-  /**
-   * This method is responsible for retrieving the streaming
-   * events, i.e. entries of the Apache Ignite stream cache
-   */
-  private def readEvents():java.util.List[java.util.List[_]] = {
-    /*
-     * The default processing retrieves all entries of the
-     * Apache Ignite stream cache without preprocessing
-     */
-    cache.query(notificationQuery).getAll
-  }
-
   /**
    * A helper method to process the extracted cache entries
    * and transform and write to predefined output
@@ -108,8 +95,8 @@ class FiwareProcessor(
      * store immediately afterwards and send to
      * transformation stage
      */
-    val notifications = notificationStore.values.toSeq
-    notificationStore.clear
+    val notifications = eventStore.values.toSeq
+    eventStore.clear
     /*
      * Leverage the FiwareGraphFactory to extract
      * vertices and edges from the notifications

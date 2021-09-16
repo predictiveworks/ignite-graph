@@ -20,11 +20,14 @@ package de.kp.works.ignite.stream
 
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
+import org.apache.ignite.cache.query.SqlFieldsQuery
 import org.slf4j.LoggerFactory
 
 abstract class IgniteProcessor(cache:IgniteCache[String,BinaryObject]) {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[IgniteProcessor])
+
+  protected val eventQuery:SqlFieldsQuery
   /**
    * These flags control shutdown mechanism
    */
@@ -67,6 +70,17 @@ abstract class IgniteProcessor(cache:IgniteCache[String,BinaryObject]) {
    * eventStore
    */
   protected def extractEntries():Unit
+  /**
+   * This method is responsible for retrieving the streaming
+   * events, i.e. entries of the Apache Ignite stream cache
+   */
+  protected def readEvents():java.util.List[java.util.List[_]] = {
+    /*
+     * The default processing retrieves all entries of the
+     * Apache Ignite stream cache without preprocessing
+     */
+    cache.query(eventQuery).getAll
+  }
   /**
    * A helper method to process the extracted cache entries
    * and transform and write to predefined output
