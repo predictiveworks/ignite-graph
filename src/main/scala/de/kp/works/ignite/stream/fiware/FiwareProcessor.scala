@@ -20,11 +20,8 @@ package de.kp.works.ignite.stream.fiware
 
 import com.google.gson.JsonParser
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.IgniteTable
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.mutate.IgnitePut
 import de.kp.works.ignite.stream.IgniteProcessor
-import de.kp.works.ignitegraph.IgniteConstants
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.query.SqlFieldsQuery
@@ -60,6 +57,9 @@ class FiwareProcessor(
    */
   private val conf = WorksConf.getStreamerCfg(WorksConf.FIWARE_CONF)
   override val flushWindow:Int = conf.getInt("flushWindow")
+
+  private val writer = new FiwareWriter(connect)
+
   /**
    * A helper method to apply the event query to the selected
    * Ignite cache, retrieve the results and write them to the
@@ -91,43 +91,13 @@ class FiwareProcessor(
    */
   override protected def processEntries(): Unit = {
     /*
-     * Extract notifications from store, clear
-     * store immediately afterwards and send to
-     * transformation stage
+     * Extract events from store, clear store
+     * immediately afterwards and send to writer
      */
-    val notifications = eventStore.values.toSeq
+    val events = eventStore.values.toSeq
     eventStore.clear
-    /*
-     * Leverage the FiwareGraphFactory to extract
-     * vertices and edges from the notifications
-     * by applying plugged data models
-     */
-    val transformer = FiwareGraphFactory.getTransformer
-    val (vertices, edges) = transformer.transform(notifications)
-    /*
-     * Finally write vertices and edges to the
-     * respective output caches
-     */
-    writeVertices(vertices)
-    writeEdges(edges)
 
-  }
-
-  private def writeEdges(edges:Seq[IgnitePut]):Unit = {
-
-    val name = s"${connect.graphNS}_${IgniteConstants.EDGES}"
-    val table = new IgniteTable(name, connect)
-
-    edges.foreach(edge => table.put(edge))
-
-  }
-
-  private def writeVertices(vertices:Seq[IgnitePut]):Unit = {
-
-    val name = s"${connect.graphNS}_${IgniteConstants.VERTICES}"
-    val table = new IgniteTable(name, connect)
-
-    vertices.foreach(vertex => table.put(vertex))
+    writer.write(events)
 
   }
 

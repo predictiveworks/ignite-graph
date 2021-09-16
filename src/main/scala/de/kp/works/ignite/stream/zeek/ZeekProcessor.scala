@@ -55,6 +55,9 @@ class ZeekProcessor(
    */
   private val conf = WorksConf.getStreamerCfg(WorksConf.ZEEK_CONF)
   override protected val flushWindow: Int = conf.getInt("flushWindow")
+
+  private val writer = new ZeekWriter(connect)
+
   /**
    * A helper method to apply the event query to the selected
    * Ignite cache, retrieve the results and write them to the
@@ -86,6 +89,14 @@ class ZeekProcessor(
    * and transform and write to predefined output
    */
   override protected def processEntries(): Unit = {
-    // TODO
+    /*
+     * Extract events from store, clear store
+     * immediately afterwards and send to writer
+     */
+    val events = eventStore.values.toSeq
+    eventStore.clear
+
+    writer.write(events)
+
   }
 }

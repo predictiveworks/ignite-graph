@@ -19,11 +19,8 @@ package de.kp.works.ignite.stream.opencti
  */
 
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.IgniteTable
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.mutate._
 import de.kp.works.ignite.stream.IgniteProcessor
-import de.kp.works.ignitegraph.IgniteConstants
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.query.SqlFieldsQuery
@@ -60,6 +57,7 @@ class CTIProcessor(
   private val conf = WorksConf.getStreamerCfg(WorksConf.OPENCTI_CONF)
   override val flushWindow:Int = conf.getInt("flushWindow")
 
+  private val writer = new CTIWriter(connect)
   /**
    * A helper method to apply the event query to the selected
    * Ignite cache, retrieve the results and write them to the
@@ -93,59 +91,12 @@ class CTIProcessor(
   override protected def processEntries(): Unit = {
     /*
      * Extract events from store, clear store
-     * immediately afterwards and send to
-     * transformation stage
+     * immediately afterwards and send to writer
      */
     val events = eventStore.values.toSeq
     eventStore.clear
-    /*
-     * Leverage the CTITransformer to extract
-     * vertices and edges from the threat events
-     */
-    val transformer = CTITransformer
-    val (vertices, edges) = transformer.transform(events)
-    /*
-     * Finally write vertices and edges to the
-     * respective output caches
-     */
-    writeVertices(vertices)
-    writeEdges(edges)
 
-  }
-
-  private def writeEdges(edges:Seq[IgniteMutation]):Unit = {
-
-    val name = s"${connect.graphNS}_${IgniteConstants.EDGES}"
-    val table = new IgniteTable(name, connect)
-
-    edges.foreach(edge => {
-      edge.mutationType match {
-        case IgniteMutationType.DELETE =>
-          table.delete(edge.asInstanceOf[IgniteDelete])
-        case IgniteMutationType.INCREMENT =>
-          table.increment(edge.asInstanceOf[IgniteIncrement])
-        case IgniteMutationType.PUT =>
-          table.put(edge.asInstanceOf[IgnitePut])
-      }
-    })
-
-  }
-
-  private def writeVertices(vertices:Seq[IgniteMutation]):Unit = {
-
-    val name = s"${connect.graphNS}_${IgniteConstants.VERTICES}"
-    val table = new IgniteTable(name, connect)
-
-    vertices.foreach(vertex => {
-      vertex.mutationType match {
-        case IgniteMutationType.DELETE =>
-          table.delete(vertex.asInstanceOf[IgniteDelete])
-        case IgniteMutationType.INCREMENT =>
-          table.increment(vertex.asInstanceOf[IgniteIncrement])
-        case IgniteMutationType.PUT =>
-          table.put(vertex.asInstanceOf[IgnitePut])
-      }
-    })
+    writer.write(events)
 
   }
 
