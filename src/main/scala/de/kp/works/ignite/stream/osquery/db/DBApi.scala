@@ -96,7 +96,7 @@ case class OsqueryQuery(
     * This is a timestamp to define the earliest use
     * of this distributed query (schedule)
     */
-   notBefore:Long)
+   notbefore:Long)
 
 case class OsqueryQueryTask(
    /*
@@ -240,7 +240,7 @@ class DBApi(ic:IgniteContext) {
       node.lastCheckIn,
       node.lastAddress)
 
-     db.updateNode(values)
+     db.createOrUpdateNode(values)
 
    }
   /**

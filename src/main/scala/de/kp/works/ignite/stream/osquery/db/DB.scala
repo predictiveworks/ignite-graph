@@ -20,11 +20,10 @@ package de.kp.works.ignite.stream.osquery.db
 
 import com.google.gson._
 import de.kp.works.conf.WorksConf
-import org.apache.ignite.Ignite
 import org.apache.ignite.spark.IgniteContext
-import org.apache.spark.sql.DataFrame
 
 import java.util
+import scala.collection.JavaConversions._
 
 /**
  * Osquery uses Apache Ignite as internal database
@@ -60,74 +59,29 @@ object DB {
 }
 
 class DB(ic:IgniteContext) {
-  /*
-   * SQL CREATE TABLE STATEMENTS
-   */
-  private val USING = "org.apache.spark.sql.redis"
-  private val CREATE_TABLE = "create table if not exists %1(%2) using %3 options (table '%1')"
 
   private val ignite = ic.ignite()
   private val namespace = WorksConf.getNSCfg(WorksConf.OSQUERY_CONF)
 
   /** NODE **/
 
-  def updateNode(values:Seq[Any]):Unit = {
-    DBUtil.updateNode(ignite, namespace, values)
+  def createOrUpdateNode(values:Seq[Any]):Unit = {
+    DBUtil.createOrUpdateNode(ignite, namespace, values)
   }
 
   /** QUERY **/
 
-  def createQuery(values:Seq[String]):Unit = {
-    /*
-     * It is expected that the values are in the same order
-     * as the defined columns:
-     *
-     * 0: uuid string
-     * 1: timestamp long
-     * 2: description string
-     * 3: sql string
-     * 4: notbefore long
-     */
-    val sqlTpl = "insert into queries values ('%0', %1, '%2', '%3', %4)"
-    insert(values, sqlTpl)
-
-  }
-
-  def updateQuery(values: Seq[String]):Unit = {
-    /*
-     * It is expected that the values are in the same order
-     * as the defined columns:
-     *
-     * 0: uuid string
-     * 1: timestamp long
-     * 2: description string
-     * 3: sql string
-     * 4: notbefore long
-     */
-    val sqlTpl = "insert overwrite queries values ('%0', %1, '%2', '%3', %4)"
-    insert(values, sqlTpl)
-
+  def createOrUpdateQuery(values: Seq[String]):Unit = {
+    DBUtil.createOrUpdateQuery(ignite, namespace, values)
   }
 
   /** TASK **/
 
-  def createTask(values:Seq[String]):Unit = {
-    /*
-     * It is expected that the values are in the same order
-     * as the defined columns:
-     *
-     * 0: uuid string
-     * 1: timestamp long
-     * 2: node string
-     * 3: query string
-     * 4: status string
-     */
-    val sqlTpl = "insert into tasks values ('%0', %1, '%2', '%3', '%4')"
-    insert(values, sqlTpl)
-
+  def createOrUpdateTask(values:Seq[String]):Unit = {
+    DBUtil.createOrUpdateTask(ignite, namespace, values)
   }
 
-  def updateTask(task:OsqueryQueryTask):Unit = {
+  def createOrUpdateTask(task:OsqueryQueryTask):Unit = {
     /*
      * It is expected that the values are in the same order
      * as the defined columns:
@@ -146,84 +100,51 @@ class DB(ic:IgniteContext) {
       task.status
     ).map(_.toString)
 
-    updateTask(values)
-
-  }
-  def updateTask(values:Seq[String]):Unit = {
-    /*
-     * It is expected that the values are in the same order
-     * as the defined columns:
-     *
-     * 0: uuid string
-     * 1: timestamp long
-     * 2: node string
-     * 3: query string
-     * 4: status string
-     */
-    val sqlTpl = "insert overwrite tasks values ('%0', %1, '%2', '%3', '%4')"
-    insert(values, sqlTpl)
+    createOrUpdateTask(values)
 
   }
 
   /** CONFIGURATION **/
 
-  def createConfiguration(values:Seq[String]):Unit = {
-    /*
-     * It is expected that the values are in the same order
-     * as the defined columns:
-     *
-     * 0: uuid string
-     * 1: timestamp long
-     * 2: node string
-     * 3: config string
-     */
-    val sqlTpl = "insert into configurations values ('%0', %1, '%2', '%3', '%4')"
-    insert(values, sqlTpl)
-
-  }
-
-  def updateConfiguration(values:Seq[String]):Unit = {
-    /*
-     * It is expected that the values are in the same order
-     * as the defined columns:
-     *
-     * 0: uuid string
-     * 1: timestamp long
-     * 2: node string
-     * 3: config string
-     */
-    val sqlTpl = "insert overwrite configurations values ('%0', %1, '%2', '%3', '%4')"
-    insert(values, sqlTpl)
-
-  }
-  /**
-   * This method leverages Apache Spark to create or
-   * update data in Redis "tables"
-   */
-  private def insert(values:Seq[String], sqlTpl:String):Unit = {
-    var insertSql = sqlTpl
-
-    values.zipWithIndex.foreach{ case(value, index) =>
-      insertSql = insertSql.replace(s"%$index", value)
-    }
-
-    // TODO
-    throw new Exception("not implemented yet")
-
+  def createOrUpdateConfiguration(values:Seq[String]):Unit = {
+    DBUtil.createOrUpdateConfiguration(ignite, namespace, values)
   }
 
   /** READ OPERATIONS - CONFIGURATION **/
 
-  def readConfigByNode(value:String):String = {
+  def readConfigByNode(node:String):String = {
 
     try {
+      /*
+       * Build SQL query for the [configurations] cache
+       */
+      val cacheName = s"${namespace}_configurations"
+      val fields = Array(
+        "_key",
+        "uuid",
+        "timestamp",
+        "node",
+        "config"
+      ).mkString(",")
+      /*
+       * This method expects that the configuration cache
+       * is created and filled with node specific configurations
+       */
+      val sql = s"select $fields from $cacheName where node = '$node'"
+      val sqlResult:util.List[java.util.List[_]] = DBUtil.readSql(ignite, cacheName, sql)
 
-      val sql = s"select config from configurations where node = '$value'"
-      // TODO
-      val result:DataFrame = null
+      val configs = sqlResult.map(config => {
+        /*
+         * 0: _key string
+         * 1: uuid string
+         * 2: timestamp long
+         * 3: node string
+         * 4: config string
+         */
+        config.get(4).asInstanceOf[String]
+      })
 
-      val configs = result.collect.map(row => row.getString(0))
-      configs(0)
+      configs.head
 
     } catch {
       case _:Throwable => null
@@ -237,16 +158,31 @@ class DB(ic:IgniteContext) {
    * This method retrieves a specific node instance
    * that is identified by its shared `key`
    */
-  def readNodeByKey(value:String):OsqueryNode = {
+  def readNodeByKey(key:String):OsqueryNode = {
 
     try {
+      /*
+       * Build SQL query for the [nodes] cache
+       */
+      val cacheName = s"${namespace}_nodes"
+      val fields = Array(
+        "_key",
+        "uuid",
+        "timestamp",
+        "active",
+        "enrolled",
+        "secret",
+        "key",
+        "host",
+        "checkin",
+        "address"
+      ).mkString(",")
 
-      val sql = s"select * from nodes where key = '$value'"
-      // TODO
-      val result:DataFrame = null
+      val sql = s"select $fields from $cacheName where key = '$key'"
+      val sqlResult:util.List[java.util.List[_]] = DBUtil.readSql(ignite, cacheName, sql)
 
-      val nodes = dataframe2Nodes(result)
-      nodes(0)
+      val nodes = sqlResult2Nodes(sqlResult)
+      nodes.head
 
     } catch {
       case _:Throwable => null
@@ -257,16 +193,31 @@ class DB(ic:IgniteContext) {
    * This method retrieves a specific node instance
    * that is identified by its shared `secret`
    */
-  def readNodeBySecret(value:String):OsqueryNode = {
+  def readNodeBySecret(secret:String):OsqueryNode = {
 
     try {
+      /*
+       * Build SQL query for the [nodes] cache
+       */
+      val cacheName = s"${namespace}_nodes"
+      val fields = Array(
+        "_key",
+        "uuid",
+        "timestamp",
+        "active",
+        "enrolled",
+        "secret",
+        "key",
+        "host",
+        "checkin",
+        "address"
+      ).mkString(",")
 
-      val sql = s"select * from nodes where secret = '$value'"
-      // TODO
-      val result:DataFrame = null
+      val sql = s"select $fields from $cacheName where key = '$secret'"
+      val sqlResult:util.List[java.util.List[_]] = DBUtil.readSql(ignite, cacheName, sql)
 
-      val nodes = dataframe2Nodes(result)
-      nodes(0)
+      val nodes = sqlResult2Nodes(sqlResult)
+      nodes.head
 
     } catch {
       case _:Throwable => null
@@ -283,13 +234,43 @@ class DB(ic:IgniteContext) {
   def readNodeHealth(uuid:String, interval:Long):String = {
 
     try {
+      /*
+       * Build SQL query for the [nodes] cache
+       */
+      val cacheName = s"${namespace}_nodes"
+      val fields = Array(
+        "_key",
+        "uuid",
+        "timestamp",
+        "active",
+        "enrolled",
+        "secret",
+        "key",
+        "host",
+        "checkin",
+        "address"
+      ).mkString(",")
 
-      val sql = s"select checkin from nodes where uuid = '$uuid'"
-      // TODO
-      val result:DataFrame = null
+      val sql = s"select $fields from $cacheName where uuid = '$uuid'"
+      val sqlResult:util.List[java.util.List[_]] = DBUtil.readSql(ignite, cacheName, sql)
 
-      val checkins = result.collect.map(row => row.getLong(0))
-      val checkin = checkins(0)
+      val checkins = sqlResult.map(node => {
+        /*
+         * 0: _key string
+         * 1: uuid string
+         * 2: timestamp long
+         * 3: active boolean
+         * 4: enrolled boolean
+         * 5: secret string
+         * 6: key string
+         * 7: host string
+         * 8: checkin long
+         * 9: address string
+         */
+        node.get(8).asInstanceOf[Long]
+      })
+
+      val checkin = checkins.head
 
       val delta = System.currentTimeMillis - checkin
       if (delta > interval) "danger" else ""
@@ -300,24 +281,25 @@ class DB(ic:IgniteContext) {
 
   }
 
-  private def dataframe2Nodes(dataset:DataFrame):Array[OsqueryNode] = {
+  private def sqlResult2Nodes(sqlResult:util.List[java.util.List[_]]):Seq[OsqueryNode] = {
 
-    val rows = dataset.collect()
-    val nodes = rows.map(row => {
+    sqlResult.map(node => {
+      /*
+       * Note, the first position holds the cache key _key
+       */
+      val uuid = node.get(1).asInstanceOf[String]
+      val timestamp = node.get(2).asInstanceOf[Long]
 
-      val uuid = row.getString(0)
-      val timestamp = row.getLong(1)
+      val active = node.get(3).asInstanceOf[Boolean]
+      val enrolled = node.get(4).asInstanceOf[Boolean]
 
-      val active = row.getBoolean(2)
-      val enrolled = row.getBoolean(3)
+      val secret = node.get(5).asInstanceOf[String]
+      val key = node.get(6).asInstanceOf[String]
 
-      val secret = row.getString(4)
-      val key = row.getString(5)
+      val host = node.get(7).asInstanceOf[String]
+      val checkin = node.get(8).asInstanceOf[Long]
 
-      val host = row.getString(6)
-      val checkin = row.getLong(7)
-
-      val address = row.getString(8)
+      val address = node.get(9).asInstanceOf[String]
 
       OsqueryNode(
         uuid           = uuid,
@@ -331,8 +313,6 @@ class DB(ic:IgniteContext) {
         nodeKey        = key)
 
     })
-
-    nodes
 
   }
 
@@ -372,7 +352,7 @@ class DB(ic:IgniteContext) {
       var task = readTaskById(uuid)
       task = task.copy(status = "PENDING", timestamp = now)
 
-      updateTask(task)
+      createOrUpdateTask(task)
       /*
        * Assign (task uuid, sql) to the output
        */
@@ -388,26 +368,105 @@ class DB(ic:IgniteContext) {
    * daemon
    */
   private def readNewQueries(uuid:String, timestamp:Long):Map[String,String] = {
-
+    /*
+     * NOTE: We do not expect to very large caches for `queries`
+     * and `tasks` and therefore do not use Apache Ignite's join
+     * mechanism.
+     */
     try {
+      /*
+       * STEP #1: Retrieve all queries not before `timestamp`
+       * and transform into a lookup dataset for the respective
+       * SQL statements (`sql`)
+       */
+      val queries = {
+        /*
+          * Build SQL query for the [queries] cache
+          */
+        val cacheName = s"${namespace}_queries"
+        val fields = Array(
+          "_key",
+          "uuid",
+          "timestamp",
+          "description",
+          "sql",
+          "notbefore"
+        ).mkString(",")
 
-      val sql = s"select tasks.uuid, queries.sql from tasks inner join queries on tasks.query = queries.uuid where tasks.node = '$uuid' and tasks.status = 'NEW' and queries.notbefore < $timestamp"
-      // TODO
-      val result:DataFrame = null
+        val sql = s"select $fields from $cacheName where notbefore < $timestamp"
+        val sqlResult:util.List[java.util.List[_]] = DBUtil.readSql(ignite, cacheName, sql)
 
-      val rows = result.collect
-      rows.map(row => {
+        sqlResult2Queries(sqlResult)
+          /*
+           * The queries dataset can be restricted
+           * to `uuid` and `sql`
+           */
+          .map(query => (query.uuid, query.sql))
+       }
 
-        val task_uuid = row.getString(0)
-        val query_sql = row.getString(1)
+      val quuids = queries.map{case(uuid, _) => s"'$uuid''"}.mkString(",")
+      /*
+       * STEP #2: Retrieve all `tasks` that refer to node `uuid`
+       * and status `NEW` and are related to the retrieved queries
+       */
+      val tasks = {
+        /*
+          * Build SQL query for the [task] cache
+          */
+        val cacheName = s"${namespace}_tasks"
+        val fields = Array(
+          "_key",
+          "uuid",
+          "timestamp",
+          "node",
+          "query",
+          "status"
+        ).mkString(",")
 
-        (task_uuid, query_sql)
+        val sql = s"select $fields from $cacheName where node = '$uuid' and status = 'NEW' and query in ($quuids)"
+        val sqlResult:util.List[java.util.List[_]] = DBUtil.readSql(ignite, cacheName, sql)
 
-      }).toMap
+        sqlResult2Tasks(sqlResult)
+          /*
+           * The tasks dataset can be restricted
+           * to `uuid` and `query`
+           */
+          .map(task => (task.uuid, task.query))
+      }
+      /*
+       * STEP #3: Replace the query placeholder by the
+       * referenced SQL statement
+       */
+      val sqlLookup = queries.toMap
+      tasks.map{case(uuid, query) => (uuid, sqlLookup(query))}.toMap
 
     } catch {
       case _:Throwable => null
     }
+
+  }
+
+  private def sqlResult2Queries(sqlResult:util.List[java.util.List[_]]):Seq[OsqueryQuery] = {
+
+    sqlResult.map(query => {
+      /*
+       * Note, the first position holds the cache key _key
+       */
+      val uuid = query.get(1).asInstanceOf[String]
+      val timestamp = query.get(2).asInstanceOf[Long]
+
+      val description = query.get(3).asInstanceOf[String]
+      val sql = query.get(4).asInstanceOf[String]
+
+      val notbefore = query.get(5).asInstanceOf[Long]
+
+      OsqueryQuery(
+        uuid        = uuid,
+        timestamp   = timestamp,
+        description = description,
+        sql         = sql,
+        notbefore   = notbefore)
+    })
 
   }
 
@@ -416,13 +475,24 @@ class DB(ic:IgniteContext) {
   def readTaskById(uuid:String):OsqueryQueryTask = {
 
     try {
+      /*
+       * Build SQL query for the [task] cache
+       */
+      val cacheName = s"${namespace}_tasks"
+      val fields = Array(
+        "_key",
+        "uuid",
+        "timestamp",
+        "node",
+        "query",
+        "status"
+      ).mkString(",")
 
-      val sql = s"select * from tasks where uuid = '$uuid'"
-      // TODO
-      val result:DataFrame = null
+      val sql = s"select $fields from $cacheName where uuid = '$uuid'"
+      val sqlResult:util.List[java.util.List[_]] = DBUtil.readSql(ignite, cacheName, sql)
 
-      val tasks = dataframe2Tasks(result)
-      tasks(0)
+      val tasks = sqlResult2Tasks(sqlResult)
+      tasks.head
 
     } catch {
       case _:Throwable => null
@@ -430,18 +500,19 @@ class DB(ic:IgniteContext) {
 
   }
 
-  private def dataframe2Tasks(dataset:DataFrame):Array[OsqueryQueryTask] = {
+  private def sqlResult2Tasks(sqlResult:util.List[java.util.List[_]]):Seq[OsqueryQueryTask] = {
 
-    val rows = dataset.collect()
-    val tasks = rows.map(row => {
+    sqlResult.map(task => {
+      /*
+       * Note, the first position holds the cache key _key
+       */
+      val uuid = task.get(1).asInstanceOf[String]
+      val timestamp = task.get(2).asInstanceOf[Long]
 
-      val uuid = row.getString(0)
-      val timestamp = row.getLong(1)
+      val node = task.get(3).asInstanceOf[String]
+      val query = task.get(4).asInstanceOf[String]
 
-      val node = row.getString(2)
-      val query = row.getString(3)
-
-      val status = row.getString(4)
+      val status = task.get(5).asInstanceOf[String]
 
       OsqueryQueryTask(
         uuid      = uuid,
@@ -451,8 +522,6 @@ class DB(ic:IgniteContext) {
         status    = status)
 
     })
-
-    tasks
 
   }
 

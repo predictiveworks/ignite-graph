@@ -24,9 +24,9 @@ import de.kp.works.ignite.stream.osquery.db.DBApi
 
 import scala.collection.JavaConversions._
 /**
- * This actor is responsible to process via HTTP(s)
- * provided Osquery node configuration and persist
- * them in the respective Apache Ignite cache
+ * This actor processes configuration requests from an Osquery agent,
+ * and publishes existing configuration that refer to the provided
+ * node key
  */
 class ConfigActor(api:DBApi) extends BaseActor(api) {
 

@@ -19,6 +19,7 @@ package de.kp.works.ignite.stream.osquery.db
  */
 
 import org.apache.ignite.binary.BinaryObject
+import org.apache.ignite.cache.query.SqlFieldsQuery
 import org.apache.ignite.cache.{CacheMode, QueryEntity}
 import org.apache.ignite.configuration.CacheConfiguration
 import org.apache.ignite.{Ignite, IgniteCache}
@@ -45,9 +46,58 @@ object DBUtil {
 
   }
 
+  /** SQL QUERY OPERATIONS **/
+
+  /**
+   * A basic method to apply a [SqlFieldsQuery]
+   * to a certain Apache Ignite cache
+   */
+  def readSql(ignite:Ignite, cacheName:String, readSql:String): util.List[java.util.List[_]] = {
+
+    val query = new SqlFieldsQuery(readSql)
+
+    val cache = ignite.cache[String, BinaryObject](cacheName)
+    cache.query(query).getAll
+
+  }
+
+  /** CONFIGURATION OPERATIONS **/
+
+  def createOrUpdateConfiguration(ignite:Ignite, namespace:String, values:Seq[Any]):Unit = {
+
+    val cacheName = namespace + "_configurations"
+    val cache = ignite.cache[String, BinaryObject](cacheName)
+    /*
+     * It is expected that the values are in the same order
+     * as the defined columns:
+     *
+     * 0: uuid string
+     * 1: timestamp long
+     * 2: node string
+     * 3: config string
+     */
+    val columnNames = Array("uuid", "timestamp", "node", "config")
+    /*
+     * Build cache value
+     */
+    val builder = ignite.binary().builder(cacheName)
+    columnNames.zip(values).foreach{ case(name, value) => builder.setField(name, value)}
+
+    val cacheValue = builder.build()
+    /*
+     * The cache key is built from the content
+     * to enable the detection of duplicates.
+     */
+    val serialized = values.map(_.toString).mkString("#")
+    val cacheKey = new String(MessageDigest.getInstance("MD5")
+      .digest(serialized.getBytes("UTF-8")))
+
+    cache.put(cacheKey, cacheValue)
+
+  }
   /** NODE OPERATIONS **/
 
-  def updateNode(ignite:Ignite, namespace:String, values:Seq[Any]):Unit = {
+  def createOrUpdateNode(ignite:Ignite, namespace:String, values:Seq[Any]):Unit = {
 
     val cacheName = namespace + "_nodes"
     val cache = ignite.cache[String, BinaryObject](cacheName)
@@ -65,7 +115,79 @@ object DBUtil {
      * 7: checkin long
      * 8: address string
      */
-    val columnNames = Array("uuid", "timestamp", "active", "enrolled", "secret", "key", "host", "checkin", "address" )
+    val columnNames = Array("uuid", "timestamp", "active", "enrolled", "secret", "key", "host", "checkin", "address")
+    /*
+     * Build cache value
+     */
+    val builder = ignite.binary().builder(cacheName)
+    columnNames.zip(values).foreach{ case(name, value) => builder.setField(name, value)}
+
+    val cacheValue = builder.build()
+    /*
+     * The cache key is built from the content
+     * to enable the detection of duplicates.
+     */
+    val serialized = values.map(_.toString).mkString("#")
+    val cacheKey = new String(MessageDigest.getInstance("MD5")
+      .digest(serialized.getBytes("UTF-8")))
+
+    cache.put(cacheKey, cacheValue)
+
+  }
+
+  /** QUERY OPERATIONS **/
+
+  def createOrUpdateQuery(ignite:Ignite, namespace:String, values:Seq[Any]):Unit = {
+
+    val cacheName = namespace + "_queries"
+    val cache = ignite.cache[String, BinaryObject](cacheName)
+    /*
+     * It is expected that the values are in the same order
+     * as the defined columns:
+     *
+     * 0: uuid string
+     * 1: timestamp long
+     * 2: description string
+     * 3: sql string
+     * 4: notbefore long
+     */
+    val columnNames = Array("uuid", "timestamp", "description", "sql", "notbefore")
+    /*
+     * Build cache value
+     */
+    val builder = ignite.binary().builder(cacheName)
+    columnNames.zip(values).foreach{ case(name, value) => builder.setField(name, value)}
+
+    val cacheValue = builder.build()
+    /*
+     * The cache key is built from the content
+     * to enable the detection of duplicates.
+     */
+    val serialized = values.map(_.toString).mkString("#")
+    val cacheKey = new String(MessageDigest.getInstance("MD5")
+      .digest(serialized.getBytes("UTF-8")))
+
+    cache.put(cacheKey, cacheValue)
+
+  }
+
+  /** TASK OPERATIONS **/
+
+  def createOrUpdateTask(ignite:Ignite, namespace:String, values:Seq[Any]):Unit = {
+
+    val cacheName = namespace + "_tasks"
+    val cache = ignite.cache[String, BinaryObject](cacheName)
+    /*
+     * It is expected that the values are in the same order
+     * as the defined columns:
+     *
+     * 0: uuid string
+     * 1: timestamp long
+     * 2: node string
+     * 3: query string
+     * 4: status string
+     */
+    val columnNames = Array("uuid", "timestamp", "node", "query", "status")
     /*
      * Build cache value
      */
