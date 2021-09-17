@@ -110,6 +110,10 @@ class TLSServer(api:DBApi) {
   }
 
   private def routes: Route = {
+
+    lazy val adminActor = system
+      .actorOf(Props(new AdminActor(api)), ADMIN_ACTOR)
+
     /*
      * NODE MANAGEMENT
      *
@@ -135,6 +139,7 @@ class TLSServer(api:DBApi) {
       .actorOf(Props(new WriteActor(api, eventHandler.get)), WRITE_ACTOR)
 
     val actors = Map(
+      ADMIN_ACTOR  -> adminActor,
       CONFIG_ACTOR -> configActor,
       ENROLL_ACTOR -> enrollActor,
       LOG_ACTOR    -> logActor,
@@ -144,6 +149,7 @@ class TLSServer(api:DBApi) {
 
     val routes = new TLSRoutes(actors)
 
+    routes.admin ~
     routes.config ~
     routes.enroll ~
     routes.log ~

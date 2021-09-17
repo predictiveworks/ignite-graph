@@ -21,12 +21,20 @@ package de.kp.works.ignite.stream.osquery.fleet
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.BaseStream
 
+/**
+ * The [FleetStream] receives result & status log events from a FleetDM server.
+ * It is expected that filesystem logging is enabled as this Apache Ignite stream
+ * is backed by a File Monitor.
+ *
+ * Different from the [TLSStream], this Ignite streamer does not support distributed
+ * queries.
+ */
 object FleetStream extends BaseStream {
 
   override var channel: String = WorksConf.FLEETDM_CONF
 
   override var programName: String = "FleetStream"
-  override var programDesc: String = "Ignite streaming support for Osquery events."
+  override var programDesc: String = "Ignite streaming support for Fleet log events."
 
   override def launch(args: Array[String]): Unit = {
 

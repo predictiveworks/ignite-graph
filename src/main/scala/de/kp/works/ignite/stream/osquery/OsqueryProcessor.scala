@@ -60,8 +60,12 @@ class OsqueryProcessor(
    */
   private val conf = WorksConf.getStreamerCfg(name)
   override protected val flushWindow: Int = conf.getInt("flushWindow")
-
-  private val writer = new OsqueryWriter(connect)
+  /**
+   * The [OsqueryWriter] supports FleetDM and TLS server
+   * based Osquery events. In order to distinguish between
+   * these use cases, the application `name` is provided.
+   */
+  private val writer = new OsqueryWriter(name, connect)
 
   /**
    * A helper method to apply the event query to the selected

@@ -21,7 +21,7 @@ package de.kp.works.ignite.stream.osquery
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.TableWriter
 
-class OsqueryWriter(connect:IgniteConnect) extends TableWriter(connect) {
+class OsqueryWriter(name:String, connect:IgniteConnect) extends TableWriter(connect) {
 
   // TODO
   def write(events:Seq[OsqueryEvent]):Unit = ???

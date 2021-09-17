@@ -34,6 +34,8 @@ import scala.util.{Failure, Success}
 
 object TLSRoutes {
 
+  val ADMIN_ACTOR = "AdminActor"
+
   val CONFIG_ACTOR = "ConfigActor"
   val ENROLL_ACTOR = "EnrollActor"
 
@@ -43,7 +45,7 @@ object TLSRoutes {
   val WRITE_ACTOR = "WriteActor"
 
 }
-// TODO Management routes
+
 /**
  * [TLSRoutes] support the state-of-the-art communication
  * with an Osquery agent.
@@ -58,6 +60,8 @@ class TLSRoutes(actors:Map[String, ActorRef]) extends CORS {
   /*
    * Each route is accompanied by its own actor
    */
+  private val adminActor = actors(ADMIN_ACTOR)
+
   private val configActor = actors(CONFIG_ACTOR)
   private val enrollActor = actors(ENROLL_ACTOR)
 
@@ -66,15 +70,34 @@ class TLSRoutes(actors:Map[String, ActorRef]) extends CORS {
   private val readActor = actors(READ_ACTOR)
   private val writeActor = actors(WRITE_ACTOR)
 
+  /** ADMIN **/
+
+  def admin:Route = {
+    path("admin") {
+      post {
+        extractAdmin
+      } ~
+        put {
+          extractAdmin
+        }
+    }  ~
+      path("v1" / "admin") {
+        post {
+          extractAdmin
+        } ~
+          put {
+            extractAdmin
+          }
+      }
+  }
+
+  private def extractAdmin = extract(adminActor)
+
   /** CONFIG **/
 
   /**
    * Retrieve an osquery configuration for a given node.
-   * Request processing starts from a low-level HTTP
-   * request.
-   *
-   * Returns an osquery configuration file
-   *
+   * Returns an osquery configuration `file`
    */
   def config:Route = {
     path("config") {

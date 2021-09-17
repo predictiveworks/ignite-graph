@@ -19,7 +19,7 @@ package de.kp.works.ignite.stream.osquery.tls.db
  */
 
 import com.google.gson.{JsonObject, JsonParser}
-import org.apache.ignite.spark.IgniteContext
+import org.apache.ignite.Ignite
 
 case class OsqueryNode(
    /*
@@ -130,7 +130,7 @@ case class OsqueryQueryTask(
  * This object represents the interval interface to the
  * pre-defined and pre-configured nodes
  */
-class DBApi(ic:IgniteContext) {
+class DBApi(ignite:Ignite) {
  /*
   * This method retrieves the registered configuration that refers
   * to a certain remote osquery node:
@@ -168,7 +168,7 @@ class DBApi(ic:IgniteContext) {
   * }
   */
 
-  private val db = DB.getInstance(ic)
+  private val db = DB.getInstance(ignite)
   /**
    * Retrieve configuration for a certain
    * remote osquery node

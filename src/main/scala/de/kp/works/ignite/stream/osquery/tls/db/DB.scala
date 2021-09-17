@@ -20,7 +20,7 @@ package de.kp.works.ignite.stream.osquery.tls.db
 
 import com.google.gson._
 import de.kp.works.conf.WorksConf
-import org.apache.ignite.spark.IgniteContext
+import org.apache.ignite.Ignite
 
 import java.util
 import scala.collection.JavaConversions._
@@ -34,14 +34,14 @@ object DB {
   private var instance:Option[DB] = None
   private var tables:Option[Boolean] = None
 
-  def getInstance(ic:IgniteContext):DB = {
+  def getInstance(ignite:Ignite):DB = {
 
-    if (ic == null) {
+    if (ignite == null) {
       val now = new java.util.Date().toString
-      throw new Exception(s"[ERROR] $now - No Ignite context available.")
+      throw new Exception(s"[ERROR] $now - No Ignite client available.")
     }
     if (instance.isEmpty)
-      instance = Some(new DB(ic))
+      instance = Some(new DB(ignite))
     /*
      * Build all Apache Ignite caches needed to manage
      * configurations, nodes, queries, and tasks
@@ -58,9 +58,8 @@ object DB {
   }
 }
 
-class DB(ic:IgniteContext) {
+class DB(ignite:Ignite) {
 
-  private val ignite = ic.ignite()
   private val namespace = WorksConf.getNSCfg(WorksConf.OSQUERY_CONF)
 
   /** NODE **/

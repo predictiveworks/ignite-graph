@@ -29,6 +29,17 @@ object OsqueryConstants {
   val FIELD_TYPE:String = "eventType"
   val FIELD_DATA:String = "eventData"
 
+  /**
+   * The subsequent fields support the administration
+   * use cases of the TLS server
+   */
+  val CONFIG_REQUEST  = "config_request"
+  val ERROR_MESSAGE   = "error_message"
+  val REQUEST_INVALID = "request_invalid"
+  val REQUEST_TYPE    = "request_type"
+  val REQUEST_DATA    = "request_data"
+
+
   val ADHOC_EVENT:String  = "osquery_adhoc"
   val RESULT_EVENT:String = "osquery_result"
   val STATUS_EVENT:String = "osquery_status"

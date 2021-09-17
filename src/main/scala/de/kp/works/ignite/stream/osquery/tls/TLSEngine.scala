@@ -48,8 +48,7 @@ class TLSEngine(connect:IgniteConnect) extends BaseEngine(connect) {
   private val name = WorksConf.OSQUERY_CONF
   private val conf = WorksConf.getStreamerCfg(name)
 
-  // TODO
-  private val api:DBApi = ???
+  private val api:DBApi = new DBApi(connect.getIgnite)
   /**
    * This is the main method to build the Osquery
    * streaming service (see OsqueryStream object).
