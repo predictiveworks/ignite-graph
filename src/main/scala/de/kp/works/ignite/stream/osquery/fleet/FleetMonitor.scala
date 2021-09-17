@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream.osquery.fleet
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -20,16 +20,17 @@ package de.kp.works.ignite.stream.zeek
 import akka.actor.{ActorRef, Props}
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.FileMonitor
-import de.kp.works.ignite.stream.zeek.actor.ZeekActor
+import de.kp.works.ignite.stream.osquery.OsqueryEventHandler
+import de.kp.works.ignite.stream.osquery.fleet.actor.FleetActor
 
 import java.nio.file.Path
 
-class ZeekMonitor(folder: String, handler: ZeekEventHandler) extends FileMonitor (WorksConf.ZEEK_CONF, folder) {
+class FleetMonitor(folder: String, eventHandler: OsqueryEventHandler) extends FileMonitor(WorksConf.FLEETDM_CONF, folder) {
   /**
    * A helper method to build a file listener actor
    */
   override protected def buildFileActor(path:Path):ActorRef = {
     val actorName = "File-Actor-" + java.util.UUID.randomUUID.toString
-    system.actorOf(Props(new ZeekActor(path, handler)), actorName)
+    system.actorOf(Props(new FleetActor(path, eventHandler)), actorName)
   }
 }

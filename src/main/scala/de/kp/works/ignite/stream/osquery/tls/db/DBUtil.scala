@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.db
+package de.kp.works.ignite.stream.osquery.tls.db
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *

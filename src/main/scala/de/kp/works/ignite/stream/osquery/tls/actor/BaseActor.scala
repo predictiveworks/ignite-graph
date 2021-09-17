@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.actor
+package de.kp.works.ignite.stream.osquery.tls.actor
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -28,7 +28,7 @@ import com.google.gson._
 import com.typesafe.config.Config
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.osquery.OsqueryConstants
-import de.kp.works.ignite.stream.osquery.db.{DBApi, OsqueryNode}
+import de.kp.works.ignite.stream.osquery.tls.db.{DBApi, OsqueryNode}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContextExecutor}

@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.fleet
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -20,7 +20,7 @@ package de.kp.works.ignite.stream.osquery
 
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.osquery.db.DBApi
+import de.kp.works.ignite.stream.osquery.{OsqueryConstants, OsqueryEvent, OsqueryProcessor}
 import de.kp.works.ignite.stream.{BaseEngine, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
@@ -29,34 +29,28 @@ import org.apache.ignite.stream.StreamSingleTupleExtractor
 import java.security.MessageDigest
 import java.util
 import scala.collection.JavaConversions._
-/**
- * [OsqueryEngine] is responsible for streaming Osquery query results
- * and status messages into a temporary cache and also for their final
- * processing as query specific Apache Ignite tables.
- */
-class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
+
+class FleetEngine(connect:IgniteConnect) extends BaseEngine(connect) {
   /*
-   * The name of the temporary cache to write Osquery events to
+   * The name of the temporary cache to write Fleet log events to
    */
   override protected var cacheName: String = OsqueryConstants.OSQUERY_CACHE
 
   if (!WorksConf.isInit)
-    throw new Exception("[OsqueryEngine] No configuration initialized. Streaming cannot be started.")
+    throw new Exception("[FleetEngine] No configuration initialized. Streaming cannot be started.")
 
-  private val conf = WorksConf.getStreamerCfg(WorksConf.OSQUERY_CONF)
-
-  // TODO
-  private val api:DBApi = ???
+  private val name = WorksConf.FLEETDM_CONF
+  private val conf = WorksConf.getStreamerCfg(name)
   /**
-   * This is the main method to build the Osquery
-   * streaming service (see OsqueryStream object).
+   * This is the main method to build the Fleet
+   * streaming service (see FleetStream object).
    *
-   * The respective [IgniteOsqueryContext] combines
+   * The respective [IgniteStreamContext] combines
    * the plain Ignite streamer with the cache and its
    * specific processor.
    *
    * The context also comprises the connector to the
-   * Osquery event stream.
+   * Fleet log event stream.
    */
   override def buildStream: Option[IgniteStreamContext] = {
 
@@ -68,14 +62,14 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
        * Build stream
        */
       val myStream: IgniteStream = new IgniteStream {
-        override val processor = new OsqueryProcessor(myCache, connect)
+        override val processor = new OsqueryProcessor(name, myCache, connect)
       }
       /*
        * Build stream context
        */
       val myStreamContext: IgniteStreamContext = new IgniteStreamContext {
         override val stream: IgniteStream = myStream
-        override val streamer: OsqueryStreamer[String, BinaryObject] = myStreamer
+        override val streamer: FleetStreamer[String, BinaryObject] = myStreamer
 
         override val numThreads: Int = myThreads
       }
@@ -90,7 +84,7 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
   }
 
-  private def prepareStreamer:(IgniteCache[String,BinaryObject],OsqueryStreamer[String,BinaryObject]) = {
+  private def prepareStreamer:(IgniteCache[String,BinaryObject],FleetStreamer[String,BinaryObject]) = {
     /*
      * The auto flush frequency of the stream buffer is
      * internally set to 0.5 sec (500 ms)
@@ -124,13 +118,13 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
      * which buffers will be flushed even if they are not full
      */
     streamer.autoFlushFrequency(autoFlushFrequency)
-    val osqueryStreamer = new OsqueryStreamer[String,BinaryObject](api)
+    val fleetStreamer = new FleetStreamer[String,BinaryObject]()
 
-    osqueryStreamer.setIgnite(ignite)
-    osqueryStreamer.setStreamer(streamer)
+    fleetStreamer.setIgnite(ignite)
+    fleetStreamer.setStreamer(streamer)
     /*
-     * The Osquery extractor is the linking element between the
-     * Osquery events and its specification as Apache Ignite
+     * The Fleet extractor is the linking element between the
+     * Fleet log events and its specification as Apache Ignite
      * cache entry.
      *
      * We currently leverage a single tuple extractor as we do
@@ -138,10 +132,10 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
      * tuple extraction. Additional performance requirements can
      * lead to a channel in the selected extractor
      */
-    val osqueryExtractor = createExtractor
-    osqueryStreamer.setSingleTupleExtractor(osqueryExtractor)
+    val extractor = createExtractor
+    fleetStreamer.setSingleTupleExtractor(extractor)
 
-    (cache, osqueryStreamer)
+    (cache, fleetStreamer)
   }
 
   private def createExtractor: StreamSingleTupleExtractor[OsqueryEvent, String, BinaryObject] = {
@@ -168,7 +162,7 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
   private def buildEntry(event:OsqueryEvent):(String, BinaryObject) = {
 
-    val builder = ignite.binary().builder(OsqueryConstants.OSQUERY_CACHE)
+    val builder = ignite.binary().builder(cacheName)
 
     builder.setField(OsqueryConstants.FIELD_TYPE, event.eventType)
     builder.setField(OsqueryConstants.FIELD_DATA, event.eventData)
@@ -188,6 +182,7 @@ class OsqueryEngine(connect:IgniteConnect) extends BaseEngine(connect) {
       .digest(serialized.getBytes("UTF-8")))
 
     (cacheKey, cacheValue)
+
 
   }
 

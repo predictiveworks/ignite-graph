@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.tls
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,11 +21,11 @@ package de.kp.works.ignite.stream.osquery
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.BaseStream
 
-object OsqueryStream extends BaseStream {
+object TLSStream extends BaseStream {
 
   override var channel: String = WorksConf.OSQUERY_CONF
 
-  override var programName: String = "OsqueryStream"
+  override var programName: String = "TLSStream"
   override var programDesc: String = "Ignite streaming support for Osquery events."
 
   override def launch(args: Array[String]): Unit = {
@@ -43,8 +43,8 @@ object OsqueryStream extends BaseStream {
          * Build streaming context and finally start the
          * service that listens to Osquery events.
          */
-        val ctiIgnite = new OsqueryEngine(connect.get)
-        service = ctiIgnite.buildStream
+        val engine = new TLSEngine(connect.get)
+        service = engine.buildStream
 
         start()
 

@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.tls
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -17,15 +17,15 @@ package de.kp.works.ignite.stream.osquery
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
+
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.http.scaladsl.server.{Directive0, Route}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.DurationInt
 
 /**
  * From https://dzone.com/articles/handling-cors-in-akka-http
@@ -45,6 +45,7 @@ trait CORS {
      */
     `Access-Control-Max-Age`(1.day.toMillis)
   )
+
   /*
    * This directive adds access control headers to normal
    * responses
@@ -52,6 +53,7 @@ trait CORS {
   private def addHeaders(): Directive0 = {
     respondWithHeaders(headers)
   }
+
   /*
    * This method handles pre-flight OPTIONS requests
    */
@@ -62,6 +64,7 @@ trait CORS {
       )
     )
   }
+
   /*
    * Wrap the route with this method to enable
    * adding of CORS headers
@@ -69,10 +72,11 @@ trait CORS {
   def addCors(route: Route): Route = addHeaders() {
     preflightRequestHandler ~ route
   }
+
   /*
    * This is a helper method to enrich a HttpResponse
    * with a CORS header
    */
-  def addCorsHeaders(response: HttpResponse):HttpResponse =
+  def addCorsHeaders(response: HttpResponse): HttpResponse =
     response.withHeaders(headers)
 }

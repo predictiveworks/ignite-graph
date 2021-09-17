@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.zeek.actor
+package de.kp.works.ignite.stream
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -23,9 +23,7 @@ import akka.actor.{Actor, ActorLogging, ActorSystem}
 import akka.stream.ActorMaterializer
 import akka.stream.alpakka.file.scaladsl.FileTailSource
 import akka.stream.scaladsl.Source
-import com.google.gson.JsonParser
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.stream.zeek.{ZeekEvent, ZeekEventHandler}
 
 import java.io.FileNotFoundException
 import java.nio.file.Path
@@ -42,12 +40,12 @@ object FileActor {
 
 }
 
-class FileActor(path:Path, eventHandler: ZeekEventHandler) extends Actor with ActorLogging {
+abstract class FileActor(name:String, path:Path) extends Actor with ActorLogging {
 
   import FileActor._
   /**
    * The actor system is implicitly accompanied by a materializer,
-   * and this materializer is required to retrieve the bytestring
+   * and this materializer is required to retrieve the Bytestring
    */
   implicit val system: ActorSystem = context.system
   implicit val ec: ExecutionContextExecutor = system.dispatcher
@@ -64,7 +62,7 @@ class FileActor(path:Path, eventHandler: ZeekEventHandler) extends Actor with Ac
    */
   private var fileSource: Option[Source[String, NotUsed]] = None
 
-  private val receiverCfg = WorksConf.getReceiverCfg(WorksConf.ZEEK_CONF)
+  private val receiverCfg = WorksConf.getReceiverCfg(name)
   private val maxLineSize = receiverCfg.getInt("maxLineSize")
   /*
    * The polling interval for file changes
@@ -83,9 +81,9 @@ class FileActor(path:Path, eventHandler: ZeekEventHandler) extends Actor with Ac
         maxLineSize = maxLineSize,
         pollingInterval = pollingInterval
       )
-      .recoverWithRetries(1, {
-        case _: FileNotFoundException => Source.empty
-      })
+        .recoverWithRetries(1, {
+          case _: FileNotFoundException => Source.empty
+        })
 
       fileSource = Some(fileTailSource)
       fileSource.get.runForeach(line => send(line))
@@ -99,27 +97,16 @@ class FileActor(path:Path, eventHandler: ZeekEventHandler) extends Actor with Ac
       context.stop(self)
 
     case _:Modified =>
-      /*
-       * Do nothing as the file source is implemented
-       * to automatically detected changes
-       */
+    /*
+     * Do nothing as the file source is implemented
+     * to automatically detected changes
+     */
     case _ =>
       throw new Exception(s"Unknown file event detected")
   }
 
-  private def send(line:String):Unit = {
-    try {
-      /*
-       * Check whether the provided line is
-       * a JSON line
-       */
-      val json = JsonParser.parseString(line)
+  protected def send(line:String):Unit
 
-      val event = ZeekEvent(eventType = path.toFile.getName, eventData = json.toString)
-      eventHandler.eventArrived(event)
-
-    } catch {
-      case _:Throwable => /* Do nothing */
-    }
-  }
 }
+
+

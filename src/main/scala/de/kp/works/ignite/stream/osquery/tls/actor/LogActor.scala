@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.actor
+package de.kp.works.ignite.stream.osquery.tls.actor
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -21,10 +21,10 @@ import akka.actor.Props
 import akka.http.scaladsl.model.HttpRequest
 import akka.pattern.ask
 import akka.routing.{DefaultResizer, RoundRobinPool}
-import de.kp.works.ignite.stream.osquery.actor.ResultActor._
-import de.kp.works.ignite.stream.osquery.actor.StatusActor._
+import de.kp.works.ignite.stream.osquery.tls.actor.ResultActor._
+import de.kp.works.ignite.stream.osquery.tls.actor.StatusActor._
 import de.kp.works.ignite.stream.osquery.{OsqueryConstants, OsqueryEventHandler}
-import de.kp.works.ignite.stream.osquery.db.DBApi
+import de.kp.works.ignite.stream.osquery.tls.db.DBApi
 
 import scala.concurrent.Await
 

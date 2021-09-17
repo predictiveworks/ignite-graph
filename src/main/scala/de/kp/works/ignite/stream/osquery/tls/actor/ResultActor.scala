@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.actor
+package de.kp.works.ignite.stream.osquery.tls.actor
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -19,9 +19,10 @@ package de.kp.works.ignite.stream.osquery.actor
  */
 import akka.http.scaladsl.model.HttpRequest
 import com.google.gson._
-import de.kp.works.ignite.stream.osquery.actor.ResultActor._
-import de.kp.works.ignite.stream.osquery.{OsqueryConstants, OsqueryEvent, OsqueryEventHandler, OsqueryTransform}
-import de.kp.works.ignite.stream.osquery.db.{DBApi, OsqueryNode}
+import de.kp.works.ignite.stream.osquery.tls.TLSTransform
+import de.kp.works.ignite.stream.osquery.tls.actor.ResultActor._
+import de.kp.works.ignite.stream.osquery.{OsqueryConstants, OsqueryEvent, OsqueryEventHandler}
+import de.kp.works.ignite.stream.osquery.tls.db.{DBApi, OsqueryNode}
 
 /*
  * EVENT FORMAT
@@ -123,7 +124,7 @@ class ResultActor(api:DBApi, handler:OsqueryEventHandler) extends BaseActor(api)
         val data = request.data
 
         /* Normalize query result */
-        val eventData = OsqueryTransform.transform(node, data).toString
+        val eventData = TLSTransform.transform(node, data).toString
 
         val event = OsqueryEvent(eventType = OsqueryConstants.RESULT_EVENT, eventData = eventData)
         handler.eventArrived(event)

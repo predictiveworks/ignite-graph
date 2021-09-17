@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.actor
+package de.kp.works.ignite.stream.osquery.tls.actor
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -20,7 +20,7 @@ package de.kp.works.ignite.stream.osquery.actor
 
 import akka.http.scaladsl.model.HttpRequest
 import de.kp.works.ignite.stream.osquery.OsqueryConstants
-import de.kp.works.ignite.stream.osquery.db.DBApi
+import de.kp.works.ignite.stream.osquery.tls.db.DBApi
 
 /**
  *

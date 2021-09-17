@@ -1,17 +1,33 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.tls
+/*
+ * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ *
+ * @author Stefan Krusche, Dr. Krusche & Partner PartG
+ *
+ */
 
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
-
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.stream.osquery.actor._
-import de.kp.works.ignite.stream.osquery.db.DBApi
+import de.kp.works.ignite.stream.osquery.OsqueryEventHandler
+import de.kp.works.ignite.stream.osquery.tls.actor._
+import de.kp.works.ignite.stream.osquery.tls.db.DBApi
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContextExecutor, Future}
@@ -21,9 +37,9 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
  * and status messages to. This Akka-based HTTP(s) server
  * also supports Osquery node configuration and management.
  */
-class OsqueryServer(api:DBApi) {
+class TLSServer(api:DBApi) {
 
-  import OsqueryRoutes._
+  import TLSRoutes._
 
   private var eventHandler:Option[OsqueryEventHandler] = None
   private var server:Option[Future[Http.ServerBinding]] = None
@@ -50,7 +66,7 @@ class OsqueryServer(api:DBApi) {
    * The current implementation leverages the Osquery
    * Streamer as event handler
    */
-  def setEventHandler(handler:OsqueryEventHandler):OsqueryServer = {
+  def setEventHandler(handler:OsqueryEventHandler):TLSServer = {
     this.eventHandler = Some(handler)
     this
   }
@@ -73,7 +89,7 @@ class OsqueryServer(api:DBApi) {
     /*
      * Distinguish between SSL/TLS and non-SSL/TLS requests
      */
-    server = if (OsquerySsl.isServerSsl) {
+    server = if (TLSSsl.isServerSsl) {
       /*
        * The request protocol in the notification url must be
        * specified as 'http://'
@@ -86,7 +102,7 @@ class OsqueryServer(api:DBApi) {
        * be specified as 'https://'. In this case, an SSL
        * security context must be specified
        */
-      val context = OsquerySsl.buildServerContext
+      val context = TLSSsl.buildServerContext
       Some(Http().bindAndHandle(routes, host, port, connectionContext = context))
 
     }
@@ -126,7 +142,7 @@ class OsqueryServer(api:DBApi) {
       WRITE_ACTOR  -> writeActor
     )
 
-    val routes = new OsqueryRoutes(actors)
+    val routes = new TLSRoutes(actors)
 
     routes.config ~
     routes.enroll ~

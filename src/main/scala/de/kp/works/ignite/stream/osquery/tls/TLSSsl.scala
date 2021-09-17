@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.tls
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,7 +22,7 @@ import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.stream.BaseSsl
 
-object OsquerySsl extends BaseSsl {
+object TLSSsl extends BaseSsl {
 
   /**
    * Distinguish between SSL/TLS and non-SSL/TLS requests;

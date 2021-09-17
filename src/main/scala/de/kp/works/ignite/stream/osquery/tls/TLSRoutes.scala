@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.tls
 /*
  * Copyright (c) 2020 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -26,13 +26,13 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.pattern.ask
 import akka.util.{ByteString, Timeout}
-import de.kp.works.ignite.stream.osquery.actor.BaseActor._
+import de.kp.works.ignite.stream.osquery.tls.actor.BaseActor._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success}
 
-object OsqueryRoutes {
+object TLSRoutes {
 
   val CONFIG_ACTOR = "ConfigActor"
   val ENROLL_ACTOR = "EnrollActor"
@@ -43,18 +43,18 @@ object OsqueryRoutes {
   val WRITE_ACTOR = "WriteActor"
 
 }
-
+// TODO Management routes
 /**
- * [OsqueryRoutes] support the state-of-the-art communication
+ * [TLSRoutes] support the state-of-the-art communication
  * with an Osquery agent.
  */
-class OsqueryRoutes(actors:Map[String, ActorRef]) extends CORS {
+class TLSRoutes(actors:Map[String, ActorRef]) extends CORS {
   /*
  	 * Common timeout for all Akka connections
    */
   implicit val timeout: Timeout = Timeout(5.seconds)
 
-  import OsqueryRoutes._
+  import TLSRoutes._
   /*
    * Each route is accompanied by its own actor
    */

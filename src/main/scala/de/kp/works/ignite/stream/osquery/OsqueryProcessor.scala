@@ -28,7 +28,12 @@ import org.apache.ignite.cache.query.SqlFieldsQuery
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
+/**
+ * The [OsqueryProcessor] is a common processor
+ * for both FleetDM and TLS.
+ */
 class OsqueryProcessor(
+  name:String,
   cache:IgniteCache[String,BinaryObject],
   connect:IgniteConnect) extends IgniteProcessor(cache) {
 
@@ -53,7 +58,7 @@ class OsqueryProcessor(
    * data to the predefined output is currently set to
    * 2 times of the stream buffer flush frequency
    */
-  private val conf = WorksConf.getStreamerCfg(WorksConf.OSQUERY_CONF)
+  private val conf = WorksConf.getStreamerCfg(name)
   override protected val flushWindow: Int = conf.getInt("flushWindow")
 
   private val writer = new OsqueryWriter(connect)

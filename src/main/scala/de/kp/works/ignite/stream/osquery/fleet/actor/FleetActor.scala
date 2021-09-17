@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream.osquery.fleet.actor
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -17,19 +17,30 @@ package de.kp.works.ignite.stream.zeek
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
-import akka.actor.{ActorRef, Props}
+
+import com.google.gson.JsonParser
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.stream.FileMonitor
-import de.kp.works.ignite.stream.zeek.actor.ZeekActor
+import de.kp.works.ignite.stream.FileActor
+import de.kp.works.ignite.stream.osquery.{OsqueryEvent, OsqueryEventHandler}
 
 import java.nio.file.Path
 
-class ZeekMonitor(folder: String, handler: ZeekEventHandler) extends FileMonitor (WorksConf.ZEEK_CONF, folder) {
-  /**
-   * A helper method to build a file listener actor
-   */
-  override protected def buildFileActor(path:Path):ActorRef = {
-    val actorName = "File-Actor-" + java.util.UUID.randomUUID.toString
-    system.actorOf(Props(new ZeekActor(path, handler)), actorName)
+class FleetActor(path:Path, eventHandler: OsqueryEventHandler) extends FileActor(WorksConf.FLEETDM_CONF, path) {
+
+  override protected def send(line:String):Unit = {
+    try {
+      /*
+       * Check whether the provided line is
+       * a JSON line
+       */
+      val json = JsonParser.parseString(line)
+
+      val event = OsqueryEvent(eventType = path.toFile.getName, eventData = json.toString)
+      eventHandler.eventArrived(event)
+
+    } catch {
+      case _:Throwable => /* Do nothing */
+    }
   }
+
 }

@@ -26,15 +26,11 @@ object WorksConf {
 
   private val path = "reference.conf"
 
-  private var brokerUrl = ""
-
-  private var httpHost = "127.0.0.1"
-  private var httpPort = 9090
-
-  val FIWARE_CONF  = "fiware"
-  val OPENCTI_CONF = "opencti"
-  val OSQUERY_CONF = "osquery"
-  val ZEEK_CONF    = "zeek"
+  val FIWARE_CONF   = "fiware"
+  val FLEETDM_CONF  = "osquery_fleet"
+  val OPENCTI_CONF  = "opencti"
+  val OSQUERY_CONF  = "osquery_tls"
+  val ZEEK_CONF     = "zeek"
 
   /**
    * This is the reference to the overall configuration
@@ -83,10 +79,12 @@ object WorksConf {
     name match {
       case FIWARE_CONF =>
         cfg.get.getConfig("fiware")
+      case FLEETDM_CONF =>
+        cfg.get.getConfig("osquery_fleet")
       case OPENCTI_CONF =>
         cfg.get.getConfig("opencti")
       case OSQUERY_CONF =>
-        cfg.get.getConfig("osquery")
+        cfg.get.getConfig("osquery_tls")
       case ZEEK_CONF =>
         cfg.get.getConfig("zeek")
       case _ =>
@@ -95,27 +93,13 @@ object WorksConf {
   }
   /**
    * The current version of this project supports four different
-   * data sources, Fiware, OpenCTI, Osquery and Zeek. This choice
-   * is based on our Cy(I)IoT initiative to bring endpoints, network
-   * and data to a single platform.
+   * data sources, Fiware, FleetDM, OpenCTI, Osquery and Zeek.
+   * This choice is based on our Cy(I)IoT initiative to bring
+   * endpoints, network and data to a single platform.
    */
   def getNSCfg(name:String):String = {
-    name match {
-      case FIWARE_CONF =>
-        val conf = cfg.get.getConfig("fiware")
-        conf.getString("namespace")
-      case OPENCTI_CONF =>
-        val conf = cfg.get.getConfig("opencti")
-        conf.getString("namespace")
-      case OSQUERY_CONF =>
-        val conf = cfg.get.getConfig("osquery")
-        conf.getString("namespace")
-      case ZEEK_CONF =>
-        val conf = cfg.get.getConfig("zeek")
-        conf.getString("namespace")
-      case _ =>
-        throw new Exception(s"Namespace for `$name` is not supported.")
-    }
+    val conf = getCfg(name)
+    conf.getString("namespace")
   }
   /**
    * This method offers the configuration for those
@@ -123,34 +107,38 @@ object WorksConf {
    * Receiver
    */
   def getReceiverCfg(name:String):Config = {
-    name match {
-      case OPENCTI_CONF =>
-        val conf = cfg.get.getConfig("opencti")
-        conf.getConfig("receiver")
-      case ZEEK_CONF =>
-        val conf = cfg.get.getConfig("zeek")
-        conf.getConfig("receiver")
-      case _ =>
-        throw new Exception(s"Receiver configuration for `$name` is not supported.")
-    }
-  }
 
+    if (Array(
+      FLEETDM_CONF,
+      OPENCTI_CONF,
+      ZEEK_CONF).contains(name)) {
+
+      val conf = getCfg(name)
+      conf.getConfig("receiver")
+
+    }
+    else
+       throw new Exception(s"Receiver configuration for `$name` is not supported.")
+
+  }
   /**
    * This method offers the configuration for those
    * Apache Ignite streamers, that are based on a
    * HTTP(s) server
    */
   def getServerCfg(name:String):Config = {
-    name match {
-      case FIWARE_CONF =>
-        val conf = cfg.get.getConfig("fiware")
-        conf.getConfig("server")
-      case OSQUERY_CONF =>
-        val conf = cfg.get.getConfig("osquery")
-        conf.getConfig("server")
-      case _ =>
-        throw new Exception(s"Server configuration for `$name` is not supported.")
+
+    if(Array(
+      FIWARE_CONF,
+      OSQUERY_CONF).contains(name)) {
+
+      val conf = getCfg(name)
+      conf.getConfig("server")
+
     }
+    else
+      throw new Exception(s"Server configuration for `$name` is not supported.")
+
   }
   /**
    * This method offers the configuration for the
@@ -158,22 +146,8 @@ object WorksConf {
    * of every data streaming support.
    */
   def getStreamerCfg(name:String): Config = {
-    name match {
-      case FIWARE_CONF =>
-        val conf = cfg.get.getConfig("fiware")
-        conf.getConfig("streamer")
-      case OPENCTI_CONF =>
-        val conf = cfg.get.getConfig("opencti")
-        conf.getConfig("streamer")
-      case OSQUERY_CONF =>
-        val conf = cfg.get.getConfig("osquery")
-        conf.getConfig("streamer")
-      case ZEEK_CONF =>
-        val conf = cfg.get.getConfig("zeek")
-        conf.getConfig("streamer")
-      case _ =>
-        throw new Exception(s"Streamer configuration for `$name` is not supported.")
-    }
+    val conf = getCfg(name)
+    conf.getConfig("streamer")
   }
   /**
    * The name of Actor System used: Fiware and Osquery
@@ -182,10 +156,12 @@ object WorksConf {
    * basis for its file monitor.
    */
   def getSystemName(name:String): String = {
+
     name match {
+      case FLEETDM_CONF => "fleetdm-monitor"
       case FIWARE_CONF  => "fiware-server"
       case OSQUERY_CONF => "osquery-server"
-      case ZEEK_CONF => "zeek-monitor"
+      case ZEEK_CONF    => "zeek-monitor"
       case _ =>
         throw new Exception(s"Actor system for `$name` is not supported.")
     }

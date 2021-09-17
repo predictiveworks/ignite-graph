@@ -1,4 +1,5 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.fleet
+
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -19,25 +20,19 @@ package de.kp.works.ignite.stream.osquery
  */
 
 import de.kp.works.ignite.stream.IgniteStreamer
-import de.kp.works.ignite.stream.osquery.db.DBApi
-import org.apache.ignite.{IgniteException, IgniteLogger}
+import de.kp.works.ignite.stream.osquery.{OsqueryEvent, OsqueryEventHandler}
 import org.apache.ignite.stream.StreamAdapter
+import org.apache.ignite.{IgniteException, IgniteLogger}
 
-trait OsqueryEventHandler {
-
-  def eventArrived(event:OsqueryEvent):Unit
-
-}
-
-class OsqueryStreamer[K,V](api:DBApi)
+class FleetStreamer[K,V]
   extends StreamAdapter[OsqueryEvent, K, V] with OsqueryEventHandler with IgniteStreamer {
 
   /** Logger */
   private val log:IgniteLogger = getIgnite.log()
 
-  /** OsqueryServer */
+  /** FleetDM service */
 
-  private var server:Option[OsqueryServer] = None
+  private var service:Option[FleetService] = None
 
   /** State keeping. */
   private val stopped = true
@@ -47,12 +42,12 @@ class OsqueryStreamer[K,V](api:DBApi)
   override def start():Unit = {
 
     if (!stopped)
-      throw new IgniteException("Attempted to start an already started Osquery Streamer.")
+      throw new IgniteException("Attempted to start an already started Fleet Streamer.")
 
-    server = Some(new OsqueryServer(api))
-    server.get.setEventHandler(this)
+    service = Some(new FleetService())
+    service.get.setEventHandler(this)
 
-    server.get.launch()
+    service.get.start()
 
   }
 
@@ -61,16 +56,16 @@ class OsqueryStreamer[K,V](api:DBApi)
   override def stop():Unit = {
 
     if (stopped)
-      throw new IgniteException("Failed to stop Osquery Streamer (already stopped).")
+      throw new IgniteException("Failed to stop Fleet Streamer (already stopped).")
 
-    if (server.isEmpty)
-      throw new IgniteException("Failed to stop the Osquery Server (never started).")
+    if (service.isEmpty)
+      throw new IgniteException("Failed to stop the Fleet Service (never started).")
 
     /*
      * Stopping the streamer equals stopping
      * the Osquery server
      */
-    server.get.stop()
+    service.get.stop()
 
   }
 
