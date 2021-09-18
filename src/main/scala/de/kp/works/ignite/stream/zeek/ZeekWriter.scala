@@ -26,76 +26,10 @@ import de.kp.works.ignite.stream.zeek.ZeekFormats._
 class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
 
   def write(events:Seq[ZeekEvent]):Unit = {
-    try {
-      /*
-       * STEP #1: Collect Zeek log events with respect
-       * to their eventType (which refers to the name
-       * of the log file)
-       */
-      val data = events
-        /*
-         * Convert `eventType` (file name) into Zeek format
-         * and deserialize event data. Restrict to those
-         * formats that are support by the current version.
-         */
-        .map(event =>
-          (ZeekFormatUtil.fromFile(event.eventType), JsonParser.parseString(event.eventData))
-        )
-        .filter{case(format, _) => format != null}
-        /*
-         * Group logs by format and prepare format specific
-         * log processing
-         */
-        .groupBy{case(format, _) => format}
-        .map{case(format, logs) => (format, logs.map(_._2))}
-        .toSeq
-      /*
-       * STEP #2: Persist logs for each format individually
-       */
-      data.foreach{case(format, logs) => {
-        // TODO
-        format match {
-          case CAPTURE_LOSS =>
-          case CONNECTION =>
-          case DCE_RPC =>
-          case DHCP =>
-          case DNP3 =>
-          case DNS =>
-          case DPD =>
-          case FILES =>
-          case FTP =>
-          case HTTP =>
-          case INTEL =>
-          case IRC =>
-          case KERBEROS =>
-          case MODBUS =>
-          case MYSQL =>
-          case NOTICE =>
-          case NTLM =>
-          case OCSP =>
-          case PE =>
-          case RADIUS =>
-          case RDP =>
-          case RFB =>
-          case SIP =>
-          case SMB_CMD =>
-          case SMB_FILES =>
-          case SMB_MAPPING =>
-          case SMTP =>
-          case SNMP =>
-          case SOCKS =>
-          case SSH =>
-          case SSL =>
-          case STATS =>
-          case SYSLOG =>
-          case TRACEROUTE =>
-          case TUNNEL =>
-          case WEIRD =>
-          case X509 =>
-          case _ => throw new Exception(s"[ZeekWriter] Unknown format `$format.toString` detected.")
-        }
-      }}
 
+    try {
+      val (format, schema, rows) = ZeekTransformer.transform(events)
+      // TODO
     } catch {
       case _:Throwable => /* Do nothing */
     }
