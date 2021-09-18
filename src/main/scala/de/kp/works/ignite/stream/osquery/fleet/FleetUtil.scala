@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream.osquery.fleet
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,20 +18,30 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.TableWriter
+import com.google.gson.{JsonElement, JsonObject}
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types.StructType
 
-class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
+object FleetUtil {
 
-  def write(events:Seq[ZeekEvent]):Unit = {
-
-    try {
-      val (format, schema, rows) = ZeekTransformer.transform(events)
-      // TODO
-    } catch {
-      case _:Throwable => /* Do nothing */
-    }
-
+  def fromResult(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+    logs.map(log => {
+      fromResult(log.getAsJsonObject, schema)
+    })
   }
 
-}
+  def fromResult(oldObject:JsonObject, schema:StructType):Row = ???
+
+  def result():StructType = ???
+
+  def fromStatus(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+    logs.map(log => {
+      fromStatus(log.getAsJsonObject, schema)
+    })
+  }
+
+  def fromStatus(oldObject:JsonObject, schema:StructType):Row = ???
+
+  def status():StructType = ???
+
+  }

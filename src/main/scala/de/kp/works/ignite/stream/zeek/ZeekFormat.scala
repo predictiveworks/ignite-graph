@@ -22,6 +22,7 @@ package de.kp.works.ignite.stream.zeek
  * https://docs.zeek.org/en/master/script-reference/log-files.html
  */
 object ZeekFormats extends Enumeration {
+
   type ZeekFormat = Value
 
   /* Diagnostics :: Packet loss rate

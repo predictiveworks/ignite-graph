@@ -297,6 +297,85 @@ object ZeekUtil {
     StructType(fields)
 
   }
+  /**
+   * dce_rpc (&log)
+   *
+   * {
+   * 	"ts":1361916332.298338,
+   * 	"uid":"CsNHVHa1lzFtvJzT8",
+   * 	"id.orig_h":"172.16.133.6",
+   * 	"id.orig_p":1728,
+   * 	"id.resp_h":"172.16.128.202",
+   * 	"id.resp_p":445,"rtt":0.09211,
+   * 	"named_pipe":"\u005cPIPE\u005cbrowser",
+   * 	"endpoint":"browser",
+   * 	"operation":"BrowserrQueryOtherDomains"
+   * }
+   */
+  def fromDceRpc(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+    logs.map(log => {
+      fromDceRpc(log.getAsJsonObject, schema)
+    })
+  }
+
+  def fromDceRpc(oldObject:JsonObject, schema:StructType):Row = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceInterval(newObject, "rtt")
+
+    newObject = replaceConnId(newObject)
+
+    /* Transform into row */
+    json2Row(newObject, schema)
+
+  }
+
+  def dce_rpc():StructType = {
+
+    var fields = Array(
+
+      /* ts: Timestamp for when the event happened.
+       */
+      StructField("ts", LongType, nullable = false),
+
+      /* uid: A unique identifier of the connection.
+       */
+      StructField("uid", StringType, nullable = false)
+
+    )
+
+    /* id
+     */
+    fields = fields ++ conn_id()
+
+    fields = fields ++ Array(
+      /* rtt: Round trip time from the request to the response. If either the
+       * request or response was not seen, this will be null.
+       */
+      StructField("rtt", LongType, nullable = true),
+
+      /* named_pipe: Remote pipe name.
+       */
+      StructField("named_pipe", StringType, nullable = true),
+
+      /* endpoint: Endpoint name looked up from the uuid.
+       */
+      StructField("endpoint", StringType, nullable = true),
+
+      /* operation: Operation seen in the call.
+       */
+      StructField("operation", StringType, nullable = true)
+
+    )
+
+    StructType(fields)
+
+  }
 
   private def json2Row(jsonObject:JsonObject, schema:StructType):Row = {
 

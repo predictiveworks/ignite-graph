@@ -61,21 +61,23 @@ object ZeekTransformer {
 
         format match {
           case CAPTURE_LOSS =>
-
             val schema = ZeekUtil.capture_loss()
-            val rows = ZeekUtil.fromCaptureLoss(logs, ZeekUtil.capture_loss())
+            val rows = ZeekUtil.fromCaptureLoss(logs, schema)
 
             (format, schema, rows)
-
           case CONNECTION =>
-
             val schema = ZeekUtil.connection()
-            val rows = ZeekUtil.fromConnection(logs, ZeekUtil.capture_loss())
+            val rows = ZeekUtil.fromConnection(logs, schema)
 
             (format, schema, rows)
+         case DCE_RPC =>
+           val schema = ZeekUtil.dce_rpc()
+           val rows = ZeekUtil.fromDceRpc(logs, schema)
 
-//          case DCE_RPC =>
-//          case DHCP =>
+           (format, schema, rows)
+
+
+          //          case DHCP =>
 //          case DNP3 =>
 //          case DNS =>
 //          case DPD =>
@@ -109,7 +111,7 @@ object ZeekTransformer {
 //          case TUNNEL =>
 //          case WEIRD =>
 //          case X509 =>
-          case _ => throw new Exception(s"[ZeekWriter] Unknown format `$format.toString` detected.")
+          case _ => throw new Exception(s"[ZeekTransformer] Unknown format `$format.toString` detected.")
 
         }
       }

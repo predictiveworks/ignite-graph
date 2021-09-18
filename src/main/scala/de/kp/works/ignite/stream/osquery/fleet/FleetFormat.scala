@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream.osquery.fleet
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,20 +18,25 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.TableWriter
+object FleetFormats extends Enumeration {
 
-class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
+  type FleetFormat = Value
 
-  def write(events:Seq[ZeekEvent]):Unit = {
+  val RESULT: FleetFormats.Value = Value(1, "result.log")
+  val STATUS: FleetFormats.Value = Value(2, "status.log")
 
-    try {
-      val (format, schema, rows) = ZeekTransformer.transform(events)
-      // TODO
-    } catch {
-      case _:Throwable => /* Do nothing */
-    }
+}
+
+object FleetFormatUtil {
+
+  def fromFile(fileName:String):FleetFormats.Value = {
+
+    val formats = FleetFormats.values.filter(format => {
+      fileName.contains(format.toString)
+    })
+
+    if (formats.isEmpty) return null
+    formats.head
 
   }
-
 }
