@@ -76,9 +76,18 @@ object ZeekTransformer {
 
            (format, schema, rows)
 
+          case DHCP =>
+            val schema = ZeekUtil.dhcp()
+            val rows = ZeekUtil.fromDhcp(logs, schema)
 
-          //          case DHCP =>
-//          case DNP3 =>
+            (format, schema, rows)
+
+          case DNP3 =>
+            val schema = ZeekUtil.dnp3()
+            val rows = ZeekUtil.fromDnp3(logs, schema)
+
+            (format, schema, rows)
+
 //          case DNS =>
 //          case DPD =>
 //          case FILES =>

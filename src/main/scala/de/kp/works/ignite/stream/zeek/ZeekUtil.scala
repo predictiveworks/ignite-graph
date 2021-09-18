@@ -377,6 +377,237 @@ object ZeekUtil {
 
   }
 
+  /**
+   * dhcp (&log)
+   *
+   * {
+   * 	"ts":1476605498.771847,
+   * 	"uids":["CmWOt6VWaNGqXYcH6","CLObLo4YHn0u23Tp8a"],
+   * 	"client_addr":"192.168.199.132",
+   * 	"server_addr":"192.168.199.254",
+   * 	"mac":"00:0c:29:03:df:ad",
+   * 	"host_name":"DESKTOP-2AEFM7G",
+   * 	"client_fqdn":"DESKTOP-2AEFM7G",
+   * 	"domain":"localdomain",
+   * 	"requested_addr":"192.168.199.132",
+   * 	"assigned_addr":"192.168.199.132",
+   * 	"lease_time":1800.0,
+   * 	"msg_types":["REQUEST","ACK"],
+   * 	"duration":0.000161
+   * }
+   */
+  def fromDhcp(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+    logs.map(log => {
+      fromDhcp(log.getAsJsonObject, schema)
+    })
+  }
+
+  def fromDhcp(oldObject:JsonObject, schema:StructType):Row = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceInterval(newObject, "lease_time")
+
+    newObject = replaceInterval(newObject, "duration")
+
+    /* Transform into row */
+    json2Row(newObject, schema)
+
+
+  }
+
+  def dhcp():StructType = {
+
+    val fields = Array(
+
+      /* ts: The earliest time at which a DHCP message over the associated
+       * connection is observed.
+       */
+      StructField("ts", LongType, nullable = false),
+
+      /* uids: A series of unique identifiers of the connections over which
+       * DHCP is occurring. This behavior with multiple connections is unique
+       * to DHCP because of the way it uses broadcast packets on local networks.
+       */
+      StructField("uids", ArrayType(StringType), nullable = false),
+
+      /* client_addr: IP address of the client. If a transaction is only a client
+       * sending INFORM messages then there is no lease information exchanged so
+       * this is helpful to know who sent the messages.
+       *
+       * Getting an address in this field does require that the client sources at
+       * least one DHCP message using a non-broadcast address.
+       */
+      StructField("client_addr", StringType, nullable = true),
+
+      /* server_addr: IP address of the server involved in actually handing out the
+       * lease. There could be other servers replying with OFFER messages which won’t
+       * be represented here. Getting an address in this field also requires that the
+       * server handing out the lease also sources packets from a non-broadcast IP address.
+       */
+      StructField("server_addr", StringType, nullable = true),
+
+      /* mac: Client’s hardware address.
+       */
+      StructField("mac",StringType, nullable = true),
+
+      /* host_name: Name given by client in Hostname.
+       */
+      StructField("host_name", StringType, nullable = true),
+
+      /* client_fqdn: FQDN given by client in Client FQDN
+       */
+      StructField("client_fqdn", StringType, nullable = true),
+
+      /* domain: Domain given by the server
+       */
+      StructField("domain",StringType, nullable = true),
+
+      /* requested_addr: IP address requested by the client.
+       */
+      StructField("requested_addr",StringType, nullable = true),
+
+      /* assigned_addr: IP address assigned by the server.
+       */
+      StructField("assigned_addr",StringType, nullable = true),
+
+      /* lease_time: IP address lease interval.
+       */
+      StructField("lease_time", LongType, nullable = true),
+
+      /* client_message: Message typically accompanied with a DHCP_DECLINE so the
+       * client can tell the server why it rejected an address.
+       */
+      StructField("client_message", StringType, nullable = true),
+
+      /* server_message: Message typically accompanied with a DHCP_NAK to let the
+       * client know why it rejected the request.
+       */
+      StructField("server_message", StringType, nullable = true),
+
+      /* msg_types: The DHCP message types seen by this DHCP transaction
+       */
+      StructField("msg_types",ArrayType(StringType), nullable = true),
+
+      /* duration: Duration of the DHCP “session” representing the time from the
+       * first message to the last.
+       */
+      StructField("duration", LongType, nullable = true),
+
+      /* msg_orig: The address that originated each message from the msg_types field.
+       */
+      StructField("msg_orig", ArrayType(StringType), nullable = true),
+
+      /* client_software: Software reported by the client in the vendor_class option.
+       */
+      StructField("client_software", StringType, nullable = true),
+
+      /* server_software: Software reported by the server in the vendor_class option.
+       */
+      StructField("server_software", StringType, nullable = true),
+
+      /* circuit_id: Added by DHCP relay agents which terminate switched or permanent circuits.
+       * It encodes an agent-local identifier of the circuit from which a DHCP client-to-server
+       * packet was received. Typically it should represent a router or switch interface number.
+       */
+      StructField("circuit_id", StringType, nullable = true),
+
+      /* agent_remote_id: A globally unique identifier added by relay agents to identify the
+       * remote host end of the circuit.
+       */
+      StructField("agent_remote_id", StringType, nullable = true),
+
+      /* subscriber_id: The subscriber ID is a value independent of the physical network configuration
+       * so that a customer’s DHCP configuration can be given to them correctly no matter where they are
+       * physically connected.
+       */
+      StructField("subscriber_id", StringType, nullable = true)
+
+    )
+
+    StructType(fields)
+
+  }
+  /**
+   * dnp3 (&log)
+   *
+   * A Log of very basic DNP3 analysis script that just records
+   * requests and replies.
+   *
+   * {
+   * 	"ts":1227729908.705944,
+   * 	"uid":"CQV6tj1w1t4WzQpHoe",
+   * 	"id.orig_h":"127.0.0.1",
+   * 	"id.orig_p":42942,
+   * 	"id.resp_h":"127.0.0.1",
+   * 	"id.resp_p":20000,
+   * 	"fc_request":"READ"
+   * }
+   */
+  def fromDnp3(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+    logs.map(log => {
+      fromDnp3(log.getAsJsonObject, schema)
+    })
+  }
+
+  def fromDnp3(oldObject:JsonObject, schema:StructType):Row = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    /* Transform into row */
+    json2Row(newObject, schema)
+
+  }
+
+  def dnp3():StructType = {
+
+    var fields = Array(
+
+      /* ts: Timestamp for when the event happened.
+       */
+      StructField("ts", LongType, nullable = false),
+
+      /* uid: A unique identifier of the connection.
+       */
+      StructField("uid", StringType, nullable = false)
+
+    )
+
+    /* id
+     */
+    fields = fields ++ conn_id()
+
+    fields = fields ++ Array(
+
+      /* fc_request: The name of the function message in the request.
+       */
+      StructField("fc_request",StringType, nullable = true),
+
+      /* fc_reply: The name of the function message in the reply.
+       */
+      StructField("fc_reply", StringType, nullable = true),
+
+      /* iin: The response’s “internal indication number”.
+       */
+      StructField("iin", IntegerType, nullable = true)
+
+    )
+
+    StructType(fields)
+
+  }
+
+
   private def json2Row(jsonObject:JsonObject, schema:StructType):Row = {
 
     val values = schema.fields.map(field => {
