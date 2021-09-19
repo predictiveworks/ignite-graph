@@ -42,7 +42,7 @@ public final class IgniteGraphUtils {
         conn = connections.get(namespace);
         if (conn != null) return conn;
 
-        conn = new IgniteConnection(config.toIgniteConfiguration(), namespace);
+        conn = new IgniteConnection(namespace);
 
         connections.put(config.getGraphNamespace(), conn);
         return conn;

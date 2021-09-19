@@ -20,8 +20,6 @@ package de.kp.works.ignite.stream
 
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.spark.Session
-
 import scopt.OptionParser
 
 trait BaseStream {
@@ -69,9 +67,7 @@ trait BaseStream {
      * STEP #2: Initialize connection to Apache Ignite
      */
     val namespace = WorksConf.getNSCfg(channel)
-    val igniteCfg = WorksConf.getIgniteConfiguration
-
-    IgniteConnect.getInstance(Session.getSession, igniteCfg, namespace)
+    IgniteConnect.getInstance(namespace)
 
   }
 

@@ -21,8 +21,6 @@ package de.kp.works.ignitegraph;
 import org.apache.commons.configuration2.AbstractConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.logger.java.JavaLogger;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 
 import java.io.Serializable;
@@ -32,7 +30,7 @@ public class IgniteGraphConfiguration extends AbstractConfiguration implements S
 
     private static final long serialVersionUID = -7150699702127992270L;
 
-    private PropertiesConfiguration conf;
+    private final PropertiesConfiguration conf;
 
     public static final Class<? extends Graph> IGNITE_GRAPH_CLASS = IgniteGraph.class;
 
@@ -132,25 +130,6 @@ public class IgniteGraphConfiguration extends AbstractConfiguration implements S
     @Override
     protected void clearPropertyDirect(String key) {
         conf.clearProperty(key);
-    }
-    /**
-     * The current implementation of this method
-     * provides the default configuration
-     */
-    public IgniteConfiguration toIgniteConfiguration() {
-        /*
-         * Configure default java logger which leverages file
-         * config/java.util.logging.properties
-         */
-        JavaLogger logger = new JavaLogger();
-        /*
-         * The current Ignite context is configured with the
-         * default configuration (except 'marshaller')
-         */
-        IgniteConfiguration cfg = new IgniteConfiguration();
-        cfg.setGridLogger(logger);
-
-        return cfg;
     }
 
 }

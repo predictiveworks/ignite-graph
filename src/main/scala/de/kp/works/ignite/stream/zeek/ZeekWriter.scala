@@ -18,6 +18,7 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
+import de.kp.works.ignite.Session
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.TableWriter
 
@@ -26,8 +27,25 @@ class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
   def write(events:Seq[ZeekEvent]):Unit = {
 
     try {
-      val (format, schema, rows) = ZeekTransformer.transform(events)
-      // TODO
+      /*
+       * STEP #1: Retrieve Spark session and make sure
+       * that an Apache Ignite node is started
+       */
+      val session = Session.getSession
+      /*
+       * STEP #1: Transform the Zeek events into an
+       * Apache Spark compliant format
+       */
+      val transformed = ZeekTransformer.transform(events)
+      /*
+       * STEP #2: Write logs that refer to a certain Zeek
+       * format to individual Apache Ignite caches
+       */
+      transformed.foreach{case(format, schema, rows) => {
+        // TODO
+
+      }}
+
     } catch {
       case _:Throwable => /* Do nothing */
     }

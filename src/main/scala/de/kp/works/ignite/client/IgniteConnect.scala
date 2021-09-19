@@ -21,32 +21,23 @@ package de.kp.works.ignite.client
 import de.kp.works.ignite.util.IgniteUtil
 import org.apache.ignite._
 import org.apache.ignite.binary.BinaryObject
-import org.apache.ignite.configuration.IgniteConfiguration
-import org.apache.ignite.spark.IgniteContext
+import de.kp.works.ignite.Session
 import org.apache.spark.sql.SparkSession
 
 object IgniteConnect {
 
   private var instance:Option[IgniteConnect] = None
-
   private var graphNS:Option[String] = None
 
-  def getInstance(session: SparkSession, config: IgniteConfiguration, namespace: String): IgniteConnect = {
+  def getInstance(namespace: String): IgniteConnect = {
 
     graphNS = Some(namespace)
 
     if (instance.isEmpty)
-      instance = Some(new IgniteConnect(session, config, namespace))
+      instance = Some(new IgniteConnect(namespace))
 
     instance.get
 
-  }
-
-  def getInstance(config: IgniteConfiguration, namespace: String): IgniteConnect = {
-    if (instance.isEmpty)
-      instance = Some(new IgniteConnect(null, config, namespace))
-
-    instance.get
   }
 
   def namespace:String = {
@@ -54,58 +45,35 @@ object IgniteConnect {
   }
 }
 
-class IgniteConnect(
-   session: SparkSession,
-   config: IgniteConfiguration,
-   val graphNS: String) {
+class IgniteConnect(val graphNS: String) {
 
-  private var ignite:Option[Ignite] = None
-  /*
-   * The [IgniteContext] supports Apache Spark
-   * related features (such as bulk reading of
-   * edges and vertices)
+  private var ignite:Ignite = Session.getOrStart()
+
+  def getIgnite: Ignite = ignite
+
+  /**
+   * A helper method to definitely ensure that
+   * an Apache Ignite node is started
    */
-  private var igniteContext:Option[IgniteContext] = None
-  /*
-   * Distinguish an Apache Spark initialization
-   * and a plain Ignite initialization
+  def getOrCreate:Ignite = {
+
+    if (ignite == null) ignite = Session.getOrStart()
+    ignite
+
+  }
+  /**
+   * A helper method to delegate the retrieval
+   * of an Apache Spark Session to [Session]
    */
-  if (session == null) {
-    /*
-     * Initialize Ignite with the provided configuration
-     */
-    ignite = Some(Ignition.getOrStart(config))
-
-  }
-  else {
-    /*
-     * Initialize IgniteContext with the provided configuration
-     * and derive Ignite from context
-     */
-    igniteContext = Some(IgniteContext(session.sparkContext, () => config))
-    ignite = Some(igniteContext.get.ignite())
-
-  }
-
-  @throws[Exception]
-  def getIgnite: Ignite = {
-    if (ignite.isDefined) ignite.get else null
-  }
-
-  def getConfig: IgniteConfiguration = {
-    config
-  }
+  def getSession: SparkSession = Session.getSession
 
   def getOrCreateCache(name: String): IgniteCache[String, BinaryObject] = {
     /*
      * .withKeepBinary() must not be used here
      */
-    if (ignite.isEmpty) {
-      return null
-    }
-    val cache = IgniteUtil.getOrCreateCache(ignite.get, name, graphNS)
+    val cache = IgniteUtil.getOrCreateCache(ignite, name, graphNS)
     if (cache == null)
-      throw new Exception("Connection to Ignited failed. Could not create cache.");
+      throw new Exception("Connection to Ignited failed. Could not create cache.")
     /*
      * Rebalancing is called here in case of partitioned
      * Apache Ignite caches; the default configuration,
@@ -115,22 +83,14 @@ class IgniteConnect(
     cache
   }
 
-  @throws[Exception]
   def cacheExists(cacheName: String): Boolean = {
-    if (ignite.isEmpty) {
-      throw new Exception("Connecting Ignite failed.")
-    }
-    ignite.get.cacheNames.contains(cacheName)
+    ignite.cacheNames.contains(cacheName)
   }
 
-  @throws[Exception]
   def deleteCache(cacheName: String): Unit = {
-    if (ignite.isEmpty) {
-      throw new Exception("Connecting Ignite failed.")
-    }
-    val exists: Boolean = ignite.get.cacheNames.contains(cacheName)
+    val exists: Boolean = ignite.cacheNames.contains(cacheName)
     if (exists) {
-      ignite.get.cache(cacheName).destroy()
+      ignite.cache(cacheName).destroy()
     }
   }
 

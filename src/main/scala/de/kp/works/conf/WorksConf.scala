@@ -217,25 +217,4 @@ object WorksConf {
     cfg.get.getConfig("spark")
   }
 
-  /**
-   * The current implementation of this method
-   * provides the default configuration
-   */
-  def getIgniteConfiguration: IgniteConfiguration = {
-    /*
-     * Configure default java logger which leverages file
-     * config/java.util.logging.properties
-     */
-    val logger = new JavaLogger()
-    /*
-     * The current Ignite context is configured with the
-     * default configuration (except 'marshaller')
-     */
-    val igniteCfg = new IgniteConfiguration()
-    igniteCfg.setGridLogger(logger)
-
-    // TODO Customize with project specific settings
-    igniteCfg
-  }
-
 }

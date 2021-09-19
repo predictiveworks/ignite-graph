@@ -65,11 +65,13 @@ object ZeekTransformer {
             val rows = ZeekUtil.fromCaptureLoss(logs, schema)
 
             (format, schema, rows)
+
           case CONNECTION =>
             val schema = ZeekUtil.connection()
             val rows = ZeekUtil.fromConnection(logs, schema)
 
             (format, schema, rows)
+
          case DCE_RPC =>
            val schema = ZeekUtil.dce_rpc()
            val rows = ZeekUtil.fromDceRpc(logs, schema)
@@ -88,11 +90,36 @@ object ZeekTransformer {
 
             (format, schema, rows)
 
-//          case DNS =>
-//          case DPD =>
-//          case FILES =>
-//          case FTP =>
-//          case HTTP =>
+          case DNS =>
+            val schema = ZeekUtil.dns()
+            val rows = ZeekUtil.fromDns(logs, schema)
+
+            (format, schema, rows)
+
+          case DPD =>
+            val schema = ZeekUtil.dpd()
+            val rows = ZeekUtil.fromDpd(logs, schema)
+
+            (format, schema, rows)
+
+          case FILES =>
+            val schema = ZeekUtil.files()
+            val rows = ZeekUtil.fromFiles(logs, schema)
+
+            (format, schema, rows)
+
+          case FTP =>
+            val schema = ZeekUtil.ftp()
+            val rows = ZeekUtil.fromFtp(logs, schema)
+
+            (format, schema, rows)
+
+          case HTTP =>
+            val schema = ZeekUtil.http()
+            val rows = ZeekUtil.fromHttp(logs, schema)
+
+            (format, schema, rows)
+
 //          case INTEL =>
 //          case IRC =>
 //          case KERBEROS =>

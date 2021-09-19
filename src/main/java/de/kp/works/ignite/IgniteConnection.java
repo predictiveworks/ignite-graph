@@ -34,11 +34,11 @@ public class IgniteConnection {
      * the functionality of the [Ignite] client
      */
     private IgniteAdmin admin;
-    public IgniteConnection(IgniteConfiguration configuration, String namespace) {
+    public IgniteConnection(String namespace) {
 
         try {
             /* Initialize IgniteConnect and its admin interface */
-            IgniteConnect connect = IgniteConnect.getInstance(configuration, namespace);
+            IgniteConnect connect = IgniteConnect.getInstance(namespace);
             admin = new IgniteAdmin(connect);
 
         } catch (Exception e) {
