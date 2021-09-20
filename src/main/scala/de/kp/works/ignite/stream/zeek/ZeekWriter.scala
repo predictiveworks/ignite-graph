@@ -18,11 +18,18 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.Session
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.TableWriter
+import org.apache.spark.sql.SaveMode
 
 class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
+
+  private val zeekCfg = WorksConf.getCfg(WorksConf.ZEEK_CONF)
+
+  private val primaryKey = zeekCfg.getString("primaryKey")
+  private val tableParameters = zeekCfg.getString("tableParameters")
 
   def write(events:Seq[ZeekEvent]):Unit = {
 
@@ -33,16 +40,20 @@ class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
        */
       val session = Session.getSession
       /*
-       * STEP #1: Transform the Zeek events into an
+       * STEP #2: Transform the Zeek events into an
        * Apache Spark compliant format
        */
       val transformed = ZeekTransformer.transform(events)
       /*
-       * STEP #2: Write logs that refer to a certain Zeek
+       * STEP #3: Write logs that refer to a certain Zeek
        * format to individual Apache Ignite caches
        */
       transformed.foreach{case(format, schema, rows) => {
-        // TODO
+
+        val dataframe = session.createDataFrame(session.sparkContext.parallelize(rows), schema)
+        val table = "zeek_ " + format.toString.replace(".", "_")
+
+        save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
 
       }}
 

@@ -120,33 +120,168 @@ object ZeekTransformer {
 
             (format, schema, rows)
 
-//          case INTEL =>
-//          case IRC =>
-//          case KERBEROS =>
-//          case MODBUS =>
-//          case MYSQL =>
-//          case NOTICE =>
-//          case NTLM =>
-//          case OCSP =>
-//          case PE =>
-//          case RADIUS =>
-//          case RDP =>
-//          case RFB =>
-//          case SIP =>
-//          case SMB_CMD =>
-//          case SMB_FILES =>
-//          case SMB_MAPPING =>
-//          case SMTP =>
-//          case SNMP =>
-//          case SOCKS =>
-//          case SSH =>
-//          case SSL =>
-//          case STATS =>
-//          case SYSLOG =>
-//          case TRACEROUTE =>
-//          case TUNNEL =>
-//          case WEIRD =>
-//          case X509 =>
+          case INTEL =>
+            val schema = ZeekUtil.intel()
+            val rows = ZeekUtil.fromIntel(logs, schema)
+
+            (format, schema, rows)
+
+          case IRC =>
+            val schema = ZeekUtil.irc()
+            val rows = ZeekUtil.fromIrc(logs, schema)
+
+            (format, schema, rows)
+
+          case KERBEROS =>
+            val schema = ZeekUtil.kerberos()
+            val rows = ZeekUtil.fromKerberos(logs, schema)
+
+            (format, schema, rows)
+
+          case MODBUS =>
+            val schema = ZeekUtil.modbus()
+            val rows = ZeekUtil.fromModbus(logs, schema)
+
+            (format, schema, rows)
+
+          case MYSQL =>
+            val schema = ZeekUtil.mysql()
+            val rows = ZeekUtil.fromMysql(logs, schema)
+
+            (format, schema, rows)
+
+          case NOTICE =>
+            val schema = ZeekUtil.notice()
+            val rows = ZeekUtil.fromNotice(logs, schema)
+
+            (format, schema, rows)
+
+          case NTLM =>
+            val schema = ZeekUtil.ntlm()
+            val rows = ZeekUtil.fromNtlm(logs, schema)
+
+            (format, schema, rows)
+
+          case OCSP =>
+            val schema = ZeekUtil.ocsp()
+            val rows = ZeekUtil.fromOcsp(logs, schema)
+
+            (format, schema, rows)
+
+          case PE =>
+            val schema = ZeekUtil.pe()
+            val rows = ZeekUtil.fromPe(logs, schema)
+
+            (format, schema, rows)
+
+          case RADIUS =>
+            val schema = ZeekUtil.radius()
+            val rows = ZeekUtil.fromRadius(logs, schema)
+
+            (format, schema, rows)
+
+          case RDP =>
+            val schema = ZeekUtil.rdp()
+            val rows = ZeekUtil.fromRdp(logs, schema)
+
+            (format, schema, rows)
+
+          case RFB =>
+            val schema = ZeekUtil.rfb()
+            val rows = ZeekUtil.fromRfb(logs, schema)
+
+            (format, schema, rows)
+
+          case SIP =>
+            val schema = ZeekUtil.sip()
+            val rows = ZeekUtil.fromSip(logs, schema)
+
+            (format, schema, rows)
+
+          case SMB_CMD =>
+            val schema = ZeekUtil.smb_cmd()
+            val rows = ZeekUtil.fromSmbCmd(logs, schema)
+
+            (format, schema, rows)
+
+          case SMB_FILES =>
+            val schema = ZeekUtil.smb_files()
+            val rows = ZeekUtil.fromSmbFiles(logs, schema)
+
+            (format, schema, rows)
+
+          case SMB_MAPPING =>
+            val schema = ZeekUtil.smb_mapping()
+            val rows = ZeekUtil.fromSmbMapping(logs, schema)
+
+            (format, schema, rows)
+
+          case SMTP =>
+            val schema = ZeekUtil.smtp()
+            val rows = ZeekUtil.fromSmtp(logs, schema)
+
+            (format, schema, rows)
+
+          case SNMP =>
+            val schema = ZeekUtil.snmp()
+            val rows = ZeekUtil.fromSnmp(logs, schema)
+
+            (format, schema, rows)
+
+          case SOCKS =>
+            val schema = ZeekUtil.socks()
+            val rows = ZeekUtil.fromSocks(logs, schema)
+
+            (format, schema, rows)
+
+          case SSH =>
+            val schema = ZeekUtil.ssh()
+            val rows = ZeekUtil.fromSsh(logs, schema)
+
+            (format, schema, rows)
+
+          case SSL =>
+            val schema = ZeekUtil.ssl()
+            val rows = ZeekUtil.fromSsl(logs, schema)
+
+            (format, schema, rows)
+
+          case STATS =>
+            val schema = ZeekUtil.stats()
+            val rows = ZeekUtil.fromStats(logs, schema)
+
+            (format, schema, rows)
+
+          case SYSLOG =>
+            val schema = ZeekUtil.syslog()
+            val rows = ZeekUtil.fromSyslog(logs, schema)
+
+            (format, schema, rows)
+
+          case TRACEROUTE =>
+            val schema = ZeekUtil.traceroute()
+            val rows = ZeekUtil.fromTraceroute(logs, schema)
+
+            (format, schema, rows)
+
+          case TUNNEL =>
+            val schema = ZeekUtil.tunnel()
+            val rows = ZeekUtil.fromTunnel(logs, schema)
+
+            (format, schema, rows)
+
+          case WEIRD =>
+            val schema = ZeekUtil.weird()
+            val rows = ZeekUtil.fromWeird(logs, schema)
+
+            (format, schema, rows)
+
+          case X509 =>
+            val schema = ZeekUtil.x509()
+            val rows = ZeekUtil.fromX509(logs, schema)
+
+            (format, schema, rows)
+
           case _ => throw new Exception(s"[ZeekTransformer] Unknown format `$format.toString` detected.")
 
         }
