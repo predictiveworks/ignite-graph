@@ -25,6 +25,17 @@ import org.apache.spark.sql.{DataFrame, SaveMode}
 
 abstract class TableWriter(connect:IgniteConnect) {
   /**
+   * Zeek log events ship with ArrayType(LongType|StringType) fields,
+   * but Apache Ignite currently does not support this data type.
+   *
+   * See: https://issues.apache.org/jira/browse/IGNITE-9229
+   *
+   * Therefore, we intercept the generated dataframe here and serialize
+   * all ArrayType fields before writing to Apache Ignite
+   */
+  def serializeArrays(input:DataFrame):DataFrame = ???
+
+  /**
    * This method write the provided dataframe to
    * an Apache Ignite cache
    */

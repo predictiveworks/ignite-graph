@@ -26,7 +26,7 @@ import org.apache.spark.sql.types.StructType
 
 object FleetTransformer {
 
-  def transform(events:Seq[OsqueryEvent]):Seq[(FleetFormat, StructType, Seq[Row])] = {
+  def transform(events:Seq[OsqueryEvent]):Seq[(FleetFormat, String, StructType, Seq[Row])] = {
 
     try {
       /*
@@ -54,27 +54,23 @@ object FleetTransformer {
       /*
        * STEP #2: Persist logs for each format individually
        */
-      data.map{case(format, logs) =>
+      data.flatMap{case(format, logs) =>
 
         format match {
           case RESULT =>
-            val schema = FleetUtil.result()
-            val rows = FleetUtil.fromResult(logs, schema)
-
-            (format, schema, rows)
+            val transformed = FleetUtil.fromResult(logs)
+            transformed.map{case(name, schema, rows) => (format, name, schema, rows)}
 
           case STATUS =>
-            val schema = FleetUtil.status()
-            val rows = FleetUtil.fromStatus(logs, schema)
-
-            (format, schema, rows)
+            // TODO
+            Seq.empty[(FleetFormat, String, StructType, Seq[Row])]
 
           case _ => throw new Exception(s"[FleetTransformer] Unknown format `$format.toString` detected.")
         }
       }
 
     } catch {
-      case _:Throwable => Seq.empty[(FleetFormat, StructType, Seq[Row])]
+      case _:Throwable => Seq.empty[(FleetFormat, String, StructType, Seq[Row])]
     }
 
   }

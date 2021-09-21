@@ -20,12 +20,11 @@ package de.kp.works.ignite.stream.zeek
 
 import com.google.gson.{JsonArray, JsonElement, JsonObject}
 import de.kp.works.conf.WorksConf
+import de.kp.works.json.JsonUtil
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{StructField, _}
 
-import java.security.MessageDigest
-import scala.collection.JavaConversions.iterableAsScalaIterable
-import scala.collection.mutable
+import scala.collection.JavaConversions._
 
 object ZeekUtil {
 
@@ -33,7 +32,6 @@ object ZeekUtil {
   private val zeekKey = zeekCfg.getString("primaryKey")
 
   private val primaryKey = StructField(zeekKey, StringType, nullable = false)
-  private val MD5 = MessageDigest.getInstance("MD5")
 
   /**
    * capture_loss (&log)
@@ -74,7 +72,7 @@ object ZeekUtil {
     newObject = replaceInterval(newObject, "ts_delta")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -185,7 +183,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "destination_l2_addr", "resp_l2_addr")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -342,7 +340,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -426,8 +424,7 @@ object ZeekUtil {
     newObject = replaceInterval(newObject, "duration")
 
     /* Transform into row */
-    json2Row(newObject, schema)
-
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -577,7 +574,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -698,7 +695,7 @@ object ZeekUtil {
     newObject.add("dns_ttls", new_ttls)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -846,7 +843,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -937,7 +934,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "destination_ips", "rx_hosts")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
   /*
@@ -1127,7 +1124,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "data_channel_destination_port", "data_channel.resp_p")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -1255,7 +1252,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -1458,7 +1455,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "cif_lastseen", "cif.lastseen")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -1596,7 +1593,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -1702,7 +1699,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -1826,7 +1823,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -1883,7 +1880,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -1978,7 +1975,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "longitude", "remote_location.longitude")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -2140,7 +2137,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -2238,7 +2235,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "update_next", "nextUpdate")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
  }
 
@@ -2321,7 +2318,7 @@ object ZeekUtil {
     newObject = replaceTime(newObject, "compile_ts")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -2427,7 +2424,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -2517,7 +2514,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -2642,7 +2639,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -2760,7 +2757,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -2958,7 +2955,7 @@ object ZeekUtil {
     newObject = replaceTime(newObject, "file_times_changed")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -3149,7 +3146,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "times_changed", "times.changed")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -3253,7 +3250,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -3338,7 +3335,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -3495,7 +3492,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -3612,7 +3609,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "bound_port", "bound_p")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -3732,7 +3729,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "longitude", "remote_location.longitude")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -3884,7 +3881,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "notary_valid", "notary.valid")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -4057,7 +4054,7 @@ object ZeekUtil {
     newObject = replaceInterval(newObject, "pkt_lag")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -4204,7 +4201,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -4279,7 +4276,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "destination_ip", "dst")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -4345,7 +4342,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -4426,7 +4423,7 @@ object ZeekUtil {
     newObject = replaceConnId(newObject)
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -4523,7 +4520,7 @@ object ZeekUtil {
     newObject = replaceName(newObject, "basic_constraints_path_len", "basic_constraints.path_len")
 
     /* Transform into row */
-    json2Row(newObject, schema)
+    JsonUtil.json2Row(newObject, schema)
 
   }
 
@@ -4586,175 +4583,6 @@ object ZeekUtil {
 
   }
 
-  private def json2Row(jsonObject:JsonObject, schema:StructType):Row = {
-
-    val keyparts = mutable.ArrayBuffer.empty[String]
-    var values = schema.fields.map(field => {
-
-      val fieldName = field.name
-      val fieldType = field.dataType
-
-      fieldType match {
-        case ArrayType(LongType, true) =>
-          val value = getLongArray(jsonObject, fieldName, field.nullable)
-
-          keyparts += value.mkString("#")
-          value
-        case ArrayType(LongType, false) =>
-          val value = getLongArray(jsonObject, fieldName, field.nullable)
-
-          keyparts += value.mkString("#")
-          value
-        case ArrayType(StringType, true) =>
-          val value = getStringArray(jsonObject, fieldName, field.nullable)
-
-          keyparts += value.mkString("#")
-          value
-        case ArrayType(StringType, false) =>
-          val value = getStringArray(jsonObject, fieldName, field.nullable)
-
-          keyparts += value.mkString("#")
-          value
-        case BooleanType =>
-          val value = getBoolean(jsonObject, fieldName, field.nullable)
-
-          keyparts += value.toString
-          value
-        case DoubleType =>
-          val value = getDouble(jsonObject, fieldName, field.nullable)
-
-          keyparts += value.toString
-          value
-        case IntegerType =>
-          val value = getInt(jsonObject, fieldName, field.nullable)
-
-          keyparts += value.toString
-          value
-        case LongType =>
-          val value = getLong(jsonObject, fieldName, field.nullable)
-
-          keyparts += value.toString
-          value
-        case StringType =>
-          val value = getString(jsonObject, fieldName, field.nullable)
-
-          keyparts += value
-          value
-
-        case _ => throw new Exception(s"Data type `$fieldType.toString` is not supported.")
-      }
-
-    }).toSeq
-
-    val serialized = keyparts.mkString("|")
-    val key = MD5.digest(serialized.getBytes).toString
-
-    values = Seq(key) ++ values
-    Row.fromSeq(values)
-
-  }
-
-  private def getBoolean(jsonObject:JsonObject, fieldName:String, nullable:Boolean):Boolean = {
-
-    try {
-      jsonObject.get(fieldName).getAsBoolean
-
-    } catch {
-      case _:Throwable =>
-        if (nullable) false
-        else
-          throw new Exception(s"No value provided for field `$fieldName`.")
-    }
-
-  }
-
-  private def getDouble(jsonObject:JsonObject, fieldName:String, nullable:Boolean):Double = {
-
-    try {
-      jsonObject.get(fieldName).getAsDouble
-
-    } catch {
-      case _:Throwable =>
-        if (nullable) Double.MaxValue
-        else
-          throw new Exception(s"No value provided for field `$fieldName`.")
-    }
-
-  }
-
-  private def getInt(jsonObject:JsonObject, fieldName:String, nullable:Boolean):Int = {
-
-    try {
-      jsonObject.get(fieldName).getAsInt
-
-    } catch {
-      case _:Throwable =>
-        if (nullable) Int.MaxValue
-        else
-          throw new Exception(s"No value provided for field `$fieldName`.")
-    }
-
-  }
-
-  private def getLong(jsonObject:JsonObject, fieldName:String, nullable:Boolean):Long = {
-
-    try {
-      jsonObject.get(fieldName).getAsLong
-
-    } catch {
-      case _:Throwable =>
-        if (nullable) Long.MaxValue
-        else
-          throw new Exception(s"No value provided for field `$fieldName`.")
-    }
-
-  }
-
-  private def getString(jsonObject:JsonObject, fieldName:String, nullable:Boolean):String = {
-
-    try {
-      jsonObject.get(fieldName).getAsString
-
-    } catch {
-      case _:Throwable =>
-        if (nullable) ""
-        else
-          throw new Exception(s"No value provided for field `$fieldName`.")
-    }
-
-  }
-
-  private def getLongArray(jsonObject:JsonObject, fieldName:String, nullable:Boolean):Array[Long] = {
-
-    try {
-      jsonObject.get(fieldName).getAsJsonArray
-        .map(json => json.getAsLong)
-        .toArray
-
-    } catch {
-      case _:Throwable =>
-        if (nullable) Array.empty[Long]
-        else
-          throw new Exception(s"No value provided for field `$fieldName`.")
-    }
-
-  }
-
-  private def getStringArray(jsonObject:JsonObject, fieldName:String, nullable:Boolean):Array[String] = {
-
-    try {
-      jsonObject.get(fieldName).getAsJsonArray
-        .map(json => json.getAsString)
-        .toArray
-
-    } catch {
-      case _:Throwable =>
-        if (nullable) Array.empty[String]
-        else
-          throw new Exception(s"No value provided for field `$fieldName`.")
-    }
-
-  }
   /********************
    *
    * BASE SCHEMAS

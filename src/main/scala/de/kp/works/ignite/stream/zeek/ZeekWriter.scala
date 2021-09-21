@@ -22,7 +22,7 @@ import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.Session
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.TableWriter
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{DataFrame, SaveMode}
 
 class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
 
@@ -48,14 +48,22 @@ class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
        * STEP #3: Write logs that refer to a certain Zeek
        * format to individual Apache Ignite caches
        */
-      transformed.foreach{case(format, schema, rows) => {
+      transformed.foreach{case(format, schema, rows) =>
 
         val dataframe = session.createDataFrame(session.sparkContext.parallelize(rows), schema)
+        /*
+         * Zeek log events ship with ArrayType(LongType|StringType) fields,
+         * but Apache Ignite currently does not support this data type.
+         *
+         * See: https://issues.apache.org/jira/browse/IGNITE-9229
+         *
+         * Therefore, we intercept the generated dataframe here and serialize
+         * all ArrayType fields before writing to Apache Ignite
+         */
         val table = "zeek_ " + format.toString.replace(".", "_")
 
         save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
-
-      }}
+      }
 
     } catch {
       case _:Throwable => /* Do nothing */

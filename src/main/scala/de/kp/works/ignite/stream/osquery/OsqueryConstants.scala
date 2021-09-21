@@ -61,6 +61,7 @@ object OsqueryConstants {
   val COLUMNS       = "columns"
   val DIFF_RESULTS  = "diffResults"
   val HOST          = "host"
+  val HOSTNAME      = "hostname"
   val NAME          = "name"
   val NODE          = "node"
   val REMOVED       = "removed"
