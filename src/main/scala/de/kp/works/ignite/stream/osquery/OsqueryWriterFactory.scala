@@ -18,11 +18,26 @@ package de.kp.works.ignite.stream.osquery
  *
  */
 
+import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.TableWriter
+import de.kp.works.ignite.stream.osquery.fleet.FleetWriter
+import de.kp.works.ignite.stream.osquery.tls.TLSWriter
 
-abstract class OsqueryWriter(connect:IgniteConnect) extends TableWriter(connect) {
+object OsqueryWriterFactory {
+  /*
+   * The current implementation of the Writer factory supports
+   * Fleet and TLS server based Osquery log events.
+   */
+  def get(name:String, connect:IgniteConnect):OsqueryWriter = {
 
-  def write(events:Seq[OsqueryEvent]):Unit
+    name match {
+      case WorksConf.FLEETDM_CONF =>
+        new FleetWriter(connect)
 
+      case WorksConf.OSQUERY_CONF =>
+        new TLSWriter(connect)
+
+      case _ => throw new Exception(s"Osquery writer for `$name` is not supported.")
+    }
+  }
 }

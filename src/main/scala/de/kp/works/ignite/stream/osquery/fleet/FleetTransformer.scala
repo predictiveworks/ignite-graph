@@ -62,8 +62,8 @@ object FleetTransformer {
             transformed.map{case(name, schema, rows) => (format, name, schema, rows)}
 
           case STATUS =>
-            // TODO
-            Seq.empty[(FleetFormat, String, StructType, Seq[Row])]
+            val transformed = FleetUtil.fromStatus(logs)
+            transformed.map{case(name, schema, rows) => (format, name, schema, rows)}
 
           case _ => throw new Exception(s"[FleetTransformer] Unknown format `$format.toString` detected.")
         }

@@ -319,24 +319,54 @@ object FleetUtil {
     StructType(fields)
 
   }
+ /**
+  * Osquery creates status logs of its own execution, for log levels
+  * INFO, WARNING and ERROR. Note, this implementation expects a single
+  * log file that contains status messages of all levels.
+  */
+  def fromStatus(logs:Seq[JsonElement]):Seq[(String, StructType, Seq[Row])] = {
+    logs
+      .map(log => fromStatus(log.getAsJsonObject))
+      /*
+       * Group the transformed results with respect to the query or table name
+       */
+      .groupBy { case (name, _, _) => name }
+      .map { case (name, values) =>
+        val schema = values.head._2
+        val rows = values.flatMap(_._3)
 
-  def fromStatus(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
-    logs.map(log => {
-      fromStatus(log.getAsJsonObject, schema)
-    })
+        (name, schema, rows)
+      }
+      .toSeq
+
   }
 
-  def fromStatus(oldObject:JsonObject, schema:StructType):Row = {
+  def fromStatus(oldObject:JsonObject):(String, StructType, Seq[Row]) = {
 
-    var newObject = oldObject
-    // TODO
+    val rowObject = new JsonObject
+    rowObject.addProperty(OsqueryConstants.MESSAGE, oldObject.toString)
 
-    /* Transform into row */
-    JsonUtil.json2Row(newObject, schema)
+    val schema = status()
+    val row = JsonUtil.json2Row(rowObject, schema)
+
+    ("status_log", schema, Seq(row))
 
   }
 
-  def status():StructType = ???
+  def status():StructType = {
+    /*
+     * COMMON FIELDS
+     */
+    var fields = Array(
+      /* The `name` (of the query)
+       */
+      StructField(OsqueryConstants.MESSAGE, StringType, nullable = false)
+    )
+
+    fields = Array(primaryKey) ++ fields
+    StructType(fields)
+
+  }
 
   /** HELPER METHODS **/
 

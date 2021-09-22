@@ -65,7 +65,7 @@ class OsqueryProcessor(
    * based Osquery events. In order to distinguish between
    * these use cases, the application `name` is provided.
    */
-  private val writer = new OsqueryWriter(name, connect)
+  private val writer = OsqueryWriterFactory.get(name, connect)
 
   /**
    * A helper method to apply the event query to the selected
