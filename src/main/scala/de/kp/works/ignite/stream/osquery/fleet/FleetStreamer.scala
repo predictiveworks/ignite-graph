@@ -20,12 +20,12 @@ package de.kp.works.ignite.stream.osquery.fleet
  */
 
 import de.kp.works.ignite.stream.IgniteStreamer
-import de.kp.works.ignite.stream.osquery.{OsqueryEvent, OsqueryEventHandler}
+import de.kp.works.ignite.stream.file.{FileEvent, FileEventHandler}
 import org.apache.ignite.stream.StreamAdapter
 import org.apache.ignite.{IgniteException, IgniteLogger}
 
 class FleetStreamer[K,V]
-  extends StreamAdapter[OsqueryEvent, K, V] with OsqueryEventHandler with IgniteStreamer {
+  extends StreamAdapter[FileEvent, K, V] with FileEventHandler with IgniteStreamer {
 
   /** Logger */
   private val log:IgniteLogger = getIgnite.log()
@@ -71,11 +71,11 @@ class FleetStreamer[K,V]
 
   /********************************
    *
-   * Osquery event handler method
+   * File event handler method
    *
    *******************************/
 
-  override def eventArrived(event: OsqueryEvent): Unit = {
+  override def eventArrived(event: FileEvent): Unit = {
     /*
      * The leveraged extractors below must be explicitly
      * defined when initiating this streamer

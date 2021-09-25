@@ -19,10 +19,11 @@ package de.kp.works.ignite.stream.zeek
  */
 
 import de.kp.works.conf.WorksConf
+import de.kp.works.ignite.stream.file.FileEventHandler
 
 class ZeekService {
 
-  private var eventHandler:Option[ZeekEventHandler] = None
+  private var eventHandler:Option[FileEventHandler] = None
   /**
    * Specify the callback to be used by this service
    * to send Zeek log events to the respective Ignite
@@ -31,7 +32,7 @@ class ZeekService {
    * The current implementation leverages the Zeek
    * Streamer as callback
    */
-  def setEventHandler(handler:ZeekEventHandler):ZeekService = {
+  def setEventHandler(handler:FileEventHandler):ZeekService = {
     this.eventHandler = Some(handler)
     this
   }

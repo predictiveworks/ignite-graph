@@ -18,13 +18,14 @@ package de.kp.works.ignite.stream.osquery.fleet
  *
  */
 
-import de.kp.works.ignite.stream.osquery.OsqueryEventHandler
+import de.kp.works.conf.WorksConf
+import de.kp.works.ignite.stream.file.{FileEventHandler, FileMonitor}
 
 import java.util.concurrent.Executors
 
 class FleetReceiver(
-  zeekFolder: String,
-  eventHandler: OsqueryEventHandler,
+  fleetFolder: String,
+  eventHandler: FileEventHandler,
   numThreads:Int = 1) {
 
   private val executorService = Executors.newFixedThreadPool(numThreads)
@@ -38,7 +39,7 @@ class FleetReceiver(
        * File Monitor to listen to log file
        * changes of a FleetDM platform
        */
-      private val connector = new FleetMonitor(zeekFolder, eventHandler)
+      private val connector = new FileMonitor(WorksConf.FLEETDM_CONF, fleetFolder, eventHandler)
 
       override def run(): Unit = {
 

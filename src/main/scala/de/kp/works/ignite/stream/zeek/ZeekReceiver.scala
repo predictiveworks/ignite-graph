@@ -18,11 +18,14 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
+import de.kp.works.conf.WorksConf
+import de.kp.works.ignite.stream.file.{FileEventHandler, FileMonitor}
+
 import java.util.concurrent.Executors
 
 class ZeekReceiver(
   zeekFolder: String,
-  eventHandler: ZeekEventHandler,
+  eventHandler: FileEventHandler,
   numThreads:Int = 1) {
 
   private val executorService = Executors.newFixedThreadPool(numThreads)
@@ -36,7 +39,7 @@ class ZeekReceiver(
        * File Monitor to listen to log file
        * changes of a Zeek sensor platform
        */
-      private val connector = new ZeekMonitor(zeekFolder, eventHandler)
+      private val connector = new FileMonitor(WorksConf.ZEEK_CONF, zeekFolder, eventHandler)
 
       override def run(): Unit = {
 

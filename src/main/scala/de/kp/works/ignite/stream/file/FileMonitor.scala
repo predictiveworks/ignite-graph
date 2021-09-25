@@ -1,4 +1,5 @@
-package de.kp.works.ignite.stream
+package de.kp.works.ignite.stream.file
+
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,7 +19,7 @@ package de.kp.works.ignite.stream
  *
  */
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.alpakka.file.scaladsl.DirectoryChangesSource
@@ -31,7 +32,7 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
-abstract class FileMonitor(name:String, folder:String) {
+class FileMonitor(name:String, folder:String, eventHandler: FileEventHandler) {
 
   import FileActor._
   /**
@@ -150,6 +151,12 @@ abstract class FileMonitor(name:String, folder:String) {
   /**
    * A helper method to build a file listener actor
    */
-  protected def buildFileActor(path:Path):ActorRef
+  /**
+   * A helper method to build a file listener actor
+   */
+  protected def buildFileActor(path:Path):ActorRef = {
+    val actorName = "File-Actor-" + java.util.UUID.randomUUID.toString
+    system.actorOf(Props(new FileActor(name, path, eventHandler)), actorName)
+  }
 
 }

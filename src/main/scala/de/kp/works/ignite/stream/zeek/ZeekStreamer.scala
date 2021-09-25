@@ -19,17 +19,12 @@ package de.kp.works.ignite.stream.zeek
  */
 
 import de.kp.works.ignite.stream.IgniteStreamer
+import de.kp.works.ignite.stream.file.{FileEvent, FileEventHandler}
 import org.apache.ignite.{IgniteException, IgniteLogger}
 import org.apache.ignite.stream.StreamAdapter
 
-trait ZeekEventHandler {
-
-  def eventArrived(event:ZeekEvent):Unit
-
-}
-
 class ZeekStreamer[K,V]
-  extends StreamAdapter[ZeekEvent, K, V] with ZeekEventHandler with IgniteStreamer {
+  extends StreamAdapter[FileEvent, K, V] with FileEventHandler with IgniteStreamer {
 
   /** Logger */
   private val log:IgniteLogger = getIgnite.log()
@@ -78,7 +73,7 @@ class ZeekStreamer[K,V]
    *
    *******************************/
 
-  override def eventArrived(event: ZeekEvent): Unit = {
+  override def eventArrived(event: FileEvent): Unit = {
     /*
      * The leveraged extractors below must be explicitly
      * defined when initiating this streamer

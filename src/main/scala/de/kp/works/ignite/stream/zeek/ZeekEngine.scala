@@ -20,6 +20,7 @@ package de.kp.works.ignite.stream.zeek
 
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
+import de.kp.works.ignite.stream.file.FileEvent
 import de.kp.works.ignite.stream.{BaseEngine, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
@@ -136,11 +137,11 @@ class ZeekEngine(connect:IgniteConnect) extends BaseEngine(connect) {
     (cache, zeekStreamer)
   }
 
-  private def createExtractor: StreamSingleTupleExtractor[ZeekEvent, String, BinaryObject] = {
+  private def createExtractor: StreamSingleTupleExtractor[FileEvent, String, BinaryObject] = {
 
-    new StreamSingleTupleExtractor[ZeekEvent,String,BinaryObject]() {
+    new StreamSingleTupleExtractor[FileEvent,String,BinaryObject]() {
 
-      override def extract(event:ZeekEvent):java.util.Map.Entry[String,BinaryObject] = {
+      override def extract(event:FileEvent):java.util.Map.Entry[String,BinaryObject] = {
 
         val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
         try {
@@ -158,7 +159,7 @@ class ZeekEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
   }
 
-  private def buildEntry(event:ZeekEvent):(String, BinaryObject) = {
+  private def buildEntry(event:FileEvent):(String, BinaryObject) = {
 
     val builder = ignite.binary().builder(ZeekConstants.ZEEK_CACHE)
 

@@ -19,6 +19,7 @@ package de.kp.works.ignite.stream.zeek
  */
 
 import com.google.gson.JsonParser
+import de.kp.works.ignite.stream.file.FileEvent
 import de.kp.works.ignite.stream.zeek.ZeekFormats._
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructType
@@ -29,7 +30,7 @@ import org.apache.spark.sql.types.StructType
  */
 object ZeekTransformer {
 
-  def transform(events:Seq[ZeekEvent]):Seq[(ZeekFormat, StructType, Seq[Row])] = {
+  def transform(events:Seq[FileEvent]):Seq[(ZeekFormat, StructType, Seq[Row])] = {
 
     try {
       /*

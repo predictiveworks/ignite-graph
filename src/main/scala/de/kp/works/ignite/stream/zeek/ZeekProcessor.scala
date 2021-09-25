@@ -21,6 +21,7 @@ package de.kp.works.ignite.stream.zeek
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.IgniteProcessor
+import de.kp.works.ignite.stream.file.FileEvent
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.query.SqlFieldsQuery
@@ -47,7 +48,7 @@ class ZeekProcessor(
    * event query in a distinct manner; the eventStore is used
    * as a buffer before it is flushed and cleared
    */
-  private val eventStore = mutable.HashMap.empty[String,ZeekEvent]
+  private val eventStore = mutable.HashMap.empty[String,FileEvent]
   /**
    * The frequency we flush the internal store and write
    * data to the predefined output is currently set to
@@ -76,7 +77,7 @@ class ZeekProcessor(
       val mutable.Buffer(eventType, eventData) =
         values.tail.map(_.asInstanceOf[String])
 
-      eventStore += k -> ZeekEvent(eventType, eventData)
+      eventStore += k -> FileEvent(eventType, eventData)
     })
     /*
      * Clear extracted cache entries fast

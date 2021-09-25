@@ -19,11 +19,11 @@ package de.kp.works.ignite.stream.osquery.fleet
  */
 
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.stream.osquery.OsqueryEventHandler
+import de.kp.works.ignite.stream.file.FileEventHandler
 
 class FleetService {
 
-  private var eventHandler:Option[OsqueryEventHandler] = None
+  private var eventHandler:Option[FileEventHandler] = None
   /**
    * Specify the callback to be used by this service
    * to send Fleet log events to the respective Ignite
@@ -32,7 +32,7 @@ class FleetService {
    * The current implementation leverages the Fleet
    * Streamer as callback
    */
-  def setEventHandler(handler:OsqueryEventHandler):FleetService = {
+  def setEventHandler(handler:FileEventHandler):FleetService = {
     this.eventHandler = Some(handler)
     this
   }

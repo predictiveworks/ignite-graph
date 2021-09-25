@@ -22,6 +22,7 @@ import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.Session
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.TableWriter
+import de.kp.works.ignite.stream.file.FileEvent
 import org.apache.spark.sql.{DataFrame, SaveMode}
 
 class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
@@ -31,7 +32,7 @@ class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
   private val primaryKey = zeekCfg.getString("primaryKey")
   private val tableParameters = zeekCfg.getString("tableParameters")
 
-  def write(events:Seq[ZeekEvent]):Unit = {
+  def write(events:Seq[FileEvent]):Unit = {
 
     try {
       /*
