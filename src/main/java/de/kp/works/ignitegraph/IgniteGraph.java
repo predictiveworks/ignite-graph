@@ -50,8 +50,6 @@ import java.util.stream.Stream;
 @Graph.OptIn(Graph.OptIn.SUITE_STRUCTURE_STANDARD)
 @Graph.OptIn(Graph.OptIn.SUITE_STRUCTURE_INTEGRATE)
 @Graph.OptIn(Graph.OptIn.SUITE_PROCESS_STANDARD)
-@Graph.OptIn("io.hgraphdb.StructureBasicSuite")
-@Graph.OptIn("io.hgraphdb.CustomSuite")
 @Graph.OptOut(
         test = "org.apache.tinkerpop.gremlin.process.traversal.step.filter.HasTest$Traversals",
         method = "g_VX1AsStringX_out_hasXid_2AsStringX",

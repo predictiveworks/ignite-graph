@@ -81,7 +81,21 @@ class CTIStreamer[K,V]
    *******************************/
 
   override def connectionLost(): Unit = {/* Do nothing */}
-
+  /*
+   * Events format :: SseEvent(id, event, data)
+   *
+   * The events published by OpenCTI are based on the STIX format:
+   *
+   * id: {Event stream id} -> Like 1620249512318-0
+   * event: {Event type} -> create / update / delete
+   * data: { -> The complete event data
+   *    markings: [] -> Array of markings IDS of the element
+   *    origin: {Data Origin} -> Complex object with different information about the origin of the event
+   *    data: {STIX data} -> The STIX representation of the data.
+   *    message -> A simple string to easy understand the event
+   *    version -> The version number of the event
+   * }
+   */
   override def eventArrived(event: SseEvent): Unit = {
     /*
      * The leveraged extractors below must be explicitly

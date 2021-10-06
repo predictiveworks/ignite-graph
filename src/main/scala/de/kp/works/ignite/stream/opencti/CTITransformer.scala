@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import de.kp.works.ignite.mutate._
 import de.kp.works.ignite.stream.opencti.transformer._
+import de.kp.works.transform.opencti.stix.STIX
 
 import scala.collection.mutable
 
@@ -29,7 +30,21 @@ object CTITransformer {
 
   private val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
-
+  /**
+   * Events format :: SseEvent(id, event, data)
+   *
+   * The events published by OpenCTI are based on the STIX format:
+   *
+   * id: {Event stream id} -> Like 1620249512318-0
+   * event: {Event type} -> create / update / delete
+   * data: { -> The complete event data
+   *    markings: [] -> Array of markings IDS of the element
+   *    origin: {Data Origin} -> Complex object with different information about the origin of the event
+   *    data: {STIX data} -> The STIX representation of the data.
+   *    message -> A simple string to easy understand the event
+   *    version -> The version number of the event
+   * }
+   */
   def transform(sseEvents:Seq[SseEvent]):(Seq[IgniteMutation], Seq[IgniteMutation]) = {
 
     val vertices = mutable.ArrayBuffer.empty[IgniteMutation]
@@ -43,18 +58,30 @@ object CTITransformer {
        * operations
        */
       val event = sseEvent.eventType
-      val payload = mapper.readValue(sseEvent.data, classOf[Map[String, Any]])
+      /*
+       * The current implementation leverages the STIX data
+       * as `stixData` for further processing
+       */
+      val stixData = {
+        val deserialized = mapper.readValue(sseEvent.data, classOf[Map[String, Any]])
 
-      val entityId = payload.getOrElse("id", "").asInstanceOf[String]
-      val entityType = payload.getOrElse("type", "").asInstanceOf[String]
+        if (deserialized.contains("data"))
+          deserialized("data").asInstanceOf[Map[String, Any]]
+        else
+          Map.empty[String, Any]
 
-      if (entityId.isEmpty || entityType.isEmpty) {
+      }
+
+      val entityId = stixData.getOrElse("id", "").asInstanceOf[String]
+      val entityType = stixData.getOrElse("type", "").asInstanceOf[String]
+
+      if (entityId.isEmpty || entityType.isEmpty || stixData.isEmpty) {
         /* Do nothing */
       }
       else {
 
         val filter = Seq("id", "type")
-        val data = payload.filterKeys(k => !filter.contains(k))
+        val data = stixData.filterKeys(k => !filter.contains(k))
 
         val (v,e) = event match {
           case "create" =>

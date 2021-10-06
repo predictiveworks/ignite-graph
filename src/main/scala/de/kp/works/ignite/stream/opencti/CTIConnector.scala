@@ -67,8 +67,8 @@ class CTIConnector(
        *    version -> The version number of the event
        * }
        */
-      override def onEvent(eventSource:EventSource, eventId:String, eventType:String, data:String):Unit = {
-        callback.eventArrived(SseEvent(eventId, eventType, data))
+      override def onEvent(eventSource:EventSource, eventId:String, eventType:String, eventData:String):Unit = {
+        callback.eventArrived(SseEvent(eventId, eventType, eventData))
       }
 
       override def onClosed(eventSource:EventSource) {

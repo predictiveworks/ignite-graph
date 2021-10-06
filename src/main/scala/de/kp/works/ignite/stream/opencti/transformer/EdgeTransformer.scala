@@ -20,6 +20,7 @@ package de.kp.works.ignite.stream.opencti.transformer
 
 import de.kp.works.ignite.mutate._
 import de.kp.works.ignitegraph.{ElementType, IgniteConstants}
+import de.kp.works.transform.opencti.stix.STIX
 
 import java.util.Date
 import scala.collection.mutable
