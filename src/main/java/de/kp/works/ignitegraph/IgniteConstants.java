@@ -37,8 +37,8 @@ public class IgniteConstants {
 
     public static final String FROM_COL_NAME = "from";
     public static final String FROM_TYPE_COL_NAME = "from_type";
-    public static final String TO_COL_NAME   = "to";
-    public static final String TO_TYPE_COL_NAME   = "to_type";
+    public static final String TO_COL_NAME = "to";
+    public static final String TO_TYPE_COL_NAME = "to_type";
 
     public static final String LABEL_COL_NAME = "label";
 
@@ -48,15 +48,11 @@ public class IgniteConstants {
     public static final String PROPERTY_KEY_COL_NAME = "property_key";
     public static final String PROPERTY_TYPE_COL_NAME = "property_type";
     public static final String PROPERTY_VALUE_COL_NAME = "property_value";
-    public static final String BYTE_BUFFER_COL_NAME = "byte_buffer";
 
     public static final String INCLUSIVE_FROM_VALUE = "inclusive_from_value";
     public static final String EXCLUSIVE_TO_VALUE = "inclusive_to_value";
 
     public static final String LIMIT_VALUE = "limit_value";
-    public static final String FROM_VALUE = "from_value";
-    public static final String FROM_ID_VALUE = "from_id_value";
-
     public static final String REVERSED_VALUE = "reversed_value";
 
 }

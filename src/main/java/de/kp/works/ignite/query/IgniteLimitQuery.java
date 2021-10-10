@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class IgniteLimitQuery extends IgniteQuery {
+
+    private String queryType;
     /**
      * Retrieves a specified number of (ordered) elements
      * from the beginning of the cache. Note, this query
@@ -36,8 +38,9 @@ public class IgniteLimitQuery extends IgniteQuery {
          * Transform the provided properties into fields
          */
         HashMap<String, String> fields = new HashMap<>();
-
         fields.put(IgniteConstants.LIMIT_VALUE, String.valueOf(limit));
+
+        queryType = "withId";
         createSql(fields);
     }
 
@@ -48,9 +51,10 @@ public class IgniteLimitQuery extends IgniteQuery {
          */
         HashMap<String, String> fields = new HashMap<>();
 
-        fields.put(IgniteConstants.FROM_ID_VALUE, fromId.toString());
+        fields.put(IgniteConstants.FROM_COL_NAME, fromId.toString());
         fields.put(IgniteConstants.LIMIT_VALUE, String.valueOf(limit));
 
+        queryType = "withFrom";
         createSql(fields);
     }
 
@@ -69,6 +73,8 @@ public class IgniteLimitQuery extends IgniteQuery {
         fields.put(IgniteConstants.LIMIT_VALUE, String.valueOf(limit));
 
         fields.put(IgniteConstants.REVERSED_VALUE, String.valueOf(reversed));
+
+        queryType = "withProp";
         createSql(fields);
     }
 
@@ -76,33 +82,50 @@ public class IgniteLimitQuery extends IgniteQuery {
     protected void createSql(Map<String, String> fields) {
         try {
             buildSelectPart();
-            /*
-             * Build the `clause` of the SQL statement
-             * from the provided fields
-             */
-            sqlStatement += " where " + IgniteConstants.LABEL_COL_NAME;
-            sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
 
-            sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
-            sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
-            /*
-             * The value of the value column must in the range of
-             * INCLUSIVE_FROM_VALUE >= PROPERTY_VALUE_COL_NAME
-             */
-            sqlStatement += " and " + IgniteConstants.PROPERTY_VALUE_COL_NAME;
-            sqlStatement += " >= '" + fields.get(IgniteConstants.INCLUSIVE_FROM_VALUE) + "'";
-            /*
-             * Determine sorting order
-             */
-            if (fields.get(IgniteConstants.REVERSED_VALUE).equals("true")) {
-                sqlStatement += " order by " + IgniteConstants.PROPERTY_VALUE_COL_NAME + " DESC";
+            if (queryType.equals("withId")) {
+                sqlStatement += " limit " + fields.get(IgniteConstants.LIMIT_VALUE);
+
+            }
+            else if (queryType.equals("withFrom")) {
+                /*
+                 * Build the `clause` of the SQL statement
+                 * from the provided fields
+                 */
+                sqlStatement += " where " + IgniteConstants.FROM_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.FROM_COL_NAME) + "'";
+
+                sqlStatement += " limit " + fields.get(IgniteConstants.LIMIT_VALUE);
+
             }
             else {
-                sqlStatement += " order by " + IgniteConstants.PROPERTY_VALUE_COL_NAME + " ASC";
+                /*
+                 * Build the `clause` of the SQL statement
+                 * from the provided fields
+                 */
+                sqlStatement += " where " + IgniteConstants.LABEL_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.LABEL_COL_NAME) + "'";
+
+                sqlStatement += " and " + IgniteConstants.PROPERTY_KEY_COL_NAME;
+                sqlStatement += " = '" + fields.get(IgniteConstants.PROPERTY_KEY_COL_NAME) + "'";
+                /*
+                 * The value of the value column must in the range of
+                 * INCLUSIVE_FROM_VALUE >= PROPERTY_VALUE_COL_NAME
+                 */
+                sqlStatement += " and " + IgniteConstants.PROPERTY_VALUE_COL_NAME;
+                sqlStatement += " >= '" + fields.get(IgniteConstants.INCLUSIVE_FROM_VALUE) + "'";
+                /*
+                 * Determine sorting order
+                 */
+                if (fields.get(IgniteConstants.REVERSED_VALUE).equals("true")) {
+                    sqlStatement += " order by " + IgniteConstants.PROPERTY_VALUE_COL_NAME + " DESC";
+                } else {
+                    sqlStatement += " order by " + IgniteConstants.PROPERTY_VALUE_COL_NAME + " ASC";
+                }
+
+                sqlStatement += " limit " + fields.get(IgniteConstants.LIMIT_VALUE);
+
             }
-
-            sqlStatement += " limit " + fields.get(IgniteConstants.LIMIT_VALUE);
-
         } catch (Exception e) {
             sqlStatement = null;
         }
