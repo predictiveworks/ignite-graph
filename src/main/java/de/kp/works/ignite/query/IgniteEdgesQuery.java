@@ -66,15 +66,12 @@ public class IgniteEdgesQuery extends IgniteQuery {
     protected void createSql(Map<String, String> fields) {
         try {
             buildSelectPart();
-            /*
-             * Build `where` clause and thereby distinguish
-             * between a single or multiple label values
-             */
+
             if (fields.containsKey(IgniteConstants.TO_COL_NAME)) {
                 sqlStatement += " where " + IgniteConstants.TO_COL_NAME;
                 sqlStatement += " = '" + fields.get(IgniteConstants.TO_COL_NAME) + "'";
             }
-            if (fields.containsKey(IgniteConstants.FROM_COL_NAME)) {
+            else {
                 sqlStatement += " where " + IgniteConstants.FROM_COL_NAME;
                 sqlStatement += " = '" + fields.get(IgniteConstants.FROM_COL_NAME) + "'";
             }

@@ -34,13 +34,12 @@ import scala.collection.mutable.ArrayBuffer
  * Note, the column names of `from` and `to` columns
  * must be adapted by the user.
  */
-class EdgeRDDReader(ic:IgniteContext, namespace:String) extends RDDReader(ic) {
+class EdgeDataFrame(ic:IgniteContext, namespace:String) extends RDDReader(ic) {
 
   table = Some(namespace + "_" + IgniteConstants.EDGES)
 
   /* Build cache configuration */
   cfg = Some(IgniteUtil.createCacheCfg(table.get, ElementType.EDGE, CacheMode.REPLICATED))
-
 
   def edges(): DataFrame = {
 
