@@ -57,7 +57,7 @@ class ZeekProcessor(
   private val conf = WorksConf.getStreamerCfg(WorksConf.ZEEK_CONF)
   override protected val flushWindow: Int = conf.getInt("flushWindow")
 
-  private val writer = new ZeekWriter(connect)
+  private val writer = new ZeekTableWriter(connect)
 
   /**
    * A helper method to apply the event query to the selected

@@ -1,7 +1,4 @@
 package de.kp.works.ignite.stream
-
-import scala.actors.threadpool.{ExecutorService, Executors}
-
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -20,6 +17,8 @@ import scala.actors.threadpool.{ExecutorService, Executors}
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
+
+import scala.actors.threadpool.{ExecutorService, Executors}
 
 abstract class IgniteStreamContext{
 

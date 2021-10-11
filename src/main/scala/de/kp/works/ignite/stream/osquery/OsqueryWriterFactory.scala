@@ -20,7 +20,7 @@ package de.kp.works.ignite.stream.osquery
 
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.osquery.fleet.FleetWriter
+import de.kp.works.ignite.stream.osquery.fleet.FleetTableWriter
 import de.kp.works.ignite.stream.osquery.tls.TLSWriter
 
 object OsqueryWriterFactory {
@@ -32,7 +32,7 @@ object OsqueryWriterFactory {
 
     name match {
       case WorksConf.FLEETDM_CONF =>
-        new FleetWriter(connect)
+        new FleetTableWriter(connect)
 
       case WorksConf.OSQUERY_CONF =>
         new TLSWriter(connect)

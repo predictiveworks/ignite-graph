@@ -25,7 +25,7 @@ import de.kp.works.ignite.stream.TableWriter
 import de.kp.works.ignite.stream.file.FileEvent
 import org.apache.spark.sql.{DataFrame, SaveMode}
 
-class ZeekWriter(connect:IgniteConnect) extends TableWriter(connect) {
+class ZeekTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
 
   private val zeekCfg = WorksConf.getCfg(WorksConf.ZEEK_CONF)
 

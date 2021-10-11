@@ -24,7 +24,7 @@ import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.osquery.{OsqueryEvent, OsqueryWriter}
 import org.apache.spark.sql.SaveMode
 
-class FleetWriter(connect:IgniteConnect) extends OsqueryWriter(connect) {
+class FleetTableWriter(connect:IgniteConnect) extends OsqueryWriter(connect) {
 
   private val fleetCfg = WorksConf.getCfg(WorksConf.FLEETDM_CONF)
 
