@@ -1,6 +1,6 @@
 package de.kp.works.ignite.stream.opencti
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,7 +19,7 @@ package de.kp.works.ignite.stream.opencti
  */
 
 import de.kp.works.ignite.stream.IgniteStreamer
-import org.apache.ignite.{IgniteException, IgniteLogger}
+import org.apache.ignite.IgniteException
 import org.apache.ignite.stream.StreamAdapter
 
 trait CTIEventHandler {
@@ -32,9 +32,6 @@ trait CTIEventHandler {
 
 class CTIStreamer[K,V]
   extends StreamAdapter[SseEvent, K, V] with CTIEventHandler with IgniteStreamer {
-
-  /** Logger */
-  private val log:IgniteLogger = getIgnite.log()
 
   /** OpenCTI Service */
 
@@ -97,6 +94,8 @@ class CTIStreamer[K,V]
    * }
    */
   override def eventArrived(event: SseEvent): Unit = {
+
+    val log = getIgnite.log()
     /*
      * The leveraged extractors below must be explicitly
      * defined when initiating this streamer

@@ -43,8 +43,8 @@ object ZeekStream extends BaseStream {
          * Build streaming context and finally start the
          * service that listens to Zeek log events.
          */
-        val ctiIgnite = new ZeekEngine(connect.get)
-        service = ctiIgnite.buildStream
+        val zeekEngine = new ZeekEngine(connect.get)
+        service = zeekEngine.buildStream
 
         start()
 

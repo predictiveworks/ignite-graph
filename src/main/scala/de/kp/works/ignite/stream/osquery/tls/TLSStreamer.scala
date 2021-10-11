@@ -23,13 +23,10 @@ import de.kp.works.ignite.stream.IgniteStreamer
 import de.kp.works.ignite.stream.osquery.tls.db.DBApi
 import de.kp.works.ignite.stream.osquery.{OsqueryEvent, OsqueryEventHandler}
 import org.apache.ignite.stream.StreamAdapter
-import org.apache.ignite.{IgniteException, IgniteLogger}
+import org.apache.ignite.IgniteException
 
 class TLSStreamer[K,V](api:DBApi)
   extends StreamAdapter[OsqueryEvent, K, V] with OsqueryEventHandler with IgniteStreamer {
-
-  /** Logger */
-  private val log:IgniteLogger = getIgnite.log()
 
   /** TLS server */
 
@@ -77,6 +74,8 @@ class TLSStreamer[K,V](api:DBApi)
    *******************************/
 
   override def eventArrived(event: OsqueryEvent): Unit = {
+
+    val log = getIgnite.log()
     /*
      * The leveraged extractors below must be explicitly
      * defined when initiating this streamer

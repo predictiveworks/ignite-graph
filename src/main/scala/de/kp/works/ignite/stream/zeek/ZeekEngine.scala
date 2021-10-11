@@ -77,6 +77,7 @@ class ZeekEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
     } catch {
       case t:Throwable =>
+        t.printStackTrace()
         println(s"[ERROR] Stream preparation for 'ingestion' operation failed: ${t.getLocalizedMessage}")
         None
     }

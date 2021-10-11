@@ -19,7 +19,7 @@ package de.kp.works.ignite.stream.fiware
  */
 
 import de.kp.works.ignite.stream.IgniteStreamer
-import org.apache.ignite.{IgniteException, IgniteLogger}
+import org.apache.ignite.IgniteException
 import org.apache.ignite.stream.StreamAdapter
 
 trait FiwareEventHandler {
@@ -36,9 +36,6 @@ trait FiwareEventHandler {
  */
 class FiwareStreamer[K,V]
   extends StreamAdapter[FiwareNotification, K, V] with FiwareEventHandler with IgniteStreamer {
-
-  /** Logger */
-  private val log:IgniteLogger = getIgnite.log()
 
   /** FiwareServer */
 
@@ -88,6 +85,8 @@ class FiwareStreamer[K,V]
   }
 
   override def notificationArrived(notification: FiwareNotification): Unit = {
+
+    val log = getIgnite.log()
     /*
      * The leveraged extractors below must be explicitly
      * defined when initiating this streamer
