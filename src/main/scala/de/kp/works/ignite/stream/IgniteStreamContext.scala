@@ -1,6 +1,6 @@
 package de.kp.works.ignite.stream
 
-import scala.actors.threadpool.Executors
+import scala.actors.threadpool.{ExecutorService, Executors}
 
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
@@ -27,7 +27,7 @@ abstract class IgniteStreamContext{
   val streamer:IgniteStreamer
 
   val numThreads:Int = 1
-  private val executorService = Executors.newFixedThreadPool(numThreads)
+  private var executorService:ExecutorService = _
 
   def start():Unit = {
     try {
@@ -45,10 +45,13 @@ abstract class IgniteStreamContext{
       stream.processor.start()
 
       /* Initiate stream execution */
+
+      executorService = Executors.newFixedThreadPool(numThreads)
       executorService.execute(stream)
 
     } catch {
-      case _:Exception => executorService.shutdown()
+      case _:Exception =>
+        executorService.shutdown()
     }
   }
   /**
