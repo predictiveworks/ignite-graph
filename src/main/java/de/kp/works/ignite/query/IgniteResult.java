@@ -19,7 +19,7 @@ package de.kp.works.ignite.query;
  */
 
 import de.kp.works.ignite.IgniteColumn;
-import de.kp.works.ignitegraph.IgniteConstants;
+import de.kp.works.ignite.gremlin.IgniteConstants;
 
 import java.util.ArrayList;
 import java.util.List;

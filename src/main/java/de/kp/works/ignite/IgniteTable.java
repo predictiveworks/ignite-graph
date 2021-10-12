@@ -18,12 +18,11 @@ package de.kp.works.ignite;
  *
  */
 
-import de.kp.works.ignite.IgniteBaseTable;
 import de.kp.works.ignite.client.IgniteConnect;
 import de.kp.works.ignite.mutate.*;
 import de.kp.works.ignite.query.*;
-import de.kp.works.ignitegraph.ElementType;
-import de.kp.works.ignitegraph.IgniteVertex;
+import de.kp.works.ignite.gremlin.ElementType;
+import de.kp.works.ignite.gremlin.IgniteVertex;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 
 import java.util.List;

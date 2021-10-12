@@ -19,7 +19,7 @@ package de.kp.works.ignite.rdd
  */
 
 import de.kp.works.ignite.util.IgniteUtil
-import de.kp.works.ignitegraph.{ElementType, IgniteConstants, ValueType}
+import de.kp.works.ignite.gremlin.{ElementType, IgniteConstants, ValueType}
 import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.spark.IgniteContext
 import org.apache.spark.sql.DataFrame

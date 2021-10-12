@@ -19,7 +19,7 @@ package de.kp.works.ignite.mutate;
  */
 
 import de.kp.works.ignite.IgniteColumn;
-import de.kp.works.ignitegraph.ElementType;
+import de.kp.works.ignite.gremlin.ElementType;
 
 public class IgniteDelete extends IgniteMutation {
 

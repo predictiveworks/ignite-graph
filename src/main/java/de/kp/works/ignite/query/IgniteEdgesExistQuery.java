@@ -19,7 +19,7 @@ package de.kp.works.ignite.query;
  */
 
 import de.kp.works.ignite.client.IgniteConnect;
-import de.kp.works.ignitegraph.IgniteConstants;
+import de.kp.works.ignite.gremlin.IgniteConstants;
 
 import java.util.HashMap;
 import java.util.Map;

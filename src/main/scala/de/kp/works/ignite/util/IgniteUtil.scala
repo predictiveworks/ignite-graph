@@ -18,7 +18,7 @@ package de.kp.works.ignite.util
  *
  */
 
-import de.kp.works.ignitegraph.{ElementType, IgniteConstants}
+import de.kp.works.ignite.gremlin.{ElementType, IgniteConstants}
 import org.apache.ignite.{Ignite, IgniteCache}
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.{CacheMode, QueryEntity}

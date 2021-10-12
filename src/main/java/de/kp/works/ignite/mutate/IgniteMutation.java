@@ -19,8 +19,8 @@ package de.kp.works.ignite.mutate;
  */
 
 import de.kp.works.ignite.IgniteColumn;
-import de.kp.works.ignitegraph.ElementType;
-import de.kp.works.ignitegraph.IgniteConstants;
+import de.kp.works.ignite.gremlin.ElementType;
+import de.kp.works.ignite.gremlin.IgniteConstants;
 
 import java.util.ArrayList;
 import java.util.List;

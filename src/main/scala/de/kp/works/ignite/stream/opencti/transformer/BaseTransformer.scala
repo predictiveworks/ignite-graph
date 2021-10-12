@@ -19,7 +19,7 @@ package de.kp.works.ignite.stream.opencti.transformer
  */
 
 import de.kp.works.ignite.mutate._
-import de.kp.works.ignitegraph.{ElementType, IgniteConstants}
+import de.kp.works.ignite.gremlin.{ElementType, IgniteConstants}
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.util.{Date, UUID}

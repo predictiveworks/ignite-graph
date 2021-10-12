@@ -20,7 +20,7 @@ package de.kp.works.ignite.client
 
 import de.kp.works.ignite.query.IgniteResult
 import de.kp.works.ignite.{IgniteEdgeEntry, IgniteVertexEntry}
-import de.kp.works.ignitegraph.{IgniteConstants, ValueType}
+import de.kp.works.ignite.gremlin.{IgniteConstants, ValueType}
 
 import scala.collection.JavaConversions._
 

@@ -21,7 +21,7 @@ package de.kp.works.ignite.stream
 import de.kp.works.ignite.IgniteTable
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.mutate._
-import de.kp.works.ignitegraph.IgniteConstants
+import de.kp.works.ignite.gremlin.IgniteConstants
 
 abstract class GraphWriter(connect:IgniteConnect) {
 
