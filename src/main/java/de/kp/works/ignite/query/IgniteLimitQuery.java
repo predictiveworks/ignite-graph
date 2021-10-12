@@ -18,7 +18,7 @@ package de.kp.works.ignite.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
+import de.kp.works.ignite.IgniteAdmin;
 import de.kp.works.ignite.gremlin.IgniteConstants;
 
 import java.util.HashMap;
@@ -32,8 +32,8 @@ public class IgniteLimitQuery extends IgniteQuery {
      * from the beginning of the cache. Note, this query
      * is restricted to elements with a numeric identifier.
      */
-    public IgniteLimitQuery(String cacheName, IgniteConnect connect, int limit) {
-        super(cacheName, connect);
+    public IgniteLimitQuery(String cacheName, IgniteAdmin admin, int limit) {
+        super(cacheName, admin);
         /*
          * Transform the provided properties into fields
          */
@@ -44,8 +44,8 @@ public class IgniteLimitQuery extends IgniteQuery {
         createSql(fields);
     }
 
-    public IgniteLimitQuery(String cacheName, IgniteConnect connect, Object fromId, int limit) {
-        super(cacheName, connect);
+    public IgniteLimitQuery(String cacheName, IgniteAdmin admin, Object fromId, int limit) {
+        super(cacheName, admin);
         /*
          * Transform the provided properties into fields
          */
@@ -58,9 +58,9 @@ public class IgniteLimitQuery extends IgniteQuery {
         createSql(fields);
     }
 
-    public IgniteLimitQuery(String cacheName, IgniteConnect connect,
+    public IgniteLimitQuery(String cacheName, IgniteAdmin admin,
                             String label, String key, Object inclusiveFrom, int limit, boolean reversed) {
-        super(cacheName, connect);
+        super(cacheName, admin);
         /*
          * Transform the provided properties into fields
          */

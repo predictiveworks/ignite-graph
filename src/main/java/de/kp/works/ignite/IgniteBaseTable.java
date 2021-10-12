@@ -18,56 +18,49 @@ package de.kp.works.ignite;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
+import de.kp.works.ignite.gremlin.ElementType;
+import de.kp.works.ignite.gremlin.IgniteConstants;
+import de.kp.works.ignite.gremlin.ValueType;
 import de.kp.works.ignite.mutate.IgniteDelete;
 import de.kp.works.ignite.mutate.IgniteIncrement;
 import de.kp.works.ignite.mutate.IgnitePut;
 import de.kp.works.ignite.query.IgniteEdgeQuery;
-import de.kp.works.ignite.query.IgniteEdgesExistQuery;
 import de.kp.works.ignite.query.IgniteGetQuery;
-import de.kp.works.ignite.gremlin.ElementType;
-import de.kp.works.ignite.gremlin.IgniteConstants;
-import de.kp.works.ignite.gremlin.ValueType;
-import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteCache;
-import org.apache.ignite.binary.BinaryObject;
-import org.apache.ignite.binary.BinaryObjectBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class IgniteBaseTable {
 
     protected final String name;
-    protected final IgniteConnect connect;
+    protected final IgniteAdmin admin;
 
     protected final ElementType elementType;
-    protected IgniteCache<String, BinaryObject> cache;
 
-    public IgniteBaseTable(String name, IgniteConnect connect) {
+    public IgniteBaseTable(String name, IgniteAdmin admin) {
 
         this.name = name;
-        this.connect = connect;
+        this.admin = admin;
 
-        if (name.equals(IgniteConnect.namespace() + "_" + IgniteConstants.EDGES)) {
+        if (name.equals(admin.namespace() + "_" + IgniteConstants.EDGES)) {
             elementType = ElementType.EDGE;
         }
-        else if (name.equals(IgniteConnect.namespace() + "_" + IgniteConstants.VERTICES)) {
+        else if (name.equals(admin.namespace() + "_" + IgniteConstants.VERTICES)) {
             elementType = ElementType.VERTEX;
         }
         else
             elementType = ElementType.UNDEFINED;
-        /*
-         * Connect to Ignite cache of the respective
-         * name
-         */
-        cache = connect.getOrCreateCache(name);
+
+        admin.createTable(name);
 
     }
 
     /** METHODS TO SUPPORT BASIC CRUD OPERATIONS **/
 
-    protected Object incrementEdge(IgniteIncrement igniteIncrement) throws Exception {
+    protected Object incrementEdge(IgniteIncrement igniteIncrement) {
        Object edgeId = igniteIncrement.getId();
         List<IgniteEdgeEntry> edge = getEdge(edgeId);
         /*
@@ -79,7 +72,7 @@ public class IgniteBaseTable {
         return incrementEdge(igniteIncrement, edge);
     }
 
-    protected Object incrementVertex(IgniteIncrement igniteIncrement) throws Exception {
+    protected Object incrementVertex(IgniteIncrement igniteIncrement) {
         Object vertexId = igniteIncrement.getId();
         List<IgniteVertexEntry> vertex = getVertex(vertexId);
         /*
@@ -170,12 +163,12 @@ public class IgniteBaseTable {
      * of (edge) cache entries
      */
     protected List<IgniteEdgeEntry> getEdge(Object id) {
-        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, connect, id);
+        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, admin, id);
         return igniteQuery.getEdgeEntries();
     }
 
     protected List<IgniteEdgeEntry> getEdge(Object fromId, Object toId) {
-        IgniteEdgeQuery igniteQuery = new IgniteEdgeQuery(name, connect, fromId, toId);
+        IgniteEdgeQuery igniteQuery = new IgniteEdgeQuery(name, admin, fromId, toId);
         return igniteQuery.getEdgeEntries();
     }
     /**
@@ -187,18 +180,8 @@ public class IgniteBaseTable {
      * of (vertex) cache entries
      */
     protected List<IgniteVertexEntry> getVertex(Object id) {
-        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, connect, id);
+        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, admin, id);
         return igniteQuery.getVertexEntries();
-    }
-    /**
-     * Check whether a vertex is referenced by edges
-     * either as `from` or `to` vertex
-     */
-    protected boolean hasEdges(Object vertex) {
-        IgniteEdgesExistQuery igniteQuery = new IgniteEdgesExistQuery(name, connect, vertex);
-        List<IgniteEdgeEntry> edges = igniteQuery.getEdgeEntries();
-
-        return !edges.isEmpty();
     }
     /**
      * The provided [IgnitePut] is transformed into a list of
@@ -339,7 +322,7 @@ public class IgniteBaseTable {
      * The current implementation does not support any
      * transactions to ensure consistency.
      */
-    protected void updateEdge(IgnitePut ignitePut, List<IgniteEdgeEntry> edge) throws Exception {
+    protected void updateEdge(IgnitePut ignitePut, List<IgniteEdgeEntry> edge) {
         /*
          * STEP #1: Retrieve all properties that are
          * provided
@@ -434,48 +417,12 @@ public class IgniteBaseTable {
      * or just specific properties of an existing edge.
      */
     protected void deleteEdge(IgniteDelete igniteDelete, List<IgniteEdgeEntry> edge) {
-
-        List<String> cacheKeys;
-
-        List<IgniteColumn> columns = igniteDelete.getColumns();
-        /*
-         * STEP #1: Check whether we must delete the
-         * entire edge or just a certain column
-         */
-        if (columns.isEmpty()) {
-            /*
-             * All cache entries that refer to the specific
-             * edge must be deleted.
-             */
-            cacheKeys = edge.stream()
-                    .map(entry -> entry.cacheKey).collect(Collectors.toList());
-        }
-        else {
-            /*
-             * All cache entries that refer to a certain
-             * property key must be deleted
-             */
-            List<String> propKeys = igniteDelete.getProperties()
-                    .map(c -> c.getColValue().toString())
-                    .collect(Collectors.toList());
-
-            cacheKeys = edge.stream()
-                    /*
-                     * Restrict to those cache entries that refer
-                     * to the provided property keys
-                     */
-                    .filter(entry -> propKeys.contains(entry.propKey))
-                    .map(entry -> entry.cacheKey).collect(Collectors.toList());
-
-        }
-
-        if (!cacheKeys.isEmpty())
-            cache.removeAll(new HashSet<>(cacheKeys));
+        admin.deleteEdge(igniteDelete, edge, name);
     }
     /**
      * This method increments a certain property value
      */
-    protected Object incrementEdge(IgniteIncrement igniteIncrement, List<IgniteEdgeEntry> edge) throws Exception {
+    protected Object incrementEdge(IgniteIncrement igniteIncrement, List<IgniteEdgeEntry> edge) {
         IgniteColumn column = igniteIncrement.getColumn();
         if (column == null) return null;
         /*
@@ -630,12 +577,8 @@ public class IgniteBaseTable {
      * This method supports the modification of an existing
      * vertex; this implies the update of existing property
      * values as well as the creation of new properties
-     *
-     * TODO ::
-     * The current implementation does not support any
-     * transactions to ensure consistency.
      */
-    protected void updateVertex(IgnitePut ignitePut, List<IgniteVertexEntry> vertex) throws Exception {
+    protected void updateVertex(IgnitePut ignitePut, List<IgniteVertexEntry> vertex) {
         /*
          * STEP #1: Retrieve all properties that are
          * provided
@@ -725,49 +668,10 @@ public class IgniteBaseTable {
      * also checks whether the vertex is referenced by an edge
      */
     protected void deleteVertex(IgniteDelete igniteDelete, List<IgniteVertexEntry> vertex) throws Exception {
-
-        List<String> cacheKeys;
-
-        List<IgniteColumn> columns = igniteDelete.getColumns();
-        /*
-         * STEP #1: Check whether we must delete the
-         * entire vertex or just a certain column
-         */
-        if (columns.isEmpty()) {
-            /*
-             * All cache entries that refer to the specific
-             * vertex must be deleted.
-             */
-            Object id = igniteDelete.getId();
-            if (hasEdges(id))
-                throw new Exception("The vertex '" + id.toString() + "' is referenced by at least one edge.");
-
-            cacheKeys = vertex.stream()
-                    .map(entry -> entry.cacheKey).collect(Collectors.toList());
-        }
-        else {
-            /*
-             * All cache entries that refer to a certain
-             * property key must be deleted
-             */
-            List<String> propKeys = igniteDelete.getProperties()
-                    .map(IgniteColumn::getColName)
-                    .collect(Collectors.toList());
-
-            cacheKeys = vertex.stream()
-                    /*
-                     * Restrict to those cache entries that refer
-                     * to the provided property keys
-                     */
-                    .filter(entry -> propKeys.contains(entry.propKey))
-                    .map(entry -> entry.cacheKey).collect(Collectors.toList());
-
-        }
-
-        cache.removeAll(new HashSet<>(cacheKeys));
+        admin.deleteVertex(igniteDelete, vertex, name);
     }
 
-    protected Object incrementVertex(IgniteIncrement igniteIncrement, List<IgniteVertexEntry> vertex) throws Exception {
+    protected Object incrementVertex(IgniteIncrement igniteIncrement, List<IgniteVertexEntry> vertex) {
         IgniteColumn column = igniteIncrement.getColumn();
         if (column == null) return null;
         /*
@@ -811,71 +715,14 @@ public class IgniteBaseTable {
     /**
      * Supports create and update operations for edges
      */
-    private void writeEdge(List<IgniteEdgeEntry> entries) throws Exception {
-
-        Ignite ignite = connect.getIgnite();
-        Map<String,BinaryObject> row = new HashMap<>();
-
-        for (IgniteEdgeEntry entry : entries) {
-            BinaryObjectBuilder valueBuilder = ignite.binary().builder(name);
-
-            valueBuilder.setField(IgniteConstants.ID_COL_NAME,         entry.id);
-            valueBuilder.setField(IgniteConstants.ID_TYPE_COL_NAME,    entry.idType);
-            valueBuilder.setField(IgniteConstants.LABEL_COL_NAME,      entry.label);
-
-            valueBuilder.setField(IgniteConstants.TO_COL_NAME,      entry.toId);
-            valueBuilder.setField(IgniteConstants.TO_TYPE_COL_NAME, entry.toIdType);
-
-            valueBuilder.setField(IgniteConstants.FROM_COL_NAME,      entry.fromId);
-            valueBuilder.setField(IgniteConstants.FROM_TYPE_COL_NAME, entry.fromIdType);
-
-            valueBuilder.setField(IgniteConstants.CREATED_AT_COL_NAME, entry.createdAt);
-            valueBuilder.setField(IgniteConstants.UPDATED_AT_COL_NAME, entry.updatedAt);
-
-            valueBuilder.setField(IgniteConstants.PROPERTY_KEY_COL_NAME,  entry.propKey);
-            valueBuilder.setField(IgniteConstants.PROPERTY_TYPE_COL_NAME,  entry.propType);
-            valueBuilder.setField(IgniteConstants.PROPERTY_VALUE_COL_NAME, entry.propValue);
-
-            String cacheKey = entry.cacheKey;
-            BinaryObject cacheValue = valueBuilder.build();
-
-            row.put(cacheKey, cacheValue);
-        }
-
-        for (Map.Entry<String,BinaryObject> entry : row.entrySet()) {
-            cache.put(entry.getKey(), entry.getValue());
-        }
+    private void writeEdge(List<IgniteEdgeEntry> entries) {
+        admin.writeEdge(entries, name);
     }
     /**
      * Supports create and update operations for vertices
      */
-    private void writeVertex(List<IgniteVertexEntry> entries) throws Exception {
-
-        Ignite ignite = connect.getIgnite();
-        Map<String,BinaryObject> row = new HashMap<>();
-
-        for (IgniteVertexEntry entry : entries) {
-            BinaryObjectBuilder valueBuilder = ignite.binary().builder(name);
-
-            valueBuilder.setField(IgniteConstants.ID_COL_NAME,         entry.id);
-            valueBuilder.setField(IgniteConstants.ID_TYPE_COL_NAME,    entry.idType);
-            valueBuilder.setField(IgniteConstants.LABEL_COL_NAME,      entry.label);
-            valueBuilder.setField(IgniteConstants.CREATED_AT_COL_NAME, entry.createdAt);
-            valueBuilder.setField(IgniteConstants.UPDATED_AT_COL_NAME, entry.updatedAt);
-
-            valueBuilder.setField(IgniteConstants.PROPERTY_KEY_COL_NAME,  entry.propKey);
-            valueBuilder.setField(IgniteConstants.PROPERTY_TYPE_COL_NAME,  entry.propType);
-            valueBuilder.setField(IgniteConstants.PROPERTY_VALUE_COL_NAME, entry.propValue);
-
-            String cacheKey = entry.cacheKey;
-            BinaryObject cacheValue = valueBuilder.build();
-
-            row.put(cacheKey, cacheValue);
-        }
-
-        for (Map.Entry<String,BinaryObject> entry : row.entrySet()) {
-            cache.put(entry.getKey(), entry.getValue());
-        }
+    private void writeVertex(List<IgniteVertexEntry> entries) {
+        admin.writeVertex(entries, name);
    }
 
 }

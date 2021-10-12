@@ -18,7 +18,7 @@ package de.kp.works.ignite.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
+import de.kp.works.ignite.IgniteAdmin;
 import de.kp.works.ignite.gremlin.IgniteConstants;
 
 import java.util.HashMap;
@@ -30,8 +30,8 @@ public class IgnitePropertyQuery extends IgniteQuery {
      * a certain label and share a certain property
      * key and value
      */
-    public IgnitePropertyQuery(String cacheName, IgniteConnect connect, String label, String key, Object value) {
-        super(cacheName, connect);
+    public IgnitePropertyQuery(String cacheName, IgniteAdmin admin, String label, String key, Object value) {
+        super(cacheName, admin);
         /*
          * Transform the provided properties into fields
          */

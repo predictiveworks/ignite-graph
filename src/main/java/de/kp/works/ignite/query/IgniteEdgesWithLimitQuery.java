@@ -18,7 +18,7 @@ package de.kp.works.ignite.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
+import de.kp.works.ignite.IgniteAdmin;
 import de.kp.works.ignite.gremlin.IgniteConstants;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 
@@ -27,10 +27,10 @@ import java.util.Map;
 
 public class IgniteEdgesWithLimitQuery extends IgniteQuery {
 
-    public IgniteEdgesWithLimitQuery(String cacheName, IgniteConnect connect,
+    public IgniteEdgesWithLimitQuery(String cacheName, IgniteAdmin admin,
                                      Object vertex, Direction direction, String label,
                                      String key, Object InclusiveFromValue, int limit, boolean reversed) {
-        super(cacheName, connect);
+        super(cacheName, admin);
         /*
          * Transform the provided properties into fields
          */

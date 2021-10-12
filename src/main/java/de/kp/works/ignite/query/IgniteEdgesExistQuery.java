@@ -18,7 +18,7 @@ package de.kp.works.ignite.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
+import de.kp.works.ignite.IgniteAdmin;
 import de.kp.works.ignite.gremlin.IgniteConstants;
 
 import java.util.HashMap;
@@ -26,9 +26,9 @@ import java.util.Map;
 
 public class IgniteEdgesExistQuery extends IgniteQuery {
 
-    public IgniteEdgesExistQuery(String cacheName, IgniteConnect connect,
+    public IgniteEdgesExistQuery(String cacheName, IgniteAdmin admin,
                             Object vertex) {
-        super(cacheName, connect);
+        super(cacheName, admin);
 
         HashMap<String, String> fields = new HashMap<>();
 

@@ -18,7 +18,6 @@ package de.kp.works.ignite;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
 import de.kp.works.ignite.mutate.*;
 import de.kp.works.ignite.query.*;
 import de.kp.works.ignite.gremlin.ElementType;
@@ -29,8 +28,8 @@ import java.util.List;
 
 public class IgniteTable extends IgniteBaseTable {
 
-    public IgniteTable(String name, IgniteConnect connect) {
-        super(name, connect);
+    public IgniteTable(String name, IgniteAdmin admin) {
+        super(name, admin);
     }
     /**
      * This method adds or updates an Ignite cache entry;
@@ -39,8 +38,8 @@ public class IgniteTable extends IgniteBaseTable {
      */
     public boolean put(IgnitePut ignitePut) throws Exception {
 
-        if (connect == null) return false;
-        if (connect.getIgnite() == null) return false;
+        if (admin == null) return false;
+        if (!admin.igniteExists()) return false;
 
         try {
 
@@ -67,8 +66,8 @@ public class IgniteTable extends IgniteBaseTable {
      */
     public boolean delete(IgniteDelete igniteDelete) throws Exception {
 
-        if (connect == null) return false;
-        if (connect.getIgnite() == null) return false;
+        if (admin == null) return false;
+        if (!admin.igniteExists()) return false;
 
         try {
 
@@ -90,8 +89,8 @@ public class IgniteTable extends IgniteBaseTable {
 
     public Object increment(IgniteIncrement igniteIncrement) throws Exception {
 
-        if (connect == null) return false;
-        if (connect.getIgnite() == null) return false;
+        if (admin == null) return false;
+        if (!admin.igniteExists()) return false;
         /*
          * In case of an increment, the respective incremented
          * value is returned,
@@ -183,7 +182,7 @@ public class IgniteTable extends IgniteBaseTable {
      * to the provided list of identifiers
      */
     public IgniteResult[] get(List<Object> ids) {
-        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, connect, ids);
+        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, admin, ids);
 
         List<IgniteResult> result = igniteQuery.getResult();
         return result.toArray(new IgniteResult[0]);
@@ -193,7 +192,7 @@ public class IgniteTable extends IgniteBaseTable {
      * to the provided identifier
      */
     public IgniteResult get(Object id) {
-        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, connect, id);
+        IgniteGetQuery igniteQuery = new IgniteGetQuery(name, admin, id);
 
         List<IgniteResult> result = igniteQuery.getResult();
         if (result.isEmpty()) return null;
@@ -204,7 +203,7 @@ public class IgniteTable extends IgniteBaseTable {
      * Returns an [IgniteQuery] to retrieve all elements
      */
     public IgniteQuery getAllQuery() {
-        return new IgniteAllQuery(name, connect);
+        return new IgniteAllQuery(name, admin);
     }
 
     /**
@@ -212,7 +211,7 @@ public class IgniteTable extends IgniteBaseTable {
      * that are referenced by a certain label
      */
     public IgniteQuery getLabelQuery(String label) {
-        return new IgniteLabelQuery(name, connect, label);
+        return new IgniteLabelQuery(name, admin, label);
     }
     /**
      * Returns an [IgniteQuery] to retrieve a specified
@@ -220,22 +219,22 @@ public class IgniteTable extends IgniteBaseTable {
      * of the cache
      */
     public IgniteQuery getLimitQuery(int limit) {
-        return new IgniteLimitQuery(name, connect, limit);
+        return new IgniteLimitQuery(name, admin, limit);
     }
 
     public IgniteQuery getLimitQuery(Object fromId, int limit) {
-        return new IgniteLimitQuery(name, connect, fromId, limit);
+        return new IgniteLimitQuery(name, admin, fromId, limit);
     }
 
     public IgniteQuery getLimitQuery(String label, String key, Object inclusiveFrom, int limit, boolean reversed) {
-        return new IgniteLimitQuery(name, connect, label, key, inclusiveFrom, limit, reversed);    }
+        return new IgniteLimitQuery(name, admin, label, key, inclusiveFrom, limit, reversed);    }
     /**
      * Returns an [IgniteQuery] to retrieve all elements
      * that are referenced by a certain label and share
      * a certain property key and value
      */
     public IgniteQuery getPropertyQuery(String label, String key, Object value) {
-        return new IgnitePropertyQuery(name, connect, label, key, value);
+        return new IgnitePropertyQuery(name, admin, label, key, value);
     }
     /**
      * Returns an [IgniteQuery] to retrieve all elements
@@ -243,7 +242,7 @@ public class IgniteTable extends IgniteBaseTable {
      * a certain property key and value range
      */
     public IgniteQuery getRangeQuery(String label, String key, Object inclusiveFrom, Object exclusiveTo) {
-        return new IgniteRangeQuery(name, connect, label, key, inclusiveFrom, exclusiveTo);
+        return new IgniteRangeQuery(name, admin, label, key, inclusiveFrom, exclusiveTo);
     }
 
     /* EDGE READ SUPPORT */
@@ -253,7 +252,7 @@ public class IgniteTable extends IgniteBaseTable {
      * vertex that match direction and the provided labels
      */
     public IgniteQuery getEdgesQuery(IgniteVertex vertex, Direction direction, String... labels) {
-        return new IgniteEdgesQuery(name, connect, vertex.id(), direction, labels);
+        return new IgniteEdgesQuery(name, admin, vertex.id(), direction, labels);
     }
     /**
      * Method to retrieve all edges that refer to the provided
@@ -262,7 +261,7 @@ public class IgniteTable extends IgniteBaseTable {
      */
     public IgniteQuery getEdgesQuery(IgniteVertex vertex, Direction direction, String label,
                                      String key, Object value) {
-        return new IgniteEdgesQuery(name, connect, vertex.id(), direction, label, key, value);
+        return new IgniteEdgesQuery(name, admin, vertex.id(), direction, label, key, value);
     }
     /**
      * Method to retrieve all edges that refer to the provided
@@ -271,13 +270,13 @@ public class IgniteTable extends IgniteBaseTable {
      */
     public IgniteQuery getEdgesInRangeQuery(IgniteVertex vertex, Direction direction, String label,
                                        String key, Object inclusiveFromValue, Object exclusiveToValue) {
-        return new IgniteEdgesInRangeQuery(name, connect, vertex.id(), direction, label,
+        return new IgniteEdgesInRangeQuery(name, admin, vertex.id(), direction, label,
                 key, inclusiveFromValue, exclusiveToValue);
     }
 
     public IgniteQuery getEdgesWithLimitQuery(IgniteVertex vertex, Direction direction, String label,
                                       String key, Object fromValue, int limit, boolean reversed) {
-         return new IgniteEdgesWithLimitQuery(name, connect, vertex.id(), direction, label,
+         return new IgniteEdgesWithLimitQuery(name, admin, vertex.id(), direction, label,
                 key, fromValue, limit, reversed);
 
     }

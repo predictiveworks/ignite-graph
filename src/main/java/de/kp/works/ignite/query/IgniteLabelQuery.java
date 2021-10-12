@@ -18,7 +18,7 @@ package de.kp.works.ignite.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
+import de.kp.works.ignite.IgniteAdmin;
 import de.kp.works.ignite.gremlin.IgniteConstants;
 
 import java.util.HashMap;
@@ -29,8 +29,8 @@ public class IgniteLabelQuery extends IgniteQuery {
      * Retrieve all elements that refer to the provided
      * label, either edges or vertices.
      */
-    public IgniteLabelQuery(String cacheName, IgniteConnect connect, String label) {
-        super(cacheName, connect);
+    public IgniteLabelQuery(String cacheName, IgniteAdmin admin, String label) {
+        super(cacheName, admin);
         /*
          * Transform the provided properties into fields
          */

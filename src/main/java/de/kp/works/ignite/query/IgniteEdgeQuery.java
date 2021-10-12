@@ -18,7 +18,7 @@ package de.kp.works.ignite.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
+import de.kp.works.ignite.IgniteAdmin;
 import de.kp.works.ignite.gremlin.IgniteConstants;
 
 import java.util.HashMap;
@@ -30,8 +30,8 @@ public class IgniteEdgeQuery extends IgniteQuery {
      * `from` and `to `identifier. A use case for this
      * query is the OpenCTI transformer
      */
-    public IgniteEdgeQuery(String cacheName, IgniteConnect connect, Object fromId, Object toId) {
-        super(cacheName, connect);
+    public IgniteEdgeQuery(String cacheName, IgniteAdmin admin, Object fromId, Object toId) {
+        super(cacheName, admin);
         /*
          * Transform the provided properties into fields
          */

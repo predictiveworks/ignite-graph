@@ -1,6 +1,6 @@
 package de.kp.works.ignite.gremlin;
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -94,8 +94,8 @@ public class IgniteGraph implements Graph {
     private final EdgeModel edgeModel;
     private final VertexModel vertexModel;
 
-    private Cache<ByteBuffer, Edge> edgeCache;
-    private Cache<ByteBuffer, Vertex> vertexCache;
+    private final Cache<ByteBuffer, Edge> edgeCache;
+    private final Cache<ByteBuffer, Vertex> vertexCache;
 
     /**
      * This method is invoked by Gremlin's GraphFactory

@@ -18,6 +18,7 @@ package de.kp.works.ignite.query;
  *
  */
 
+import de.kp.works.ignite.IgniteAdmin;
 import de.kp.works.ignite.IgniteEdgeEntry;
 import de.kp.works.ignite.IgniteVertexEntry;
 import de.kp.works.ignite.client.*;
@@ -45,17 +46,17 @@ public abstract class IgniteQuery {
 
     protected ElementType elementType;
 
-    public IgniteQuery(String name, IgniteConnect connect) {
+    public IgniteQuery(String name, IgniteAdmin admin) {
 
         try {
             /*
              * Retrieve element type from provided
              * cache (table) name
              */
-            if (name.equals(IgniteConnect.namespace() + "_" + IgniteConstants.EDGES)) {
+            if (name.equals(admin.namespace() + "_" + IgniteConstants.EDGES)) {
                 elementType = ElementType.EDGE;
             }
-            else if (name.equals(IgniteConnect.namespace() + "_" + IgniteConstants.VERTICES)) {
+            else if (name.equals(admin.namespace() + "_" + IgniteConstants.VERTICES)) {
                 elementType = ElementType.VERTEX;
             }
             else
@@ -64,7 +65,7 @@ public abstract class IgniteQuery {
              * Connect to Ignite cache of the respective
              * name
              */
-            cache = connect.getOrCreateCache(name);
+            cache = admin.createTable(name);
 
         } catch (Exception e) {
             cache = null;

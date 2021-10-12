@@ -18,7 +18,7 @@ package de.kp.works.ignite.query;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
+import de.kp.works.ignite.IgniteAdmin;
 import de.kp.works.ignite.gremlin.IgniteConstants;
 
 import java.util.HashMap;
@@ -32,8 +32,8 @@ public class IgniteGetQuery extends IgniteQuery {
      * Retrieve the element (edge or vertex) that refers
      * to the provided identifier
      */
-    public IgniteGetQuery(String cacheName, IgniteConnect connect, Object id) {
-        super(cacheName, connect);
+    public IgniteGetQuery(String cacheName, IgniteAdmin admin, Object id) {
+        super(cacheName, admin);
         /*
          * Transform the provided properties into fields
          */
@@ -47,8 +47,8 @@ public class IgniteGetQuery extends IgniteQuery {
      * Retrieve all elements (edges or vertices) that refer
      * to the provided list of identifiers
      */
-    public IgniteGetQuery(String cacheName, IgniteConnect connect, List<Object> ids) {
-        super(cacheName, connect);
+    public IgniteGetQuery(String cacheName, IgniteAdmin admin, List<Object> ids) {
+        super(cacheName, admin);
         /*
          * Transform the provided properties into fields
          */
