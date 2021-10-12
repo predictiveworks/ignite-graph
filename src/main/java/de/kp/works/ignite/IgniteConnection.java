@@ -1,6 +1,6 @@
 package de.kp.works.ignite;
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,35 +18,22 @@ package de.kp.works.ignite;
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect;
-import org.apache.ignite.configuration.IgniteConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 /**
  * [IgniteConnection] is used in the IgniteGraph context
  * and provides [IgniteAdmin] as the user interface
  */
 public class IgniteConnection {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IgniteConnection.class);
     /*
      * [IgniteAdmin] is an API access class that hides
      * the functionality of the [Ignite] client
      */
-    private IgniteAdmin admin;
+    private final IgniteAdmin admin;
+
     public IgniteConnection(String namespace) {
-
-        try {
-            /* Initialize IgniteConnect and its admin interface */
-            IgniteConnect connect = IgniteConnect.getInstance(namespace);
-            admin = new IgniteAdmin(connect);
-
-        } catch (Exception e) {
-            String message = "Connecting to Apache Ignited failed";
-            LOGGER.error(message, e);
-        }
-
+        admin = new IgniteAdmin(namespace);
     }
+
     public IgniteAdmin getAdmin() {
         return admin;
     }

@@ -58,12 +58,12 @@ public final class IgniteGraphUtils {
      * of the [IgniteGraph] and creates the respective
      * Ignite caches.
       */
-    public static void createTables(IgniteGraphConfiguration config, IgniteAdmin admin) throws Exception {
+    public static void createTables(IgniteGraphConfiguration config, IgniteAdmin admin) {
         createTable(admin, getTableName(config, IgniteConstants.EDGES));
         createTable(admin, getTableName(config, IgniteConstants.VERTICES));
     }
 
-    private static void createTable(IgniteAdmin admin, String name) throws Exception {
+    private static void createTable(IgniteAdmin admin, String name) {
         if (admin.tableExists(name)) return;
         admin.createTable(name);
     }

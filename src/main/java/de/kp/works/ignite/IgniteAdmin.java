@@ -38,12 +38,20 @@ import java.util.stream.Collectors;
 public class IgniteAdmin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IgniteAdmin.class);
-    private final IgniteConnect connect;
+    private IgniteConnect connect = null;
 
     private final String NO_CONNECT_INITIALIZATION = "IgniteConnect is not initialized.";
 
-    public IgniteAdmin(IgniteConnect connect) {
-        this.connect = connect;
+    public IgniteAdmin(String namespace) {
+
+        try {
+            this.connect = IgniteConnect.getInstance(namespace);
+
+        } catch (Exception e) {
+            String message = "Connecting to Apache Ignited failed";
+            LOGGER.error(message, e);
+        }
+
     }
 
     public String namespace() {
