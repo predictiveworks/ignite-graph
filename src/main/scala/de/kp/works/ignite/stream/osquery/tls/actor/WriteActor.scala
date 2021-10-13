@@ -19,14 +19,15 @@ package de.kp.works.ignite.stream.osquery.tls.actor
  */
 import akka.http.scaladsl.model.HttpRequest
 import com.google.gson._
-import de.kp.works.ignite.stream.osquery.{OsqueryConstants, OsqueryEvent, OsqueryEventHandler}
+import de.kp.works.ignite.stream.osquery.tls.{TLSEvent, TLSEventHandler}
+import de.kp.works.ignite.stream.osquery.OsqueryConstants
 import de.kp.works.ignite.stream.osquery.tls.db.DBApi
 
 import scala.collection.JavaConversions._
 /**
  * The [WriteActor] receives the results of distributed queries
  */
-class WriteActor(api:DBApi, handler:OsqueryEventHandler) extends BaseActor(api) {
+class WriteActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
 
   override def execute(request:HttpRequest):String = {
     /*
@@ -134,7 +135,7 @@ class WriteActor(api:DBApi, handler:OsqueryEventHandler) extends BaseActor(api) 
       }
     })
 
-    val event = OsqueryEvent(eventType = OsqueryConstants.ADHOC_EVENT, eventData = events.toString)
+    val event = TLSEvent(eventType = OsqueryConstants.ADHOC_EVENT, eventData = events.toString)
     handler.eventArrived(event)
     /*
      * Update node in NodesDB, unpack distributed

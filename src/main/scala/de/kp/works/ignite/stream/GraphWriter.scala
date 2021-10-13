@@ -18,17 +18,19 @@ package de.kp.works.ignite.stream
  *
  */
 
-import de.kp.works.ignite.IgniteTable
+import de.kp.works.ignite.{IgniteAdmin, IgniteTable}
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.mutate._
 import de.kp.works.ignite.gremlin.IgniteConstants
 
 abstract class GraphWriter(connect:IgniteConnect) {
 
+  private def admin = new IgniteAdmin(connect)
+
   protected def writeEdges(edges:Seq[IgniteMutation]):Unit = {
 
     val name = s"${connect.graphNS}_${IgniteConstants.EDGES}"
-    val table = new IgniteTable(name, connect)
+    val table = new IgniteTable(name, admin)
 
     edges.foreach(edge => {
       edge.mutationType match {
@@ -46,7 +48,7 @@ abstract class GraphWriter(connect:IgniteConnect) {
   protected def writeVertices(vertices:Seq[IgniteMutation]):Unit = {
 
     val name = s"${connect.graphNS}_${IgniteConstants.VERTICES}"
-    val table = new IgniteTable(name, connect)
+    val table = new IgniteTable(name, admin)
 
     vertices.foreach(vertex => {
       vertex.mutationType match {

@@ -22,7 +22,7 @@ package de.kp.works.ignite.stream.osquery.tls
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.osquery.tls.db.DBApi
-import de.kp.works.ignite.stream.osquery.{OsqueryConstants, OsqueryEvent, OsqueryProcessor}
+import de.kp.works.ignite.stream.osquery.OsqueryConstants
 import de.kp.works.ignite.stream.{BaseEngine, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
@@ -70,7 +70,7 @@ class TLSEngine(connect:IgniteConnect) extends BaseEngine(connect) {
        * Build stream
        */
       val myStream: IgniteStream = new IgniteStream {
-        override val processor = new OsqueryProcessor(name, myCache, connect)
+        override val processor = new TLSProcessor(myCache, connect)
       }
       /*
        * Build stream context
@@ -146,11 +146,11 @@ class TLSEngine(connect:IgniteConnect) extends BaseEngine(connect) {
     (cache, osqueryStreamer)
   }
 
-  private def createExtractor: StreamSingleTupleExtractor[OsqueryEvent, String, BinaryObject] = {
+  private def createExtractor: StreamSingleTupleExtractor[TLSEvent, String, BinaryObject] = {
 
-    new StreamSingleTupleExtractor[OsqueryEvent,String,BinaryObject]() {
+    new StreamSingleTupleExtractor[TLSEvent,String,BinaryObject]() {
 
-      override def extract(event:OsqueryEvent):java.util.Map.Entry[String,BinaryObject] = {
+      override def extract(event:TLSEvent):java.util.Map.Entry[String,BinaryObject] = {
 
         val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
         try {
@@ -168,7 +168,7 @@ class TLSEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
   }
 
-  private def buildEntry(event:OsqueryEvent):(String, BinaryObject) = {
+  private def buildEntry(event:TLSEvent):(String, BinaryObject) = {
 
     val builder = ignite.binary().builder(cacheName)
 

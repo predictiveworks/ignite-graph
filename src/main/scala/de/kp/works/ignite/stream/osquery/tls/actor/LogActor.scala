@@ -23,12 +23,13 @@ import akka.pattern.ask
 import akka.routing.{DefaultResizer, RoundRobinPool}
 import de.kp.works.ignite.stream.osquery.tls.actor.ResultActor._
 import de.kp.works.ignite.stream.osquery.tls.actor.StatusActor._
-import de.kp.works.ignite.stream.osquery.{OsqueryConstants, OsqueryEventHandler}
+import de.kp.works.ignite.stream.osquery.OsqueryConstants
+import de.kp.works.ignite.stream.osquery.tls.TLSEventHandler
 import de.kp.works.ignite.stream.osquery.tls.db.DBApi
 
 import scala.concurrent.Await
 
-class LogActor(api:DBApi, handler:OsqueryEventHandler) extends BaseActor(api) {
+class LogActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
   /**
    * We define a common resizer for all children pools
    */

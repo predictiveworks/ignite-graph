@@ -20,7 +20,8 @@ package de.kp.works.ignite.stream.osquery.tls.actor
 
 import akka.http.scaladsl.model.HttpRequest
 import com.google.gson._
-import de.kp.works.ignite.stream.osquery.{OsqueryConstants, OsqueryEvent, OsqueryEventHandler}
+import de.kp.works.ignite.stream.osquery.tls.{TLSEvent, TLSEventHandler}
+import de.kp.works.ignite.stream.osquery.OsqueryConstants
 import de.kp.works.ignite.stream.osquery.tls.actor.StatusActor._
 import de.kp.works.ignite.stream.osquery.tls.db.{DBApi, OsqueryNode}
 
@@ -30,7 +31,7 @@ import scala.collection.JavaConversions._
  * This actor publishes status logs to a pre-configured
  * data sink
  */
-class StatusActor(api:DBApi, handler:OsqueryEventHandler) extends BaseActor(api) {
+class StatusActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
 
   override def receive: Receive = {
 
@@ -49,7 +50,7 @@ class StatusActor(api:DBApi, handler:OsqueryEventHandler) extends BaseActor(api)
 
         val eventData = buildEvents(request).toString
 
-        val event = OsqueryEvent(eventType = OsqueryConstants.STATUS_EVENT, eventData = eventData)
+        val event = TLSEvent(eventType = OsqueryConstants.STATUS_EVENT, eventData = eventData)
         handler.eventArrived(event)
 
       } catch {

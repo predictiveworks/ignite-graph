@@ -25,7 +25,6 @@ import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.stream.osquery.OsqueryEventHandler
 import de.kp.works.ignite.stream.osquery.tls.actor._
 import de.kp.works.ignite.stream.osquery.tls.db.DBApi
 
@@ -41,7 +40,7 @@ class TLSServer(api:DBApi) {
 
   import TLSRoutes._
 
-  private var eventHandler:Option[OsqueryEventHandler] = None
+  private var eventHandler:Option[TLSEventHandler] = None
   private var server:Option[Future[Http.ServerBinding]] = None
   /**
    * Akka 2.6 provides a default materializer out of the box, i.e., for Scala
@@ -66,7 +65,7 @@ class TLSServer(api:DBApi) {
    * The current implementation leverages the Osquery
    * Streamer as event handler
    */
-  def setEventHandler(handler:OsqueryEventHandler):TLSServer = {
+  def setEventHandler(handler:TLSEventHandler):TLSServer = {
     this.eventHandler = Some(handler)
     this
   }

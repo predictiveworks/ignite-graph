@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.osquery.fleet
+package de.kp.works.ignite.stream.osquery.fleet.table
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,16 +17,16 @@ package de.kp.works.ignite.stream.osquery.fleet
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
-
 import com.google.gson.JsonParser
-import de.kp.works.ignite.stream.osquery.OsqueryEvent
-import de.kp.works.ignite.stream.osquery.fleet.FleetFormats.{FleetFormat, _}
+import de.kp.works.ignite.stream.file.FileEvent
+import de.kp.works.ignite.stream.osquery.fleet.FleetFormats.{FleetFormat, RESULT, STATUS}
+import de.kp.works.ignite.stream.osquery.fleet.{FleetFormatUtil, FleetUtil}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructType
 
 object FleetTransformer {
 
-  def transform(events:Seq[OsqueryEvent]):Seq[(FleetFormat, String, StructType, Seq[Row])] = {
+  def transform(events: Seq[FileEvent]): Seq[(FleetFormat, String, StructType, Seq[Row])] = {
 
     try {
       /*
@@ -43,34 +43,34 @@ object FleetTransformer {
         .map(event =>
           (FleetFormatUtil.fromFile(event.eventType), JsonParser.parseString(event.eventData))
         )
-        .filter{case(format, _) => format != null}
+        .filter { case (format, _) => format != null }
         /*
          * Group logs by format and prepare format specific
          * log processing
          */
-        .groupBy{case(format, _) => format}
-        .map{case(format, logs) => (format, logs.map(_._2))}
+        .groupBy { case (format, _) => format }
+        .map { case (format, logs) => (format, logs.map(_._2)) }
         .toSeq
       /*
        * STEP #2: Persist logs for each format individually
        */
-      data.flatMap{case(format, logs) =>
+      data.flatMap { case (format, logs) =>
 
         format match {
           case RESULT =>
             val transformed = FleetUtil.fromResult(logs)
-            transformed.map{case(name, schema, rows) => (format, name, schema, rows)}
+            transformed.map { case (name, schema, rows) => (format, name, schema, rows) }
 
           case STATUS =>
             val transformed = FleetUtil.fromStatus(logs)
-            transformed.map{case(name, schema, rows) => (format, name, schema, rows)}
+            transformed.map { case (name, schema, rows) => (format, name, schema, rows) }
 
           case _ => throw new Exception(s"[FleetTransformer] Unknown format `$format.toString` detected.")
         }
       }
 
     } catch {
-      case _:Throwable => Seq.empty[(FleetFormat, String, StructType, Seq[Row])]
+      case _: Throwable => Seq.empty[(FleetFormat, String, StructType, Seq[Row])]
     }
 
   }

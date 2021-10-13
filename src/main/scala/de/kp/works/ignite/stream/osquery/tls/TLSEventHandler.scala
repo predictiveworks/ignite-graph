@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.tls
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,11 +18,8 @@ package de.kp.works.ignite.stream.osquery
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.TableWriter
+trait TLSEventHandler {
 
-abstract class OsqueryWriter(connect:IgniteConnect) extends TableWriter(connect) {
-
-  def write(events:Seq[OsqueryEvent]):Unit
+  def eventArrived(event: TLSEvent): Unit
 
 }

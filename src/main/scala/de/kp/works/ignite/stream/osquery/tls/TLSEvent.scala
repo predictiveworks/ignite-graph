@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.tls
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,9 +18,4 @@ package de.kp.works.ignite.stream.osquery
  *
  */
 
-trait OsqueryEventHandler {
-
-  def eventArrived(event:OsqueryEvent):Unit
-
-}
-
+case class TLSEvent(eventType: String, eventData: String)

@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.tls
+package de.kp.works.ignite.stream.zeek
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -20,20 +20,21 @@ package de.kp.works.ignite.stream.osquery.tls
 
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.osquery.tls.table.TLSTableWriter
+import de.kp.works.ignite.stream.file.FileEvent
+import de.kp.works.ignite.stream.zeek.table.ZeekTableWriter
 
-class TLSWriter(connect:IgniteConnect) {
+class ZeekWriter(connect:IgniteConnect) {
 
-  private val tlsCfg = WorksConf.getCfg(WorksConf.OSQUERY_CONF)
-  private val writeMode = tlsCfg.getString("writeMode")
+  private val zeekCfg = WorksConf.getCfg(WorksConf.ZEEK_CONF)
+  private val writeMode = zeekCfg.getString("writeMode")
 
-  def write(events:Seq[TLSEvent]):Unit = {
+  def write(events:Seq[FileEvent]):Unit = {
 
     writeMode match {
       case "graph" =>
         throw new Exception(s"Not open source yet.")
       case "table" =>
-        val writer = new TLSTableWriter(connect)
+        val writer = new ZeekTableWriter(connect)
         writer.write(events)
       case _ =>
         throw new Exception(s"The configured writeMode `$writeMode` is not supported.")

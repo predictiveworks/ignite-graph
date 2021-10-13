@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream.osquery.fleet
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,6 +22,7 @@ import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.IgniteProcessor
 import de.kp.works.ignite.stream.file.FileEvent
+import de.kp.works.ignite.stream.osquery.OsqueryConstants
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.query.SqlFieldsQuery
@@ -29,20 +30,20 @@ import org.apache.ignite.cache.query.SqlFieldsQuery
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-class ZeekProcessor(
-   cache:IgniteCache[String,BinaryObject],
-   connect:IgniteConnect) extends IgniteProcessor(cache) {
+class FleetProcessor(
+  cache:IgniteCache[String,BinaryObject],
+  connect:IgniteConnect) extends IgniteProcessor(cache) {
 
   private val eventFields = Array(
     "_key",
-    ZeekConstants.FIELD_TYPE,
-    ZeekConstants.FIELD_DATA).mkString(",")
+    OsqueryConstants.FIELD_TYPE,
+    OsqueryConstants.FIELD_DATA).mkString(",")
   /**
    * Apache Ignite SQL query to retrieve the content of
    * the temporary notification cache including the _key
    */
   override protected val eventQuery =
-    new SqlFieldsQuery(s"select $eventFields from ${ZeekConstants.ZEEK_CACHE}")
+    new SqlFieldsQuery(s"select $eventFields from ${OsqueryConstants.OSQUERY_CACHE}")
   /**
    * This store is introduced to collect the result from the
    * event query in a distinct manner; the eventStore is used
@@ -54,10 +55,10 @@ class ZeekProcessor(
    * data to the predefined output is currently set to
    * 2 times of the stream buffer flush frequency
    */
-  private val conf = WorksConf.getStreamerCfg(WorksConf.ZEEK_CONF)
+  private val conf = WorksConf.getStreamerCfg(WorksConf.FLEETDM_CONF)
   override protected val flushWindow: Int = conf.getInt("flushWindow")
 
-  private val writer = new ZeekWriter(connect)
+  private val writer = new FleetWriter(connect)
 
   /**
    * A helper method to apply the event query to the selected
@@ -100,4 +101,5 @@ class ZeekProcessor(
     writer.write(events)
 
   }
+
 }

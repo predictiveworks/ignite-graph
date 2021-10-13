@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream.zeek.table
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,7 @@ package de.kp.works.ignite.stream.zeek
 import com.google.gson.JsonParser
 import de.kp.works.ignite.stream.file.FileEvent
 import de.kp.works.ignite.stream.zeek.ZeekFormats._
+import de.kp.works.ignite.stream.zeek.{ZeekFormatUtil, ZeekUtil}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructType
 
@@ -30,7 +31,7 @@ import org.apache.spark.sql.types.StructType
  */
 object ZeekTransformer {
 
-  def transform(events:Seq[FileEvent]):Seq[(ZeekFormat, StructType, Seq[Row])] = {
+  def transform(events: Seq[FileEvent]): Seq[(ZeekFormat, StructType, Seq[Row])] = {
 
     try {
       /*
@@ -47,18 +48,18 @@ object ZeekTransformer {
         .map(event =>
           (ZeekFormatUtil.fromFile(event.eventType), JsonParser.parseString(event.eventData))
         )
-        .filter{case(format, _) => format != null}
+        .filter { case (format, _) => format != null }
         /*
          * Group logs by format and prepare format specific
          * log processing
          */
-        .groupBy{case(format, _) => format}
-        .map{case(format, logs) => (format, logs.map(_._2))}
+        .groupBy { case (format, _) => format }
+        .map { case (format, logs) => (format, logs.map(_._2)) }
         .toSeq
       /*
        * STEP #2: Persist logs for each format individually
        */
-      data.map{case(format, logs) =>
+      data.map { case (format, logs) =>
 
         format match {
           case CAPTURE_LOSS =>
@@ -73,11 +74,11 @@ object ZeekTransformer {
 
             (format, schema, rows)
 
-         case DCE_RPC =>
-           val schema = ZeekUtil.dce_rpc()
-           val rows = ZeekUtil.fromDceRpc(logs, schema)
+          case DCE_RPC =>
+            val schema = ZeekUtil.dce_rpc()
+            val rows = ZeekUtil.fromDceRpc(logs, schema)
 
-           (format, schema, rows)
+            (format, schema, rows)
 
           case DHCP =>
             val schema = ZeekUtil.dhcp()
@@ -289,7 +290,7 @@ object ZeekTransformer {
       }
 
     } catch {
-      case _:Throwable => Seq.empty[(ZeekFormat, StructType, Seq[Row])]
+      case _: Throwable => Seq.empty[(ZeekFormat, StructType, Seq[Row])]
     }
 
   }

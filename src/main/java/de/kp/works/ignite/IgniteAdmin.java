@@ -54,6 +54,10 @@ public class IgniteAdmin {
 
     }
 
+    public IgniteAdmin(IgniteConnect connect) {
+        this.connect = connect;
+    }
+
     public String namespace() {
         return IgniteConnect.namespace();
     }

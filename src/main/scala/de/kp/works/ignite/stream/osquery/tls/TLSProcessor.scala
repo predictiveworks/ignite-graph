@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.osquery
+package de.kp.works.ignite.stream.osquery.tls
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,7 @@ package de.kp.works.ignite.stream.osquery
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.IgniteProcessor
+import de.kp.works.ignite.stream.osquery.OsqueryConstants
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.query.SqlFieldsQuery
@@ -28,13 +29,8 @@ import org.apache.ignite.cache.query.SqlFieldsQuery
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-/**
- * The [OsqueryProcessor] is a common processor
- * for both FleetDM and TLS.
- */
-class OsqueryProcessor(
-  name:String,
-  cache:IgniteCache[String,BinaryObject],
+class TLSProcessor(
+   cache:IgniteCache[String,BinaryObject],
   connect:IgniteConnect) extends IgniteProcessor(cache) {
 
   private val eventFields = Array(
@@ -52,20 +48,16 @@ class OsqueryProcessor(
    * event query in a distinct manner; the eventStore is used
    * as a buffer before it is flushed and cleared
    */
-  private val eventStore = mutable.HashMap.empty[String,OsqueryEvent]
+  private val eventStore = mutable.HashMap.empty[String,TLSEvent]
   /**
    * The frequency we flush the internal store and write
    * data to the predefined output is currently set to
    * 2 times of the stream buffer flush frequency
    */
-  private val conf = WorksConf.getStreamerCfg(name)
+  private val conf = WorksConf.getStreamerCfg(WorksConf.OSQUERY_CONF)
   override protected val flushWindow: Int = conf.getInt("flushWindow")
-  /**
-   * The [OsqueryWriter] supports FleetDM and TLS server
-   * based Osquery events. In order to distinguish between
-   * these use cases, the application `name` is provided.
-   */
-  private val writer = OsqueryWriterFactory.get(name, connect)
+
+  private val writer = new TLSWriter(connect)
 
   /**
    * A helper method to apply the event query to the selected
@@ -85,7 +77,7 @@ class OsqueryProcessor(
       val mutable.Buffer(eventType, eventData) =
         values.tail.map(_.asInstanceOf[String])
 
-      eventStore += k -> OsqueryEvent(eventType, eventData)
+      eventStore += k -> TLSEvent(eventType, eventData)
     })
     /*
      * Clear extracted cache entries fast

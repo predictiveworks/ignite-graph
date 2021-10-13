@@ -21,7 +21,7 @@ package de.kp.works.ignite.stream.osquery.fleet
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.file.FileEvent
-import de.kp.works.ignite.stream.osquery.{OsqueryConstants, OsqueryProcessor}
+import de.kp.works.ignite.stream.osquery.OsqueryConstants
 import de.kp.works.ignite.stream.{BaseEngine, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
@@ -63,7 +63,7 @@ class FleetEngine(connect:IgniteConnect) extends BaseEngine(connect) {
        * Build stream
        */
       val myStream: IgniteStream = new IgniteStream {
-        override val processor = new OsqueryProcessor(name, myCache, connect)
+        override val processor = new FleetProcessor(myCache, connect)
       }
       /*
        * Build stream context
