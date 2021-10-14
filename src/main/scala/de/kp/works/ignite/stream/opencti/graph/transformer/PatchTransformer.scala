@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.opencti
+package de.kp.works.ignite.stream.opencti.graph.transformer
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,27 +18,17 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.opencti.graph.CTIGraphWriter
+object PatchTransformer {
 
-class CTIWriter(connect:IgniteConnect) {
-
-  private val ctiCfg = WorksConf.getCfg(WorksConf.OPENCTI_CONF)
-  private val writeMode = ctiCfg.getString("writeMode")
-
-  def write(events:Seq[SseEvent]):Unit = {
-
-    writeMode match {
-      case "graph" =>
-        val writer = new CTIGraphWriter(connect)
-        writer.write(events)
-      case "table" =>
-        throw new Exception(s"Not open source yet.")
-      case _ =>
-        throw new Exception(s"The configured writeMode `$writeMode` is not supported.")
-    }
+  def transformAdd():Unit = {
 
   }
 
+  def transformRemove():Unit = {
+
+  }
+
+  def transformReplace(replace:Map[String,Any]):Unit = {
+
+  }
 }

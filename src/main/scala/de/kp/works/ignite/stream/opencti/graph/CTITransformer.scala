@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.opencti
+package de.kp.works.ignite.stream.opencti.graph
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,8 +20,9 @@ package de.kp.works.ignite.stream.opencti
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import de.kp.works.ignite.mutate._
-import de.kp.works.ignite.stream.opencti.transformer._
+import de.kp.works.ignite.mutate.{IgniteDelete, IgniteMutation, IgnitePut}
+import de.kp.works.ignite.stream.opencti.SseEvent
+import de.kp.works.ignite.stream.opencti.graph.transformer.{EdgeTransformer, VertexTransformer}
 import de.kp.works.transform.opencti.stix.STIX
 
 import scala.collection.mutable
@@ -30,6 +31,7 @@ object CTITransformer {
 
   private val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
+
   /**
    * Events format :: SseEvent(id, event, data)
    *
@@ -38,17 +40,17 @@ object CTITransformer {
    * id: {Event stream id} -> Like 1620249512318-0
    * event: {Event type} -> create / update / delete
    * data: { -> The complete event data
-   *    markings: [] -> Array of markings IDS of the element
-   *    origin: {Data Origin} -> Complex object with different information about the origin of the event
-   *    data: {STIX data} -> The STIX representation of the data.
-   *    message -> A simple string to easy understand the event
-   *    version -> The version number of the event
+   * markings: [] -> Array of markings IDS of the element
+   * origin: {Data Origin} -> Complex object with different information about the origin of the event
+   * data: {STIX data} -> The STIX representation of the data.
+   * message -> A simple string to easy understand the event
+   * version -> The version number of the event
    * }
    */
-  def transform(sseEvents:Seq[SseEvent]):(Seq[IgniteMutation], Seq[IgniteMutation]) = {
+  def transform(sseEvents: Seq[SseEvent]): (Seq[IgniteMutation], Seq[IgniteMutation]) = {
 
     val vertices = mutable.ArrayBuffer.empty[IgniteMutation]
-    val edges    = mutable.ArrayBuffer.empty[IgniteMutation]
+    val edges = mutable.ArrayBuffer.empty[IgniteMutation]
 
     sseEvents.foreach(sseEvent => {
       /*
@@ -83,7 +85,7 @@ object CTITransformer {
         val filter = Seq("id", "type")
         val data = stixData.filterKeys(k => !filter.contains(k))
 
-        val (v,e) = event match {
+        val (v, e) = event match {
           case "create" =>
             transformCreate(entityId, entityType, data)
           case "delete" =>
@@ -97,7 +99,7 @@ object CTITransformer {
         }
 
         if (v.isDefined) vertices ++= v.get
-        if (e.isDefined) edges    ++= e.get
+        if (e.isDefined) edges ++= e.get
 
       }
 
@@ -107,7 +109,7 @@ object CTITransformer {
 
   }
 
-  private def transformCreate(entityId:String, entityType:String, data:Map[String, Any]):
+  private def transformCreate(entityId: String, entityType: String, data: Map[String, Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
     /*
      * The current implementation takes non-edges as nodes;
@@ -148,7 +150,7 @@ object CTITransformer {
 
   }
 
-  private def transformDelete(entityId:String, entityType:String, data:Map[String, Any]):
+  private def transformDelete(entityId: String, entityType: String, data: Map[String, Any]):
   (Option[Seq[IgniteDelete]], Option[Seq[IgniteDelete]]) = {
     /*
      * The current implementation takes non-edges as nodes;
@@ -177,12 +179,13 @@ object CTITransformer {
       VertexTransformer.deleteStixObject(entityId)
     }
   }
+
   /**
    * Create & update request result in a list of [IgnitePut], but
    * must be processed completely different as OpenCTI leverages
    * a complex `x_opencti_patch` field to specify updates.
    */
-  private def transformUpdate(entityId:String, entityType:String, data:Map[String, Any]):
+  private def transformUpdate(entityId: String, entityType: String, data: Map[String, Any]):
   (Option[Seq[IgniteMutation]], Option[Seq[IgniteMutation]]) = {
     /*
      * The current implementation takes non-edges as nodes;

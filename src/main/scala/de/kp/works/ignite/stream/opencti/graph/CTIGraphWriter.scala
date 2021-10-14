@@ -1,4 +1,5 @@
-package de.kp.works.ignite.stream.opencti
+package de.kp.works.ignite.stream.opencti.graph
+
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,26 +19,25 @@ package de.kp.works.ignite.stream.opencti
  *
  */
 
-import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.opencti.graph.CTIGraphWriter
+import de.kp.works.ignite.stream.GraphWriter
+import de.kp.works.ignite.stream.opencti.SseEvent
 
-class CTIWriter(connect:IgniteConnect) {
-
-  private val ctiCfg = WorksConf.getCfg(WorksConf.OPENCTI_CONF)
-  private val writeMode = ctiCfg.getString("writeMode")
+class CTIGraphWriter(connect:IgniteConnect) extends GraphWriter(connect) {
 
   def write(events:Seq[SseEvent]):Unit = {
-
-    writeMode match {
-      case "graph" =>
-        val writer = new CTIGraphWriter(connect)
-        writer.write(events)
-      case "table" =>
-        throw new Exception(s"Not open source yet.")
-      case _ =>
-        throw new Exception(s"The configured writeMode `$writeMode` is not supported.")
-    }
+    /*
+     * Leverage the CTITransformer to extract
+     * vertices and edges from the threat events
+     */
+    val transformer = CTITransformer
+    val (vertices, edges) = transformer.transform(events)
+    /*
+     * Finally write vertices and edges to the
+     * respective output caches
+     */
+    writeVertices(vertices)
+    writeEdges(edges)
 
   }
 
