@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.fiware
+package de.kp.works.ignite.stream.fiware.graph
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,7 +19,8 @@ package de.kp.works.ignite.stream.fiware
  */
 
 import de.kp.works.conf.WorksConf
-import de.kp.works.ignite.stream.fiware.transformer._
+import de.kp.works.ignite.stream.fiware.FiwareTransformer
+import de.kp.works.ignite.stream.fiware.graph.transformer._
 
 object FiwareModels extends Enumeration {
   val AgriFood: FiwareModels.Value = Value("AgriFood")

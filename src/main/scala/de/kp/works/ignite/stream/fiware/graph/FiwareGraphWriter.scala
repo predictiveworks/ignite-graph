@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.fiware
+package de.kp.works.ignite.stream.fiware.graph
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,26 +18,26 @@ package de.kp.works.ignite.stream.fiware
  *
  */
 
-import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.fiware.graph.FiwareGraphWriter
+import de.kp.works.ignite.stream.GraphWriter
+import de.kp.works.ignite.stream.fiware.FiwareNotification
 
-class FiwareWriter(connect:IgniteConnect) {
-
-  private val fiwareCfg = WorksConf.getCfg(WorksConf.FIWARE_CONF)
-  private val writeMode = fiwareCfg.getString("writeMode")
+class FiwareGraphWriter(connect:IgniteConnect) extends GraphWriter(connect) {
 
   def write(events:Seq[FiwareNotification]):Unit = {
-
-    writeMode match {
-      case "graph" =>
-        val writer = new FiwareGraphWriter(connect)
-        writer.write(events)
-      case "table" =>
-        throw new Exception(s"Not open source yet.")
-      case _ =>
-        throw new Exception(s"The configured writeMode `$writeMode` is not supported.")
-    }
+    /*
+     * Leverage the FiwareGraphFactory to extract
+     * vertices and edges from the notifications
+     * by applying plugged data models
+     */
+    val transformer = FiwareGraphFactory.getTransformer
+    val (vertices, edges) = transformer.transform(events)
+    /*
+     * Finally write vertices and edges to the
+     * respective output caches
+     */
+    writeVertices(vertices)
+    writeEdges(edges)
 
   }
 

@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.fiware.transformer
+package de.kp.works.ignite.stream.fiware.graph.transformer
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,10 +21,34 @@ package de.kp.works.ignite.stream.fiware.transformer
 import de.kp.works.ignite.mutate.IgnitePut
 import de.kp.works.ignite.stream.fiware.{FiwareNotification, FiwareTransformer}
 
-object FiwareCity extends FiwareTransformer {
+object FiwareAgriFood extends FiwareTransformer {
 
   override def transformNotification(notification: FiwareNotification): (Seq[IgnitePut], Seq[IgnitePut]) = {
+    /*
+     * This is a sample of how Fiware notifications are built
+     */
+    val service = notification.service
+    val servicePath = notification.servicePath
+
+    val payload = notification.payload
+    /*
+     * {
+     *  "data": [
+     *      {
+     *          "id": "Room1",
+     *          "temperature": {
+     *              "metadata": {},
+     *              "type": "Float",
+     *              "value": 28.5
+     *          },
+     *          "type": "Room"
+     *      }
+     *  ],
+     *  "subscriptionId": "57458eb60962ef754e7c0998"
+     * }
+     */
+    val data = payload.get("data").getAsJsonArray
+
     throw new Exception("Not implemented yet")
   }
-
 }
