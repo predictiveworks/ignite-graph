@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream.zeek.graph
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,29 +18,25 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
-import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
+import de.kp.works.ignite.stream.GraphWriter
 import de.kp.works.ignite.stream.file.FileEvent
-import de.kp.works.ignite.stream.zeek.graph.ZeekGraphWriter
-import de.kp.works.ignite.stream.zeek.table.ZeekTableWriter
 
-class ZeekWriter(connect:IgniteConnect) {
-
-  private val zeekCfg = WorksConf.getCfg(WorksConf.ZEEK_CONF)
-  private val writeMode = zeekCfg.getString("writeMode")
+class ZeekGraphWriter(connect:IgniteConnect) extends GraphWriter(connect) {
 
   def write(events:Seq[FileEvent]):Unit = {
-
-    writeMode match {
-      case "graph" =>
-        val writer = new ZeekGraphWriter(connect)
-        writer.write(events)
-      case "table" =>
-        val writer = new ZeekTableWriter(connect)
-        writer.write(events)
-      case _ =>
-        throw new Exception(s"The configured writeMode `$writeMode` is not supported.")
-    }
+    /*
+      * Leverage the ZeekTransformer to extract
+      * vertices and edges from the threat events
+      */
+    val transformer = ZeekTransformer
+    val (vertices, edges) = transformer.transform(events)
+    /*
+     * Finally write vertices and edges to the
+     * respective output caches
+     */
+    writeVertices(vertices)
+    writeEdges(edges)
 
   }
 

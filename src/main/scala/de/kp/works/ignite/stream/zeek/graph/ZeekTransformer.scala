@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream.zeek.graph
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,14 +18,11 @@ package de.kp.works.ignite.stream.zeek
  *
  */
 
-object ZeekConstants {
-  /**
-   * The cache name used to temporarily store
-   * Zeek log events
-   */
-  val ZEEK_CACHE:String = "zeek_events"
+import de.kp.works.ignite.mutate.IgniteMutation
+import de.kp.works.ignite.stream.file.FileEvent
 
-  val FIELD_TYPE:String = "eventType"
-  val FIELD_DATA:String = "eventData"
+object ZeekTransformer {
+
+  def transform(events: Seq[FileEvent]): (Seq[IgniteMutation], Seq[IgniteMutation]) = ???
 
 }
