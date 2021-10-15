@@ -20,9 +20,25 @@ package de.kp.works.ignite.stream.zeek.graph
 
 import de.kp.works.ignite.mutate.IgniteMutation
 import de.kp.works.ignite.stream.file.FileEvent
+import de.kp.works.ignite.stream.zeek.BaseTransformer
 
-object ZeekTransformer {
+object ZeekTransformer extends BaseTransformer {
 
-  def transform(events: Seq[FileEvent]): (Seq[IgniteMutation], Seq[IgniteMutation]) = ???
+  def transform(events: Seq[FileEvent]): (Seq[IgniteMutation], Seq[IgniteMutation]) = {
 
+    try {
+      /*
+        * STEP #1: Collect Zeek log events with respect
+        * to their eventType (which refers to the name
+        * of the log file)
+        */
+      val data = groupEvents(events)
+
+      ???
+
+    } catch {
+    case _: Throwable => (Seq.empty[IgniteMutation], Seq.empty[IgniteMutation])
+  }
+
+  }
 }

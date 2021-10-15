@@ -21,7 +21,7 @@ package de.kp.works.ignite.stream.zeek.table
 import com.google.gson.JsonParser
 import de.kp.works.ignite.stream.file.FileEvent
 import de.kp.works.ignite.stream.zeek.ZeekFormats._
-import de.kp.works.ignite.stream.zeek.ZeekFormatUtil
+import de.kp.works.ignite.stream.zeek.{BaseTransformer, ZeekFormatUtil}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructType
 
@@ -29,7 +29,7 @@ import org.apache.spark.sql.types.StructType
  * The [ZeekTransformer] transforms 35+ Zeek log events
  * into Apache Spark schema-compliant Rows
  */
-object ZeekTransformer {
+object ZeekTransformer extends BaseTransformer {
 
   def transform(events: Seq[FileEvent]): Seq[(ZeekFormat, StructType, Seq[Row])] = {
 
@@ -39,23 +39,7 @@ object ZeekTransformer {
        * to their eventType (which refers to the name
        * of the log file)
        */
-      val data = events
-        /*
-         * Convert `eventType` (file name) into Zeek format
-         * and deserialize event data. Restrict to those
-         * formats that are support by the current version.
-         */
-        .map(event =>
-          (ZeekFormatUtil.fromFile(event.eventType), JsonParser.parseString(event.eventData))
-        )
-        .filter { case (format, _) => format != null }
-        /*
-         * Group logs by format and prepare format specific
-         * log processing
-         */
-        .groupBy { case (format, _) => format }
-        .map { case (format, logs) => (format, logs.map(_._2)) }
-        .toSeq
+      val data = groupEvents(events)
       /*
        * STEP #2: Persist logs for each format individually
        */
