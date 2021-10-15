@@ -168,20 +168,21 @@ object ZeekUtil {
 
     newObject = replaceConnId(newObject)
 
-    newObject = replaceName(newObject, "source_bytes", "orig_bytes")
-    newObject = replaceName(newObject, "destination_bytes", "resp_bytes")
+    val oldNames = List(
+      "orig_bytes",
+      "resp_bytes",
+      "local_orig",
+      "local_resp",
+      "orig_pkts",
+      "orig_ip_bytes",
+      "resp_pkts",
+      "resp_ip_bytes",
+      "orig_l2_addr",
+      "resp_l2_addr")
 
-    newObject = replaceName(newObject, "source_local", "local_orig")
-    newObject = replaceName(newObject, "destination_local", "local_resp")
-
-    newObject = replaceName(newObject, "source_pkts", "orig_pkts")
-    newObject = replaceName(newObject, "source_ip_bytes", "orig_ip_bytes")
-
-    newObject = replaceName(newObject, "destination_pkts", "resp_pkts")
-    newObject = replaceName(newObject, "destination_ip_bytes", "resp_ip_bytes")
-
-    newObject = replaceName(newObject, "source_l2_addr", "orig_l2_addr")
-    newObject = replaceName(newObject, "destination_l2_addr", "resp_l2_addr")
+    oldNames.foreach(oldName =>
+      newObject = replaceName(newObject, ZeekMapper.mapping(oldName), oldName)
+    )
 
     /* Transform into row */
     JsonUtil.json2Row(newObject, schema)
@@ -4960,15 +4961,19 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
+  /**
+   * HINT: The provided connection parameters can be used
+   * to build a unique (hash) connection identifier to join
+   * with other data source like Osquery.
+   */
   private def replaceConnId(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
 
-    newObject = replaceName(newObject, "source_ip", "id.orig_h")
-    newObject = replaceName(newObject, "source_port", "id.orig_p")
-
-    newObject = replaceName(newObject, "destination_ip", "id.resp_h")
-    newObject = replaceName(newObject, "destination_port", "id.resp_p")
+    val oldNames = List("id.orig_h", "id.orig_p", "id.resp_h", "id.resp_p")
+    oldNames.foreach(oldName =>
+      newObject = replaceName(newObject, ZeekMapper.mapping(oldName), oldName)
+    )
 
     newObject
 
