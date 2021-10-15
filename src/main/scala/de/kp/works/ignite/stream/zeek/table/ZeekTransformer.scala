@@ -21,7 +21,7 @@ package de.kp.works.ignite.stream.zeek.table
 import com.google.gson.JsonParser
 import de.kp.works.ignite.stream.file.FileEvent
 import de.kp.works.ignite.stream.zeek.ZeekFormats._
-import de.kp.works.ignite.stream.zeek.{ZeekFormatUtil, ZeekUtil}
+import de.kp.works.ignite.stream.zeek.ZeekFormatUtil
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructType
 

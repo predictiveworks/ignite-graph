@@ -24,7 +24,13 @@ import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.TableWriter
 import de.kp.works.ignite.stream.file.FileEvent
 import org.apache.spark.sql.SaveMode
-
+/**
+ * From a Cy(I)IoT perspective, working with Osquery (mediated via Fleet)
+ * is best achieved when receiving all columns of all available tables.
+ *
+ * Joins on tables within Osquery queries should be avoided to enable
+ * the full potential of data enrichment.
+ */
 class FleetTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
 
   private val fleetCfg = WorksConf.getCfg(WorksConf.FLEETDM_CONF)

@@ -20,7 +20,7 @@ package de.kp.works.ignite.stream.osquery.fleet.table
 import com.google.gson.JsonParser
 import de.kp.works.ignite.stream.file.FileEvent
 import de.kp.works.ignite.stream.osquery.fleet.FleetFormats.{FleetFormat, RESULT, STATUS}
-import de.kp.works.ignite.stream.osquery.fleet.{FleetFormatUtil, FleetUtil}
+import de.kp.works.ignite.stream.osquery.fleet.FleetFormatUtil
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructType
 
@@ -52,7 +52,7 @@ object FleetTransformer {
         .map { case (format, logs) => (format, logs.map(_._2)) }
         .toSeq
       /*
-       * STEP #2: Persist logs for each format individually
+       * STEP #2: Transform logs for each format individually
        */
       data.flatMap { case (format, logs) =>
 

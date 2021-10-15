@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.ignite.stream.zeek.table
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,8 +22,7 @@ import com.google.gson.{JsonArray, JsonElement, JsonObject}
 import de.kp.works.conf.WorksConf
 import de.kp.works.json.JsonUtil
 import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.{StructField, _}
-
+import org.apache.spark.sql.types._
 import scala.collection.JavaConversions._
 
 object ZeekUtil {
@@ -46,21 +45,21 @@ object ZeekUtil {
    * number that’s above a gap).
    *
    * {
-   * 	"ts":1568132368.465338,
-   * 	"ts_delta":32.282249,
-   * 	"peer":"bro",
-   * 	"gaps":0,
-   * 	"acks":206,
-   * 	"percent_lost":0.0
+   * "ts":1568132368.465338,
+   * "ts_delta":32.282249,
+   * "peer":"bro",
+   * "gaps":0,
+   * "acks":206,
+   * "percent_lost":0.0
    * }
    */
-  def fromCaptureLoss(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromCaptureLoss(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromCaptureLoss(log.getAsJsonObject, schema)
     })
   }
 
-  def fromCaptureLoss(oldObject:JsonObject, schema:StructType):Row = {
+  def fromCaptureLoss(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -76,7 +75,7 @@ object ZeekUtil {
 
   }
 
-  def capture_loss():StructType = {
+  def capture_loss(): StructType = {
 
     var fields = Array(
 
@@ -114,6 +113,7 @@ object ZeekUtil {
     StructType(fields)
 
   }
+
   /**
    *
    * connection (&log)
@@ -125,37 +125,37 @@ object ZeekUtil {
    * being the ICMP message code.
    *
    * {
-   * 	"ts":1547188415.857497,
-   * 	"uid":"CAcJw21BbVedgFnYH3",
-   * 	"id.orig_h":"192.168.86.167",
-   * 	"id.orig_p":38339,
-   * 	"id.resp_h":"192.168.86.1",
-   * 	"id.resp_p":53,
-   * 	"proto":"udp",
-   * 	"service":"dns",
-   * 	"duration":0.076967,
-   * 	"orig_bytes":75,
-   * 	"resp_bytes":178,
-   * 	"conn_state":"SF",
-   * 	"local_orig":true,
-   * 	"local_resp":true,
-   * 	"missed_bytes":0,
-   * 	"history":"Dd",
-   * 	"orig_pkts":1,
-   * 	"orig_ip_bytes":103,
-   * 	"resp_pkts":1,
-   * 	"resp_ip_bytes":206,
-   * 	"tunnel_parents":[]
+   * "ts":1547188415.857497,
+   * "uid":"CAcJw21BbVedgFnYH3",
+   * "id.orig_h":"192.168.86.167",
+   * "id.orig_p":38339,
+   * "id.resp_h":"192.168.86.1",
+   * "id.resp_p":53,
+   * "proto":"udp",
+   * "service":"dns",
+   * "duration":0.076967,
+   * "orig_bytes":75,
+   * "resp_bytes":178,
+   * "conn_state":"SF",
+   * "local_orig":true,
+   * "local_resp":true,
+   * "missed_bytes":0,
+   * "history":"Dd",
+   * "orig_pkts":1,
+   * "orig_ip_bytes":103,
+   * "resp_pkts":1,
+   * "resp_ip_bytes":206,
+   * "tunnel_parents":[]
    * }
    */
 
-  def fromConnection(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromConnection(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromConnection(log.getAsJsonObject, schema)
     })
   }
 
-  def fromConnection(oldObject:JsonObject, schema:StructType):Row = {
+  def fromConnection(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -188,7 +188,7 @@ object ZeekUtil {
 
   }
 
-  def connection():StructType = {
+  def connection(): StructType = {
 
     var fields = Array(
 
@@ -285,7 +285,7 @@ object ZeekUtil {
 
       /* resp_l2_addr: Link-layer address of the responder, if available.
        */
-      StructField("destination_l2_addr",StringType, nullable = true),
+      StructField("destination_l2_addr", StringType, nullable = true),
 
       /* vlan: The outer VLAN for this connection, if applicable.
        */
@@ -307,28 +307,29 @@ object ZeekUtil {
     StructType(fields)
 
   }
+
   /**
    * dce_rpc (&log)
    *
    * {
-   * 	"ts":1361916332.298338,
-   * 	"uid":"CsNHVHa1lzFtvJzT8",
-   * 	"id.orig_h":"172.16.133.6",
-   * 	"id.orig_p":1728,
-   * 	"id.resp_h":"172.16.128.202",
-   * 	"id.resp_p":445,"rtt":0.09211,
-   * 	"named_pipe":"\u005cPIPE\u005cbrowser",
-   * 	"endpoint":"browser",
-   * 	"operation":"BrowserrQueryOtherDomains"
+   * "ts":1361916332.298338,
+   * "uid":"CsNHVHa1lzFtvJzT8",
+   * "id.orig_h":"172.16.133.6",
+   * "id.orig_p":1728,
+   * "id.resp_h":"172.16.128.202",
+   * "id.resp_p":445,"rtt":0.09211,
+   * "named_pipe":"\u005cPIPE\u005cbrowser",
+   * "endpoint":"browser",
+   * "operation":"BrowserrQueryOtherDomains"
    * }
    */
-  def fromDceRpc(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromDceRpc(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromDceRpc(log.getAsJsonObject, schema)
     })
   }
 
-  def fromDceRpc(oldObject:JsonObject, schema:StructType):Row = {
+  def fromDceRpc(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -345,7 +346,7 @@ object ZeekUtil {
 
   }
 
-  def dce_rpc():StructType = {
+  def dce_rpc(): StructType = {
 
     var fields = Array(
 
@@ -391,28 +392,28 @@ object ZeekUtil {
    * dhcp (&log)
    *
    * {
-   * 	"ts":1476605498.771847,
-   * 	"uids":["CmWOt6VWaNGqXYcH6","CLObLo4YHn0u23Tp8a"],
-   * 	"client_addr":"192.168.199.132",
-   * 	"server_addr":"192.168.199.254",
-   * 	"mac":"00:0c:29:03:df:ad",
-   * 	"host_name":"DESKTOP-2AEFM7G",
-   * 	"client_fqdn":"DESKTOP-2AEFM7G",
-   * 	"domain":"localdomain",
-   * 	"requested_addr":"192.168.199.132",
-   * 	"assigned_addr":"192.168.199.132",
-   * 	"lease_time":1800.0,
-   * 	"msg_types":["REQUEST","ACK"],
-   * 	"duration":0.000161
+   * "ts":1476605498.771847,
+   * "uids":["CmWOt6VWaNGqXYcH6","CLObLo4YHn0u23Tp8a"],
+   * "client_addr":"192.168.199.132",
+   * "server_addr":"192.168.199.254",
+   * "mac":"00:0c:29:03:df:ad",
+   * "host_name":"DESKTOP-2AEFM7G",
+   * "client_fqdn":"DESKTOP-2AEFM7G",
+   * "domain":"localdomain",
+   * "requested_addr":"192.168.199.132",
+   * "assigned_addr":"192.168.199.132",
+   * "lease_time":1800.0,
+   * "msg_types":["REQUEST","ACK"],
+   * "duration":0.000161
    * }
    */
-  def fromDhcp(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromDhcp(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromDhcp(log.getAsJsonObject, schema)
     })
   }
 
-  def fromDhcp(oldObject:JsonObject, schema:StructType):Row = {
+  def fromDhcp(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -429,7 +430,7 @@ object ZeekUtil {
 
   }
 
-  def dhcp():StructType = {
+  def dhcp(): StructType = {
 
     var fields = Array(
 
@@ -462,7 +463,7 @@ object ZeekUtil {
 
       /* mac: Client’s hardware address.
        */
-      StructField("mac",StringType, nullable = true),
+      StructField("mac", StringType, nullable = true),
 
       /* host_name: Name given by client in Hostname.
        */
@@ -474,15 +475,15 @@ object ZeekUtil {
 
       /* domain: Domain given by the server
        */
-      StructField("domain",StringType, nullable = true),
+      StructField("domain", StringType, nullable = true),
 
       /* requested_addr: IP address requested by the client.
        */
-      StructField("requested_addr",StringType, nullable = true),
+      StructField("requested_addr", StringType, nullable = true),
 
       /* assigned_addr: IP address assigned by the server.
        */
-      StructField("assigned_addr",StringType, nullable = true),
+      StructField("assigned_addr", StringType, nullable = true),
 
       /* lease_time: IP address lease interval.
        */
@@ -500,7 +501,7 @@ object ZeekUtil {
 
       /* msg_types: The DHCP message types seen by this DHCP transaction
        */
-      StructField("msg_types",ArrayType(StringType), nullable = true),
+      StructField("msg_types", ArrayType(StringType), nullable = true),
 
       /* duration: Duration of the DHCP “session” representing the time from the
        * first message to the last.
@@ -542,6 +543,7 @@ object ZeekUtil {
     StructType(fields)
 
   }
+
   /**
    * dnp3 (&log)
    *
@@ -549,22 +551,22 @@ object ZeekUtil {
    * requests and replies.
    *
    * {
-   * 	"ts":1227729908.705944,
-   * 	"uid":"CQV6tj1w1t4WzQpHoe",
-   * 	"id.orig_h":"127.0.0.1",
-   * 	"id.orig_p":42942,
-   * 	"id.resp_h":"127.0.0.1",
-   * 	"id.resp_p":20000,
-   * 	"fc_request":"READ"
+   * "ts":1227729908.705944,
+   * "uid":"CQV6tj1w1t4WzQpHoe",
+   * "id.orig_h":"127.0.0.1",
+   * "id.orig_p":42942,
+   * "id.resp_h":"127.0.0.1",
+   * "id.resp_p":20000,
+   * "fc_request":"READ"
    * }
    */
-  def fromDnp3(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromDnp3(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromDnp3(log.getAsJsonObject, schema)
     })
   }
 
-  def fromDnp3(oldObject:JsonObject, schema:StructType):Row = {
+  def fromDnp3(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -579,7 +581,7 @@ object ZeekUtil {
 
   }
 
-  def dnp3():StructType = {
+  def dnp3(): StructType = {
 
     var fields = Array(
 
@@ -600,7 +602,7 @@ object ZeekUtil {
 
       /* fc_request: The name of the function message in the request.
        */
-      StructField("fc_request",StringType, nullable = true),
+      StructField("fc_request", StringType, nullable = true),
 
       /* fc_reply: The name of the function message in the reply.
        */
@@ -616,43 +618,44 @@ object ZeekUtil {
     StructType(fields)
 
   }
+
   /**
    * dns (&log)
    *
    * {
-   * 	"ts":1547188415.857497,
-   * 	"uid":"CAcJw21BbVedgFnYH3",
-   * 	"id.orig_h":"192.168.86.167",
-   * 	"id.orig_p":38339,
-   * 	"id.resp_h":"192.168.86.1",
-   * 	"id.resp_p":53,
-   * 	"proto":"udp",
-   * 	"trans_id":15209,
-   * 	"rtt":0.076967,
-   * 	"query":"dd625ffb4fc54735b281862aa1cd6cd4.us-west1.gcp.cloud.es.io",
-   * 	"qclass":1,
-   * 	"qclass_name":"C_INTERNET",
-   * 	"qtype":1,
-   * 	"qtype_name":"A",
-   * 	"rcode":0,
-   * 	"rcode_name":"NOERROR",
-   * 	"AA":false,
-   * 	"TC":false,
-   * 	"RD":true,
-   * 	"RA":true,
-   * 	"Z":0,
-   * 	"answers":["proxy-production-us-west1.gcp.cloud.es.io","proxy-production-us-west1-v1-009.gcp.cloud.es.io","35.199.178.4"],
-   * 	"TTLs":[119.0,119.0,59.0],
-   * 	"rejected":false
+   * "ts":1547188415.857497,
+   * "uid":"CAcJw21BbVedgFnYH3",
+   * "id.orig_h":"192.168.86.167",
+   * "id.orig_p":38339,
+   * "id.resp_h":"192.168.86.1",
+   * "id.resp_p":53,
+   * "proto":"udp",
+   * "trans_id":15209,
+   * "rtt":0.076967,
+   * "query":"dd625ffb4fc54735b281862aa1cd6cd4.us-west1.gcp.cloud.es.io",
+   * "qclass":1,
+   * "qclass_name":"C_INTERNET",
+   * "qtype":1,
+   * "qtype_name":"A",
+   * "rcode":0,
+   * "rcode_name":"NOERROR",
+   * "AA":false,
+   * "TC":false,
+   * "RD":true,
+   * "RA":true,
+   * "Z":0,
+   * "answers":["proxy-production-us-west1.gcp.cloud.es.io","proxy-production-us-west1-v1-009.gcp.cloud.es.io","35.199.178.4"],
+   * "TTLs":[119.0,119.0,59.0],
+   * "rejected":false
    * }
    */
-  def fromDns(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromDns(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromDns(log.getAsJsonObject, schema)
     })
   }
 
-  def fromDns(oldObject:JsonObject, schema:StructType):Row = {
+  def fromDns(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -686,7 +689,7 @@ object ZeekUtil {
         interval = (ts * 1000).asInstanceOf[Number].longValue
 
       } catch {
-        case _:Throwable => /* Do nothing */
+        case _: Throwable => /* Do nothing */
       }
 
       new_ttls.add(interval)
@@ -700,8 +703,8 @@ object ZeekUtil {
 
   }
 
-  def dns():StructType = {
-/*
+  def dns(): StructType = {
+    /*
 CREATE STREAM dns_stream (
 RD BOOLEAN,
 WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
@@ -765,7 +768,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
       /* rcode_name: A descriptive name for the response code value.
        */
-      StructField("rcode_name",StringType, nullable = true),
+      StructField("rcode_name", StringType, nullable = true),
 
       /* AA: The Authoritative Answer bit for response messages specifies
        * that the responding name server is an authority for the domain
@@ -802,7 +805,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
       /* rejected: The DNS query was rejected by the server.
        */
-      StructField("rejected",BooleanType, nullable = true),
+      StructField("rejected", BooleanType, nullable = true),
 
       /* auth: Authoritative responses for the query.
        */
@@ -825,24 +828,24 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * Dynamic protocol detection failures.
    *
    * {
-   * 	"ts":1507567500.423033,
-   * 	"uid":"CRrT7S1ccw9H6hzCR",
-   * 	"id.orig_h":"192.168.10.31",
-   * 	"id.orig_p":49285,
-   * 	"id.resp_h":"192.168.10.10",
-   * 	"id.resp_p":445,
-   * 	"proto":"tcp",
-   * 	"analyzer":"DCE_RPC",
-   * 	"failure_reason":"Binpac exception: binpac exception: \u0026enforce violation : DCE_RPC_Header:rpc_vers"
+   * "ts":1507567500.423033,
+   * "uid":"CRrT7S1ccw9H6hzCR",
+   * "id.orig_h":"192.168.10.31",
+   * "id.orig_p":49285,
+   * "id.resp_h":"192.168.10.10",
+   * "id.resp_p":445,
+   * "proto":"tcp",
+   * "analyzer":"DCE_RPC",
+   * "failure_reason":"Binpac exception: binpac exception: \u0026enforce violation : DCE_RPC_Header:rpc_vers"
    * }
    */
-  def fromDpd(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromDpd(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromDpd(log.getAsJsonObject, schema)
     })
   }
 
-  def fromDpd(oldObject:JsonObject, schema:StructType):Row = {
+  def fromDpd(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -857,7 +860,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def dpd():StructType = {
+  def dpd(): StructType = {
 
     var fields = Array(
 
@@ -904,33 +907,33 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * files (&log)
    *
    * {
-   * 	"ts":1547688796.636812,
-   * 	"fuid":"FMkioa222mEuM2RuQ9",
-   * 	"tx_hosts":["35.199.178.4"],
-   * 	"rx_hosts":["10.178.98.102"],
-   * 	"conn_uids":["C8I0zn3r9EPbfLgta6"],
-   * 	"source":"SSL",
-   * 	"depth":0,
-   * 	"analyzers":["X509","MD5","SHA1"],
-   * 	"mime_type":"application/pkix-cert",
-   * 	"duration":0.0,
-   * 	"local_orig":false,
-   * 	"is_orig":false,
-   * 	"seen_bytes":947,
-   * 	"missing_bytes":0,
-   * 	"overflow_bytes":0,
-   * 	"timedout":false,
-   * 	"md5":"79e4a9840d7d3a96d7c04fe2434c892e",
-   * 	"sha1":"a8985d3a65e5e5c4b2d7d66d40c6dd2fb19c5436"
+   * "ts":1547688796.636812,
+   * "fuid":"FMkioa222mEuM2RuQ9",
+   * "tx_hosts":["35.199.178.4"],
+   * "rx_hosts":["10.178.98.102"],
+   * "conn_uids":["C8I0zn3r9EPbfLgta6"],
+   * "source":"SSL",
+   * "depth":0,
+   * "analyzers":["X509","MD5","SHA1"],
+   * "mime_type":"application/pkix-cert",
+   * "duration":0.0,
+   * "local_orig":false,
+   * "is_orig":false,
+   * "seen_bytes":947,
+   * "missing_bytes":0,
+   * "overflow_bytes":0,
+   * "timedout":false,
+   * "md5":"79e4a9840d7d3a96d7c04fe2434c892e",
+   * "sha1":"a8985d3a65e5e5c4b2d7d66d40c6dd2fb19c5436"
    * }
    */
-  def fromFiles(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromFiles(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromFiles(log.getAsJsonObject, schema)
     })
   }
 
-  def fromFiles(oldObject:JsonObject, schema:StructType):Row = {
+  def fromFiles(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -947,12 +950,13 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     JsonUtil.json2Row(newObject, schema)
 
   }
+
   /*
    * IMPORTANT: Despite the example above (from Filebeat),
    * the current Zeek documentation (v3.1.2) does not specify
    * a connection id
    */
-  def files():StructType = {
+  def files(): StructType = {
 
     var fields = Array(
 
@@ -1088,36 +1092,37 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * ftp (& log)
    *
    * FTP activity
    *
    * {
-   * 	"ts":1187379104.955342,
-   * 	"uid":"CpQoCn3o28tke89zv9",
-   * 	"id.orig_h":"192.168.1.182",
-   * 	"id.orig_p":62014,
-   * 	"id.resp_h":"192.168.1.231",
-   * 	"id.resp_p":21,
-   * 	"user":"ftp",
-   * 	"password":"ftp",
-   * 	"command":"EPSV",
-   * 	"reply_code":229,
-   * 	"reply_msg":"Entering Extended Passive Mode (|||37100|)",
-   * 	"data_channel.passive":true,
-   * 	"data_channel.orig_h":"192.168.1.182",
-   * 	"data_channel.resp_h":"192.168.1.231",
-   * 	"data_channel.resp_p":37100
+   * "ts":1187379104.955342,
+   * "uid":"CpQoCn3o28tke89zv9",
+   * "id.orig_h":"192.168.1.182",
+   * "id.orig_p":62014,
+   * "id.resp_h":"192.168.1.231",
+   * "id.resp_p":21,
+   * "user":"ftp",
+   * "password":"ftp",
+   * "command":"EPSV",
+   * "reply_code":229,
+   * "reply_msg":"Entering Extended Passive Mode (|||37100|)",
+   * "data_channel.passive":true,
+   * "data_channel.orig_h":"192.168.1.182",
+   * "data_channel.resp_h":"192.168.1.231",
+   * "data_channel.resp_p":37100
    * }
    */
-  def fromFtp(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromFtp(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromFtp(log.getAsJsonObject, schema)
     })
   }
 
-  def fromFtp(oldObject:JsonObject, schema:StructType):Row = {
+  def fromFtp(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -1138,7 +1143,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def ftp():StructType = {
+  def ftp(): StructType = {
 
     var fields = Array(
 
@@ -1189,7 +1194,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("reply_msg", StringType, nullable = true),
 
-      /*** data_channel ***/
+      /** * data_channel ** */
 
       /* data_channel.passive: Whether PASV mode is toggled for control channel.
        */
@@ -1217,6 +1222,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * http (&log)
    *
@@ -1224,34 +1230,34 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * relevant metadata together in a single record.
    *
    * {
-   * 	"ts":1547687130.172944,
-   * 	"uid":"CCNp8v1SNzY7v9d1Ih",
-   * 	"id.orig_h":"10.178.98.102",
-   * 	"id.orig_p":62995,
-   * 	"id.resp_h":"17.253.5.203",
-   * 	"id.resp_p":80,
-   * 	"trans_depth":1,
-   * 	"method":"GET",
-   * 	"host":"ocsp.apple.com",
-   * 	"uri":"/ocsp04-aaica02/ME4wTKADAgEAMEUwQzBBMAkGBSsOAwIaBQAEFNqvF+Za6oA4ceFRLsAWwEInjUhJBBQx6napI3Sl39T97qDBpp7GEQ4R7AIIUP1IOZZ86ns=",
-   * 	"version":"1.1",
-   * 	"user_agent":"com.apple.trustd/2.0",
-   * 	"request_body_len":0,
-   * 	"response_body_len":3735,
-   * 	"status_code":200,
-   * 	"status_msg":"OK",
-   * 	"tags":[],
-   * 	"resp_fuids":["F5zuip1tSwASjNAHy7"],
-   * 	"resp_mime_types":["application/ocsp-response"]
+   * "ts":1547687130.172944,
+   * "uid":"CCNp8v1SNzY7v9d1Ih",
+   * "id.orig_h":"10.178.98.102",
+   * "id.orig_p":62995,
+   * "id.resp_h":"17.253.5.203",
+   * "id.resp_p":80,
+   * "trans_depth":1,
+   * "method":"GET",
+   * "host":"ocsp.apple.com",
+   * "uri":"/ocsp04-aaica02/ME4wTKADAgEAMEUwQzBBMAkGBSsOAwIaBQAEFNqvF+Za6oA4ceFRLsAWwEInjUhJBBQx6napI3Sl39T97qDBpp7GEQ4R7AIIUP1IOZZ86ns=",
+   * "version":"1.1",
+   * "user_agent":"com.apple.trustd/2.0",
+   * "request_body_len":0,
+   * "response_body_len":3735,
+   * "status_code":200,
+   * "status_msg":"OK",
+   * "tags":[],
+   * "resp_fuids":["F5zuip1tSwASjNAHy7"],
+   * "resp_mime_types":["application/ocsp-response"]
    * }
    */
-  def fromHttp(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromHttp(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromHttp(log.getAsJsonObject, schema)
     })
   }
 
-  def fromHttp(oldObject:JsonObject, schema:StructType):Row = {
+  def fromHttp(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -1266,17 +1272,17 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def http():StructType = {
+  def http(): StructType = {
 
     var fields = Array(
 
-    /* ts: Timestamp for when the request happened.
+      /* ts: Timestamp for when the request happened.
      */
-    StructField("ts", LongType, nullable = false),
+      StructField("ts", LongType, nullable = false),
 
-    /* uid: A unique identifier of the connection.
+      /* uid: A unique identifier of the connection.
      */
-    StructField("uid", StringType, nullable = false)
+      StructField("uid", StringType, nullable = false)
 
     )
     /* id
@@ -1284,7 +1290,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     fields = fields ++ conn_id()
 
     fields = fields ++ Array(
-    /* trans_depth: Represents the pipelined depth into the connection
+      /* trans_depth: Represents the pipelined depth into the connection
      * of this request/response transaction.
      */
       StructField("trans_depth", IntegerType, nullable = false),
@@ -1324,7 +1330,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
       /* response_body_len: Actual uncompressed content size of the data transferred from the server.
        */
-      StructField("response_body_len",IntegerType, nullable = true),
+      StructField("response_body_len", IntegerType, nullable = true),
 
       /* status_code: Status code returned by the server.
        */
@@ -1357,7 +1363,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
       /* proxied: All of the headers that may indicate if the request was proxied.
        */
-      StructField("proxied",ArrayType(StringType), nullable = true),
+      StructField("proxied", ArrayType(StringType), nullable = true),
 
       /* orig_fuids: An ordered vector of file unique IDs.
        * Limited to HTTP::max_files_orig entries.
@@ -1413,33 +1419,34 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * intel (&log) - This log file is generated by Zeek's
    * intelligence framework as a more valuable information
    * compared to other (raw) log files.
    *
    * {
-   * 	"ts":1573030980.989353,
-   * 	"uid":"Ctefoj1tgOPt4D0EK2",
-   * 	"id.orig_h":"192.168.1.1",
-   * 	"id.orig_p":37598,
-   * 	"id.resp_h":"198.41.0.4",
-   * 	"id.resp_p":53,
-   * 	"seen.indicator":"198.41.0.4",
-   * 	"seen.indicator_type":"Intel::ADDR",
-   * 	"seen.where":"Conn::IN_RESP",
-   * 	"seen.node":"worker-1-2",
-   * 	"matched":["Intel::ADDR"],
-   * 	"sources":["ETPRO Rep: AbusedTLD Score: 127"]
+   * "ts":1573030980.989353,
+   * "uid":"Ctefoj1tgOPt4D0EK2",
+   * "id.orig_h":"192.168.1.1",
+   * "id.orig_p":37598,
+   * "id.resp_h":"198.41.0.4",
+   * "id.resp_p":53,
+   * "seen.indicator":"198.41.0.4",
+   * "seen.indicator_type":"Intel::ADDR",
+   * "seen.where":"Conn::IN_RESP",
+   * "seen.node":"worker-1-2",
+   * "matched":["Intel::ADDR"],
+   * "sources":["ETPRO Rep: AbusedTLD Score: 127"]
    * }
    */
-  def fromIntel(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromIntel(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromIntel(log.getAsJsonObject, schema)
     })
   }
 
-  def fromIntel(oldObject:JsonObject, schema:StructType):Row = {
+  def fromIntel(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -1470,31 +1477,32 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     JsonUtil.json2Row(newObject, schema)
 
   }
+
   /**
    * This file transforms Zeek's Intel::Info format
    * into an Apache Spark compliant Intel schema.
    *
    * Sample:
    * {
-   *   "ts":1320279566.452687,
-   *   "uid":"C4llPsinsviGyNY45",
-   *   "id.orig_h":"192.168.2.76",
-   *   "id.orig_p":52026,
-   *   "id.resp_h":"132.235.215.119",
-   *   "id.resp_p":80,
-   *   "seen.indicator":"www.reddit.com",
-   *   "seen.indicator_type":"Intel::DOMAIN",
-   *   "seen.where":"HTTP::IN_HOST_HEADER",
-   *   "seen.node":"zeek",
-   *   "matched":[
-   *    "Intel::DOMAIN"
-   *    ],
-   *   "sources":[
-   *    "my_special_source"
-   *   ]
+   * "ts":1320279566.452687,
+   * "uid":"C4llPsinsviGyNY45",
+   * "id.orig_h":"192.168.2.76",
+   * "id.orig_p":52026,
+   * "id.resp_h":"132.235.215.119",
+   * "id.resp_p":80,
+   * "seen.indicator":"www.reddit.com",
+   * "seen.indicator_type":"Intel::DOMAIN",
+   * "seen.where":"HTTP::IN_HOST_HEADER",
+   * "seen.node":"zeek",
+   * "matched":[
+   * "Intel::DOMAIN"
+   * ],
+   * "sources":[
+   * "my_special_source"
+   * ]
    * }
    */
-  def intel():StructType = {
+  def intel(): StructType = {
 
     var fields = Array(
 
@@ -1514,14 +1522,14 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
     fields = fields ++ Array(
 
-      /*** seen: Where the data was seen.
+      /** * seen: Where the data was seen.
        *
        * Intel::Seen
        *
        * - indicator (string)
        * - indicator_type (enum)
        *
-       *   Defined values are:
+       * Defined values are:
        *
        *   - Intel::ADDR (An IP address)
        *   - Intel::SUBNET (A subnet in CIDR notation)
@@ -1534,22 +1542,22 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        *   - Intel::PUBKEY_HASH (Public key MD5 hash, formatted as hexadecimal digits delimited by colons)
        *   - Intel::FILE_HASH (present if base/frameworks/intel/files.zeek is loaded)
        *
-       *                      File hash which is non-hash type specific. It’s up to the user to query for
-       *                      any relevant hash types.
+       * File hash which is non-hash type specific. It’s up to the user to query for
+       * any relevant hash types.
        *
        *   - Intel::FILE_NAME (present if base/frameworks/intel/files.zeek is loaded)
        *
-       *                      File name. Typically with protocols with definite indications of a file name.
+       * File name. Typically with protocols with definite indications of a file name.
        *
        * - host (is defined, even it is not flagged with &log)
        * - where (enum)
        *
-       *   Defined values are:
+       * Defined values are:
        *
        * - Intel::IN_ANYWHERE
-       *   (A catchall value to represent data of unknown provenance.
+       * (A catchall value to represent data of unknown provenance.
        *
-       *   Present if policy/frameworks/intel/seen/where-locations.zeek is loaded:
+       * Present if policy/frameworks/intel/seen/where-locations.zeek is loaded:
        *
        *   - Conn::IN_ORIG
        *   - Conn::IN_RESP
@@ -1632,7 +1640,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("file_desc", StringType, nullable = true),
 
-      /*** cif ***/
+      /** * cif ** */
 
       /* cif.tags: CIF tags observations, examples for tags are botnet or exploit.
        */
@@ -1705,24 +1713,24 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * and some additional metadata about the connection if it’s available.
    *
    * {
-   * 	"ts":1387554250.647295,
-   * 	"uid":"CNJBX5FQdL62VUUP1",
-   * 	"id.orig_h":"10.180.156.249",
-   * 	"id.orig_p":45921,
-   * 	"id.resp_h":"38.229.70.20",
-   * 	"id.resp_p":8000,
-   * 	"command":"USER",
-   * 	"value":"xxxxx",
-   * 	"addl":"+iw xxxxx XxxxxxXxxx "
+   * "ts":1387554250.647295,
+   * "uid":"CNJBX5FQdL62VUUP1",
+   * "id.orig_h":"10.180.156.249",
+   * "id.orig_p":45921,
+   * "id.resp_h":"38.229.70.20",
+   * "id.resp_p":8000,
+   * "command":"USER",
+   * "value":"xxxxx",
+   * "addl":"+iw xxxxx XxxxxxXxxx "
    * }
    */
-  def fromIrc(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromIrc(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromIrc(log.getAsJsonObject, schema)
     })
   }
 
-  def fromIrc(oldObject:JsonObject, schema:StructType):Row = {
+  def fromIrc(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -1737,7 +1745,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def irc():StructType = {
+  def irc(): StructType = {
 
     var fields = Array(
 
@@ -1803,29 +1811,29 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * kerberos (&log)
    *
    * {
-   * 	"ts":1507565599.590346,
-   * 	"uid":"C56Flhb4WQBNkfMOl",
-   * 	"id.orig_h":"192.168.10.31",
-   * 	"id.orig_p":49242,
-   * 	"id.resp_h":"192.168.10.10",
-   * 	"id.resp_p":88,
-   * 	"request_type":"TGS",
-   * 	"client":"RonHD/CONTOSO.LOCAL",
-   * 	"service":"HOST/admin-pc",
-   * 	"success":true,
-   * 	"till":2136422885.0,
-   * 	"cipher":"aes256-cts-hmac-sha1-96",
-   * 	"forwardable":true,
-   * 	"renewable":true
+   * "ts":1507565599.590346,
+   * "uid":"C56Flhb4WQBNkfMOl",
+   * "id.orig_h":"192.168.10.31",
+   * "id.orig_p":49242,
+   * "id.resp_h":"192.168.10.10",
+   * "id.resp_p":88,
+   * "request_type":"TGS",
+   * "client":"RonHD/CONTOSO.LOCAL",
+   * "service":"HOST/admin-pc",
+   * "success":true,
+   * "till":2136422885.0,
+   * "cipher":"aes256-cts-hmac-sha1-96",
+   * "forwardable":true,
+   * "renewable":true
    * }
    */
-  def fromKerberos(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromKerberos(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromKerberos(log.getAsJsonObject, schema)
     })
   }
 
-  def fromKerberos(oldObject:JsonObject, schema:StructType):Row = {
+  def fromKerberos(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -1843,7 +1851,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def kerberos():StructType = {
+  def kerberos(): StructType = {
 
     var fields = Array(
 
@@ -1869,7 +1877,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
       /* client: Client.
        */
-      StructField("client",StringType, nullable = true),
+      StructField("client", StringType, nullable = true),
 
       /* service: Service.
        */
@@ -1933,26 +1941,27 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * modbus (&log)
    *
    * {
-   * 	"ts":1352718265.222457,
-   * 	"uid":"CpIIXl4DFGswmjH2bl",
-   * 	"id.orig_h":"192.168.1.10",
-   * 	"id.orig_p":64342,
-   * 	"id.resp_h":"192.168.1.164",
-   * 	"id.resp_p":502,
-   * 	"func":"READ_COILS"
+   * "ts":1352718265.222457,
+   * "uid":"CpIIXl4DFGswmjH2bl",
+   * "id.orig_h":"192.168.1.10",
+   * "id.orig_p":64342,
+   * "id.resp_h":"192.168.1.164",
+   * "id.resp_p":502,
+   * "func":"READ_COILS"
    * }
    */
-  def fromModbus(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromModbus(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromModbus(log.getAsJsonObject, schema)
     })
   }
 
-  def fromModbus(oldObject:JsonObject, schema:StructType):Row = {
+  def fromModbus(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -1967,7 +1976,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def modbus():StructType = {
+  def modbus(): StructType = {
 
     var fields = Array(
 
@@ -2000,16 +2009,17 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * mysql (&log)
    */
-  def fromMysql(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromMysql(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromMysql(log.getAsJsonObject, schema)
     })
   }
 
-  def fromMysql(oldObject:JsonObject, schema:StructType):Row = {
+  def fromMysql(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -2024,7 +2034,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def mysql():StructType = {
+  def mysql(): StructType = {
 
     var fields = Array(
 
@@ -2069,28 +2079,29 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * notice (&log)
    *
    * {
-   * 	"ts":1320435875.879278,
-   * 	"note":"SSH::Password_Guessing",
-   * 	"msg":"172.16.238.1 appears to be guessing SSH passwords (seen in 30 connections).",
-   * 	"sub":"Sampled servers:  172.16.238.136, 172.16.238.136, 172.16.238.136, 172.16.238.136, 172.16.238.136",
-   * 	"src":"172.16.238.1",
-   * 	"peer_descr":"bro",
-   * 	"actions":["Notice::ACTION_LOG"],
-   * 	"suppress_for":3600.0,
-   * 	"dropped":false
+   * "ts":1320435875.879278,
+   * "note":"SSH::Password_Guessing",
+   * "msg":"172.16.238.1 appears to be guessing SSH passwords (seen in 30 connections).",
+   * "sub":"Sampled servers:  172.16.238.136, 172.16.238.136, 172.16.238.136, 172.16.238.136, 172.16.238.136",
+   * "src":"172.16.238.1",
+   * "peer_descr":"bro",
+   * "actions":["Notice::ACTION_LOG"],
+   * "suppress_for":3600.0,
+   * "dropped":false
    * }
    */
-  def fromNotice(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromNotice(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromNotice(log.getAsJsonObject, schema)
     })
   }
 
-  def fromNotice(oldObject:JsonObject, schema:StructType):Row = {
+  def fromNotice(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -2119,7 +2130,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def notice():StructType = {
+  def notice(): StructType = {
 
     var fields = Array(
 
@@ -2208,7 +2219,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("suppress_for", LongType, nullable = true),
 
-      /*** remote_location: Add geographic data related to the “remote” host of the connection. ***/
+      /** * remote_location: Add geographic data related to the “remote” host of the connection. ** */
 
       /* remote_location.country_code: The country code.
        */
@@ -2240,33 +2251,34 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * ntlm (&log)
    *
    * NT LAN Manager (NTLM)
    *
    * {
-   * 	"ts":1508959117.814467,
-   * 	"uid":"CHphiNUKDC20fsy09",
-   * 	"id.orig_h":"192.168.10.50",
-   * 	"id.orig_p":46785,
-   * 	"id.resp_h":"192.168.10.31",
-   * 	"id.resp_p":445,
-   * 	"username":"JeffV",
-   * 	"hostname":"ybaARon55QykXrgu",
-   * 	"domainname":"contoso.local",
-   * 	"server_nb_computer_name":"VICTIM-PC",
-   * 	"server_dns_computer_name":"Victim-PC.contoso.local",
-   * 	"server_tree_name":"contoso.local"
+   * "ts":1508959117.814467,
+   * "uid":"CHphiNUKDC20fsy09",
+   * "id.orig_h":"192.168.10.50",
+   * "id.orig_p":46785,
+   * "id.resp_h":"192.168.10.31",
+   * "id.resp_p":445,
+   * "username":"JeffV",
+   * "hostname":"ybaARon55QykXrgu",
+   * "domainname":"contoso.local",
+   * "server_nb_computer_name":"VICTIM-PC",
+   * "server_dns_computer_name":"Victim-PC.contoso.local",
+   * "server_tree_name":"contoso.local"
    * }
    */
-  def fromNtlm(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromNtlm(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromNtlm(log.getAsJsonObject, schema)
     })
   }
 
-  def fromNtlm(oldObject:JsonObject, schema:StructType):Row = {
+  def fromNtlm(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -2281,7 +2293,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def ntlm():StructType = {
+  def ntlm(): StructType = {
 
     var fields = Array(
 
@@ -2298,7 +2310,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
      */
     fields = fields ++ conn_id()
 
-      fields = fields ++ Array(
+    fields = fields ++ Array(
 
       /* username: Username given by the client.
        */
@@ -2334,19 +2346,20 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * ocsp (&log)
    *
    * Online Certificate Status Protocol (OCSP). Only created if policy script is loaded.
    *
    */
-  def fromOcsp(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromOcsp(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromOcsp(log.getAsJsonObject, schema)
     })
   }
 
-  def fromOcsp(oldObject:JsonObject, schema:StructType):Row = {
+  def fromOcsp(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -2377,9 +2390,9 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     /* Transform into row */
     JsonUtil.json2Row(newObject, schema)
 
- }
+  }
 
-  def ocsp():StructType = {
+  def ocsp(): StructType = {
 
     var fields = Array(
 
@@ -2441,13 +2454,13 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    *
    * Portable Executable (PE)
    */
-  def fromPe(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromPe(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromPe(log.getAsJsonObject, schema)
     })
   }
 
-  def fromPe(oldObject:JsonObject, schema:StructType):Row = {
+  def fromPe(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -2462,7 +2475,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def pe():StructType = {
+  def pe(): StructType = {
 
     var fields = Array(
 
@@ -2540,18 +2553,19 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * radius (&log)
    *
    * RADIUS authentication attempts
    */
-  def fromRadius(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromRadius(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromRadius(log.getAsJsonObject, schema)
     })
   }
 
-  def fromRadius(oldObject:JsonObject, schema:StructType):Row = {
+  def fromRadius(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -2568,7 +2582,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def radius():StructType = {
+  def radius(): StructType = {
 
     var fields = Array(
 
@@ -2637,13 +2651,13 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    *
    * RDP Analysis
    */
-  def fromRdp(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromRdp(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromRdp(log.getAsJsonObject, schema)
     })
   }
 
-  def fromRdp(oldObject:JsonObject, schema:StructType):Row = {
+  def fromRdp(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -2658,7 +2672,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def rdp():StructType = {
+  def rdp(): StructType = {
 
     var fields = Array(
 
@@ -2762,13 +2776,13 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    *
    * Remote Framebuffer (RFB)
    */
-  def fromRfb(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromRfb(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromRfb(log.getAsJsonObject, schema)
     })
   }
 
-  def fromRfb(oldObject:JsonObject, schema:StructType):Row = {
+  def fromRfb(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -2783,7 +2797,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def rfb():StructType = {
+  def rfb(): StructType = {
 
     var fields = Array(
 
@@ -2856,37 +2870,37 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * and all relevant metadata together in a single record.
    *
    * {
-   * 	"ts":1361916159.055464,
-   * 	"uid":"CPRLCB4eWHdjP852Bk",
-   * 	"id.orig_h":"172.16.133.19",
-   * 	"id.orig_p":5060,
-   * 	"id.resp_h":"74.63.41.218",
-   * 	"id.resp_p":5060,
-   * 	"trans_depth":0,
-   * 	"method":"REGISTER",
-   * 	"uri":"sip:newyork.voip.ms:5060",
-   * 	"request_from":"\u0022AppNeta\u0022 <sip:116954_Boston6@newyork.voip.ms>",
-   * 	"request_to":"<sip:116954_Boston6@newyork.voip.ms>",
-   * 	"response_from":"\u0022AppNeta\u0022 <sip:116954_Boston6@newyork.voip.ms>",
-   * 	"response_to":"<sip:116954_Boston6@newyork.voip.ms>;tag=as023f66a5",
-   * 	"call_id":"8694cd7e-976e4fc3-d76f6e38@172.16.133.19",
-   * 	"seq":"4127 REGISTER",
-   * 	"request_path":["SIP/2.0/UDP 172.16.133.19:5060"],
-   * 	"response_path":["SIP/2.0/UDP 172.16.133.19:5060"],
-   * 	"user_agent":"PolycomSoundStationIP-SSIP_5000-UA/3.2.4.0267",
-   * 	"status_code":401,
-   * 	"status_msg":"Unauthorized",
-   * 	"request_body_len":0,
-   * 	"response_body_len":0
+   * "ts":1361916159.055464,
+   * "uid":"CPRLCB4eWHdjP852Bk",
+   * "id.orig_h":"172.16.133.19",
+   * "id.orig_p":5060,
+   * "id.resp_h":"74.63.41.218",
+   * "id.resp_p":5060,
+   * "trans_depth":0,
+   * "method":"REGISTER",
+   * "uri":"sip:newyork.voip.ms:5060",
+   * "request_from":"\u0022AppNeta\u0022 <sip:116954_Boston6@newyork.voip.ms>",
+   * "request_to":"<sip:116954_Boston6@newyork.voip.ms>",
+   * "response_from":"\u0022AppNeta\u0022 <sip:116954_Boston6@newyork.voip.ms>",
+   * "response_to":"<sip:116954_Boston6@newyork.voip.ms>;tag=as023f66a5",
+   * "call_id":"8694cd7e-976e4fc3-d76f6e38@172.16.133.19",
+   * "seq":"4127 REGISTER",
+   * "request_path":["SIP/2.0/UDP 172.16.133.19:5060"],
+   * "response_path":["SIP/2.0/UDP 172.16.133.19:5060"],
+   * "user_agent":"PolycomSoundStationIP-SSIP_5000-UA/3.2.4.0267",
+   * "status_code":401,
+   * "status_msg":"Unauthorized",
+   * "request_body_len":0,
+   * "response_body_len":0
    * }
    */
-  def fromSip(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSip(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSip(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSip(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSip(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -2901,7 +2915,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def sip():StructType = {
+  def sip(): StructType = {
 
     var fields = Array(
 
@@ -2977,7 +2991,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
       /* response_path: The server message transmission path, as extracted from the headers.
        */
-      StructField("response_path",  ArrayType(StringType), nullable = true),
+      StructField("response_path", ArrayType(StringType), nullable = true),
 
       /* user_agent: Contents of the User-Agent: header from the client
        */
@@ -3020,37 +3034,37 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * SMB commands
    *
    * {
-   * 	"ts":1361916332.020006,
-   * 	"uid":"CbT8mpAXseu6Pt4R7",
-   * 	"id.orig_h":"172.16.133.6",
-   * 	"id.orig_p":1728,
-   * 	"id.resp_h":"172.16.128.202",
-   * 	"id.resp_p":445,
-   * 	"command":"NT_CREATE_ANDX",
-   * 	"argument":"\u005cbrowser",
-   * 	"status":"SUCCESS",
-   * 	"rtt":0.091141,
-   * 	"version":"SMB1",
-   * 	"tree":"\u005c\u005cJSRVR20\u005cIPC$",
-   * 	"tree_service":"IPC",
-   * 	"referenced_file.ts":1361916332.020006,
-   * 	"referenced_file.uid":"CbT8mpAXseu6Pt4R7",
-   * 	"referenced_file.id.orig_h":"172.16.133.6",
-   * 	"referenced_file.id.orig_p":1728,
-   * 	"referenced_file.id.resp_h":"172.16.128.202",
-   * 	"referenced_file.id.resp_p":445,
-   * 	"referenced_file.action":"SMB::FILE_OPEN",
-   * 	"referenced_file.name":"\u005cbrowser",
-   * 	"referenced_file.size":0
+   * "ts":1361916332.020006,
+   * "uid":"CbT8mpAXseu6Pt4R7",
+   * "id.orig_h":"172.16.133.6",
+   * "id.orig_p":1728,
+   * "id.resp_h":"172.16.128.202",
+   * "id.resp_p":445,
+   * "command":"NT_CREATE_ANDX",
+   * "argument":"\u005cbrowser",
+   * "status":"SUCCESS",
+   * "rtt":0.091141,
+   * "version":"SMB1",
+   * "tree":"\u005c\u005cJSRVR20\u005cIPC$",
+   * "tree_service":"IPC",
+   * "referenced_file.ts":1361916332.020006,
+   * "referenced_file.uid":"CbT8mpAXseu6Pt4R7",
+   * "referenced_file.id.orig_h":"172.16.133.6",
+   * "referenced_file.id.orig_p":1728,
+   * "referenced_file.id.resp_h":"172.16.128.202",
+   * "referenced_file.id.resp_p":445,
+   * "referenced_file.action":"SMB::FILE_OPEN",
+   * "referenced_file.name":"\u005cbrowser",
+   * "referenced_file.size":0
    * }
    */
-  def fromSmbCmd(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSmbCmd(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSmbCmd(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSmbCmd(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSmbCmd(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -3099,7 +3113,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def smb_cmd():StructType = {
+  def smb_cmd(): StructType = {
 
     var fields = Array(
 
@@ -3156,7 +3170,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("tree_service", StringType, nullable = true),
 
-      /*** referenced_file: If the command referenced a file, store it here. ***/
+      /** * referenced_file: If the command referenced a file, store it here. ** */
 
       /* referenced_file.ts: Time when the file was first discovered.
        */
@@ -3166,7 +3180,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("file_uid", StringType, nullable = true),
 
-      /*** referenced_file.id: ID of the connection the file was sent over. ***/
+      /** * referenced_file.id: ID of the connection the file was sent over. ** */
 
       /* referenced_file.id.orig_h: The originator’s IP address.
        */
@@ -3209,7 +3223,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("file_prev_name", StringType, nullable = true),
 
-      /*** times: Last time this file was modified. ***/
+      /** * times: Last time this file was modified. ** */
 
       /* referenced_file.times.modified: The time when data was last written to the file.
        */
@@ -3240,29 +3254,29 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * SMB files
    *
    * {
-   * 	"ts":1507565599.576942,
-   * 	"uid":"C9YAaEzWLL62yWMn5",
-   * 	"id.orig_h":"192.168.10.31",
-   * 	"id.orig_p":49239,
-   * 	"id.resp_h":"192.168.10.30",
-   * 	"id.resp_p":445,
-   * 	"action":"SMB::FILE_OPEN",
-   * 	"path":"\u005c\u005cadmin-pc\u005cADMIN$",
-   * 	"name":"PSEXESVC.exe",
-   * 	"size":0,
-   * 	"times.modified":1507565599.607777,
-   * 	"times.accessed":1507565599.607777,
-   * 	"times.created":1507565599.607777,
-   * 	"times.changed":1507565599.607777
+   * "ts":1507565599.576942,
+   * "uid":"C9YAaEzWLL62yWMn5",
+   * "id.orig_h":"192.168.10.31",
+   * "id.orig_p":49239,
+   * "id.resp_h":"192.168.10.30",
+   * "id.resp_p":445,
+   * "action":"SMB::FILE_OPEN",
+   * "path":"\u005c\u005cadmin-pc\u005cADMIN$",
+   * "name":"PSEXESVC.exe",
+   * "size":0,
+   * "times.modified":1507565599.607777,
+   * "times.accessed":1507565599.607777,
+   * "times.created":1507565599.607777,
+   * "times.changed":1507565599.607777
    * }
    */
-  def fromSmbFiles(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSmbFiles(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSmbFiles(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSmbFiles(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSmbFiles(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -3290,7 +3304,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def smb_files():StructType = {
+  def smb_files(): StructType = {
 
     var fields = Array(
 
@@ -3333,7 +3347,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("prev_name", StringType, nullable = true),
 
-      /*** times: Last time this file was modified. ***/
+      /** * times: Last time this file was modified. ** */
 
       /* times.modified: The time when data was last written to the file.
        */
@@ -3357,29 +3371,30 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * smb_mapping (&log)
    *
    * SMB Trees
    *
    * {
-   * 	"ts":1507565599.576613,
-   * 	"uid":"C9YAaEzWLL62yWMn5",
-   * 	"id.orig_h":"192.168.10.31",
-   * 	"id.orig_p":49239,
-   * 	"id.resp_h":"192.168.10.30",
-   * 	"id.resp_p":445,
-   * 	"path":"\u005c\u005cadmin-pc\u005cADMIN$",
-   * 	"share_type":"DISK"
+   * "ts":1507565599.576613,
+   * "uid":"C9YAaEzWLL62yWMn5",
+   * "id.orig_h":"192.168.10.31",
+   * "id.orig_p":49239,
+   * "id.resp_h":"192.168.10.30",
+   * "id.resp_p":445,
+   * "path":"\u005c\u005cadmin-pc\u005cADMIN$",
+   * "share_type":"DISK"
    * }
    */
-  def fromSmbMapping(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSmbMapping(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSmbMapping(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSmbMapping(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSmbMapping(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -3394,7 +3409,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def smb_mapping():StructType = {
+  def smb_mapping(): StructType = {
 
     var fields = Array(
 
@@ -3437,34 +3452,35 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * smtp (&log)
    *
    * SMTP transactions
    *
    * {
-   * 	"ts":1543877987.381899,
-   * 	"uid":"CWWzPB3RjqhFf528c",
-   * 	"id.orig_h":"192.168.1.10",
-   * 	"id.orig_p":33782,
-   * 	"id.resp_h":"192.168.1.9",
-   * 	"id.resp_p":25,
-   * 	"trans_depth":1,
-   * 	"helo":"EXAMPLE.COM",
-   * 	"last_reply":"220 2.0.0 SMTP server ready",
-   * 	"path":["192.168.1.9"],
-   * 	"tls":true,
-   * 	"fuids":[],
-   * 	"is_webmail":false
+   * "ts":1543877987.381899,
+   * "uid":"CWWzPB3RjqhFf528c",
+   * "id.orig_h":"192.168.1.10",
+   * "id.orig_p":33782,
+   * "id.resp_h":"192.168.1.9",
+   * "id.resp_p":25,
+   * "trans_depth":1,
+   * "helo":"EXAMPLE.COM",
+   * "last_reply":"220 2.0.0 SMTP server ready",
+   * "path":["192.168.1.9"],
+   * "tls":true,
+   * "fuids":[],
+   * "is_webmail":false
    * }
    */
-  def fromSmtp(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSmtp(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSmtp(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSmtp(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSmtp(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -3479,7 +3495,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def smtp():StructType = {
+  def smtp(): StructType = {
 
     var fields = Array(
 
@@ -3596,29 +3612,29 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * SNMP messages
    *
    * {
-   * 	"ts":1543877948.916584,
-   * 	"uid":"CnKW1B4w9fpRa6Nkf2",
-   * 	"id.orig_h":"192.168.1.2",
-   * 	"id.orig_p":59696,
-   * 	"id.resp_h":"192.168.1.1",
-   * 	"id.resp_p":161,
-   * 	"duration":7.849924,
-   * 	"version":"2c",
-   * 	"community":"public",
-   * 	"get_requests":0,
-   * 	"get_bulk_requests":0,
-   * 	"get_responses":8,
-   * 	"set_requests":0,
-   * 	"up_since":1543631204.766508
+   * "ts":1543877948.916584,
+   * "uid":"CnKW1B4w9fpRa6Nkf2",
+   * "id.orig_h":"192.168.1.2",
+   * "id.orig_p":59696,
+   * "id.resp_h":"192.168.1.1",
+   * "id.resp_p":161,
+   * "duration":7.849924,
+   * "version":"2c",
+   * "community":"public",
+   * "get_requests":0,
+   * "get_bulk_requests":0,
+   * "get_responses":8,
+   * "set_requests":0,
+   * "up_since":1543631204.766508
    * }
    */
-  def fromSnmp(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSnmp(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSnmp(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSnmp(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSnmp(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -3636,7 +3652,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def snmp():StructType = {
+  def snmp(): StructType = {
 
     var fields = Array(
 
@@ -3704,33 +3720,34 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * socks (&log)
    *
    * SOCKS proxy requests
    *
    * {
-   * 	"ts":1566508093.09494,
-   * 	"uid":"Cmz4Cb4qCw1hGqYw1c",
-   * 	"id.orig_h":"127.0.0.1",
-   * 	"id.orig_p":35368,
-   * 	"id.resp_h":"127.0.0.1",
-   * 	"id.resp_p":8080,
-   * 	"version":5,
-   * 	"status":"succeeded",
-   * 	"request.name":"www.google.com",
-   * 	"request_p":443,
-   * 	"bound.host":"0.0.0.0",
-   * 	"bound_p":0
+   * "ts":1566508093.09494,
+   * "uid":"Cmz4Cb4qCw1hGqYw1c",
+   * "id.orig_h":"127.0.0.1",
+   * "id.orig_p":35368,
+   * "id.resp_h":"127.0.0.1",
+   * "id.resp_p":8080,
+   * "version":5,
+   * "status":"succeeded",
+   * "request.name":"www.google.com",
+   * "request_p":443,
+   * "bound.host":"0.0.0.0",
+   * "bound_p":0
    * }
    */
-  def fromSocks(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSocks(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSocks(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSocks(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSocks(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -3753,7 +3770,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def socks():StructType = {
+  def socks(): StructType = {
 
     var fields = Array(
 
@@ -3822,36 +3839,37 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * ssh (&log)
    *
    * {
-   * 	"ts":1562527532.904291,
-   * 	"uid":"CajWfz1b3qnnWT0BU9",
-   * 	"id.orig_h":"192.168.1.2",
-   * 	"id.orig_p":48380,
-   * 	"id.resp_h":"192.168.1.1",
-   * 	"id.resp_p":22,
-   * 	"version":2,
-   * 	"auth_success":false,
-   * 	"auth_attempts":2,
-   * 	"client":"SSH-2.0-OpenSSH_7.9p1 Ubuntu-10",
-   * 	"server":"SSH-2.0-OpenSSH_6.6.1p1 Debian-4~bpo70+1",
-   * 	"cipher_alg":"chacha20-poly1305@openssh.com",
-   * 	"mac_alg":"umac-64-etm@openssh.com",
-   * 	"compression_alg":"none",
-   * 	"kex_alg":"curve25519-sha256@libssh.org",
-   * 	"host_key_alg":"ecdsa-sha2-nistp256",
-   * 	"host_key":"86:71:ac:9c:35:1c:28:29:05:81:48:ec:66:67:de:bd"
+   * "ts":1562527532.904291,
+   * "uid":"CajWfz1b3qnnWT0BU9",
+   * "id.orig_h":"192.168.1.2",
+   * "id.orig_p":48380,
+   * "id.resp_h":"192.168.1.1",
+   * "id.resp_p":22,
+   * "version":2,
+   * "auth_success":false,
+   * "auth_attempts":2,
+   * "client":"SSH-2.0-OpenSSH_7.9p1 Ubuntu-10",
+   * "server":"SSH-2.0-OpenSSH_6.6.1p1 Debian-4~bpo70+1",
+   * "cipher_alg":"chacha20-poly1305@openssh.com",
+   * "mac_alg":"umac-64-etm@openssh.com",
+   * "compression_alg":"none",
+   * "kex_alg":"curve25519-sha256@libssh.org",
+   * "host_key_alg":"ecdsa-sha2-nistp256",
+   * "host_key":"86:71:ac:9c:35:1c:28:29:05:81:48:ec:66:67:de:bd"
    * }
    */
-  def fromSsh(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSsh(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSsh(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSsh(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSsh(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -3873,7 +3891,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def ssh():StructType = {
+  def ssh(): StructType = {
 
     var fields = Array(
 
@@ -3944,7 +3962,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("host_key", StringType, nullable = true),
 
-      /*** remote_location: Add geographic data related to the “remote” host of the connection. ***/
+      /** * remote_location: Add geographic data related to the “remote” host of the connection. ** */
 
       /* remote_location.country_code: The country code.
        */
@@ -3972,6 +3990,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * ssl (&log)
    *
@@ -3979,32 +3998,32 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * and encryption establishment process.
    *
    * {
-   *  "ts":1547688736.805088,
-   * 	"uid":"CAOvs1BMFCX2Eh0Y3",
-   * 	"id.orig_h":"10.178.98.102",
-   * 	"id.orig_p":63199,
-   * 	"id.resp_h":"35.199.178.4",
-   * 	"id.resp_p":9243,
-   * 	"version":"TLSv12",
-   * 	"cipher":"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
-   * 	"curve":"secp256r1",
-   * 	"server_name":"dd625ffb4fc54735b281862aa1cd6cd4.us-west1.gcp.cloud.es.io",
-   * 	"resumed":false,
-   * 	"established":true,
-   * 	"cert_chain_fuids":["FebkbHWVCV8rEEEne","F4BDY41MGUBT6URZMd","FWlfEfiHVkv8evDL3"],
-   * 	"client_cert_chain_fuids":[],
-   * 	"subject":"CN=*.gcp.cloud.es.io,O=Elasticsearch\u005c, Inc.,L=Mountain View,ST=California,C=US",
-   * 	"issuer":"CN=DigiCert SHA2 Secure Server CA,O=DigiCert Inc,C=US",
-   * 	"validation_status":"ok"
+   * "ts":1547688736.805088,
+   * "uid":"CAOvs1BMFCX2Eh0Y3",
+   * "id.orig_h":"10.178.98.102",
+   * "id.orig_p":63199,
+   * "id.resp_h":"35.199.178.4",
+   * "id.resp_p":9243,
+   * "version":"TLSv12",
+   * "cipher":"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+   * "curve":"secp256r1",
+   * "server_name":"dd625ffb4fc54735b281862aa1cd6cd4.us-west1.gcp.cloud.es.io",
+   * "resumed":false,
+   * "established":true,
+   * "cert_chain_fuids":["FebkbHWVCV8rEEEne","F4BDY41MGUBT6URZMd","FWlfEfiHVkv8evDL3"],
+   * "client_cert_chain_fuids":[],
+   * "subject":"CN=*.gcp.cloud.es.io,O=Elasticsearch\u005c, Inc.,L=Mountain View,ST=California,C=US",
+   * "issuer":"CN=DigiCert SHA2 Secure Server CA,O=DigiCert Inc,C=US",
+   * "validation_status":"ok"
    * }
    */
-  def fromSsl(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSsl(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSsl(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSsl(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSsl(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -4025,7 +4044,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def ssl():StructType = {
+  def ssl(): StructType = {
 
     var fields = Array(
 
@@ -4124,7 +4143,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("valid_ct_operators", IntegerType, nullable = true),
 
-      /*** notary: A response from the ICSI certificate notary. ***/
+      /** * notary: A response from the ICSI certificate notary. ** */
 
       /* notary.first_seen:
        */
@@ -4148,42 +4167,43 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * stats (&log)
    *
    * {
-   * 	"ts":1476605878.714844,
-   * 	"peer":"bro",
-   * 	"mem":94,
-   * 	"pkts_proc":296,
-   * 	"bytes_recv":39674,
-   * 	"events_proc":723,
-   * 	"events_queued":728,
-   * 	"active_tcp_conns":1,
-   * 	"active_udp_conns":3,
-   * 	"active_icmp_conns":0,
-   * 	"tcp_conns":6,
-   * 	"udp_conns":36,
-   * 	"icmp_conns":2,
-   * 	"timers":797,
-   * 	"active_timers":38,
-   * 	"files":0,
-   * 	"active_files":0,
-   * 	"dns_requests":0,
-   * 	"active_dns_requests":0,
-   * 	"reassem_tcp_size":0,
-   * 	"reassem_file_size":0,
-   * 	"reassem_frag_size":0,
-   * 	"reassem_unknown_size":0
+   * "ts":1476605878.714844,
+   * "peer":"bro",
+   * "mem":94,
+   * "pkts_proc":296,
+   * "bytes_recv":39674,
+   * "events_proc":723,
+   * "events_queued":728,
+   * "active_tcp_conns":1,
+   * "active_udp_conns":3,
+   * "active_icmp_conns":0,
+   * "tcp_conns":6,
+   * "udp_conns":36,
+   * "icmp_conns":2,
+   * "timers":797,
+   * "active_timers":38,
+   * "files":0,
+   * "active_files":0,
+   * "dns_requests":0,
+   * "active_dns_requests":0,
+   * "reassem_tcp_size":0,
+   * "reassem_file_size":0,
+   * "reassem_frag_size":0,
+   * "reassem_unknown_size":0
    * }
    */
-  def fromStats(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromStats(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromStats(log.getAsJsonObject, schema)
     })
   }
 
-  def fromStats(oldObject:JsonObject, schema:StructType):Row = {
+  def fromStats(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -4198,7 +4218,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def stats():StructType = {
+  def stats(): StructType = {
 
     var fields = Array(
 
@@ -4319,18 +4339,19 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * syslog (&log)
    *
    * Syslog messages.
    */
-  def fromSyslog(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromSyslog(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromSyslog(log.getAsJsonObject, schema)
     })
   }
 
-  def fromSyslog(oldObject:JsonObject, schema:StructType):Row = {
+  def fromSyslog(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -4345,7 +4366,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
- def syslog():StructType = {
+  def syslog(): StructType = {
 
     var fields = Array(
 
@@ -4364,46 +4385,46 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
     /* proto: Protocol over which the message was seen.
      */
-   fields = fields ++ Array(
+    fields = fields ++ Array(
 
-     StructField("proto", StringType, nullable = false),
+      StructField("proto", StringType, nullable = false),
 
-     /* facility: Syslog facility for the message.
+      /* facility: Syslog facility for the message.
       */
-     StructField("facility", StringType, nullable = false),
+      StructField("facility", StringType, nullable = false),
 
-     /* severity: Syslog severity for the message.
+      /* severity: Syslog severity for the message.
       */
-     StructField("severity", StringType, nullable = false),
+      StructField("severity", StringType, nullable = false),
 
-     /* message: The plain text message.
+      /* message: The plain text message.
       */
-     StructField("message", StringType, nullable = false)
+      StructField("message", StringType, nullable = false)
 
-   )
+    )
 
-   fields = Array(primaryKey) ++ fields
-   StructType(fields)
+    fields = Array(primaryKey) ++ fields
+    StructType(fields)
 
- }
+  }
 
   /**
    * traceroute (&log)
    *
    * {
-   * 	"ts":1361916158.650605,
-   * 	"src":"192.168.1.1",
-   * 	"dst":"8.8.8.8",
-   * 	"proto":"udp"
+   * "ts":1361916158.650605,
+   * "src":"192.168.1.1",
+   * "dst":"8.8.8.8",
+   * "proto":"udp"
    * }
    */
-  def fromTraceroute(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromTraceroute(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromTraceroute(log.getAsJsonObject, schema)
     })
   }
 
-  def fromTraceroute(oldObject:JsonObject, schema:StructType):Row = {
+  def fromTraceroute(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -4420,7 +4441,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def traceroute():StructType = {
+  def traceroute(): StructType = {
 
     var fields = Array(
 
@@ -4446,6 +4467,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * tunnel (&log)
    *
@@ -4456,22 +4478,22 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * tunnels is also found in the tunnel field of connection.
    *
    * {
-   * 	"ts":1544405666.743509,
-   * 	"id.orig_h":"132.16.146.79",
-   * 	"id.orig_p":0,
-   * 	"id.resp_h":"132.16.110.133",
-   * 	"id.resp_p":8080,
-   * 	"tunnel_type":"Tunnel::HTTP",
-   * 	"action":"Tunnel::DISCOVER"
+   * "ts":1544405666.743509,
+   * "id.orig_h":"132.16.146.79",
+   * "id.orig_p":0,
+   * "id.resp_h":"132.16.110.133",
+   * "id.resp_p":8080,
+   * "tunnel_type":"Tunnel::HTTP",
+   * "action":"Tunnel::DISCOVER"
    * }
    */
-  def fromTunnel(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromTunnel(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromTunnel(log.getAsJsonObject, schema)
     })
   }
 
-  def fromTunnel(oldObject:JsonObject, schema:StructType):Row = {
+  def fromTunnel(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -4486,7 +4508,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def tunnel():StructType = {
+  def tunnel(): StructType = {
 
     var fields = Array(
 
@@ -4510,7 +4532,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
       /* tunnel_type: Time at which some tunnel activity occurred.
        */
-      StructField("tunnel_type",  StringType, nullable = false),
+      StructField("tunnel_type", StringType, nullable = false),
 
       /* action: The type of activity that occurred.
        */
@@ -4522,19 +4544,20 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * weird (&log)
    *
    * {
-   * 	"ts":1543877999.99354,
-   * 	"uid":"C1ralPp062bkwWt4e",
-   * 	"id.orig_h":"192.168.1.1",
-   * 	"id.orig_p":64521,
-   * 	"id.resp_h":"192.168.1.2",
-   * 	"id.resp_p":53,
-   * 	"name":"dns_unmatched_reply",
-   * 	"notice":false,
-   * 	"peer":"worker-6"
+   * "ts":1543877999.99354,
+   * "uid":"C1ralPp062bkwWt4e",
+   * "id.orig_h":"192.168.1.1",
+   * "id.orig_p":64521,
+   * "id.resp_h":"192.168.1.2",
+   * "id.resp_p":53,
+   * "name":"dns_unmatched_reply",
+   * "notice":false,
+   * "peer":"worker-6"
    * }
    *
    * This log provides a default set of actions to take for “weird activity” events generated
@@ -4546,13 +4569,13 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
    * Without context, it’s hard to judge whether a particular category of weird activity is interesting,
    * but this script provides a starting point for the user.
    */
-  def fromWeird(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromWeird(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromWeird(log.getAsJsonObject, schema)
     })
   }
 
-  def fromWeird(oldObject:JsonObject, schema:StructType):Row = {
+  def fromWeird(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -4567,7 +4590,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def weird():StructType = {
+  def weird(): StructType = {
 
     var fields = Array(
 
@@ -4611,34 +4634,35 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     StructType(fields)
 
   }
+
   /**
    * x509 (&log)
    *
    * {
-   * 	"ts":1543867200.143484,
-   * 	"id":"FxZ6gZ3YR6vFlIocq3",
-   * 	"certificate.version":3,
-   * 	"certificate.serial":"2D00003299D7071DB7D1708A42000000003299",
-   * 	"certificate.subject":"CN=www.bing.com",
-   * 	"certificate.issuer":"CN=Microsoft IT TLS CA 5,OU=Microsoft IT,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
-   * 	"certificate.not_valid_before":1500572828.0,
-   * 	"certificate.not_valid_after":1562780828.0,
-   * 	"certificate.key_alg":"rsaEncryption",
-   * 	"certificate.sig_alg":"sha256WithRSAEncryption",
-   * 	"certificate.key_type":"rsa",
-   * 	"certificate.key_length":2048,
-   * 	"certificate.exponent":"65537",
-   * 	"san.dns":["www.bing.com","dict.bing.com.cn","*.platform.bing.com","*.bing.com","bing.com","ieonline.microsoft.com","*.windowssearch.com","cn.ieonline.microsoft.com","*.origin.bing.com","*.mm.bing.net","*.api.bing.com","ecn.dev.virtualearth.net","*.cn.bing.net","*.cn.bing.com","ssl-api.bing.com","ssl-api.bing.net","*.api.bing.net","*.bingapis.com","bingsandbox.com","feedback.microsoft.com","insertmedia.bing.office.net","r.bat.bing.com","*.r.bat.bing.com","*.dict.bing.com.cn","*.dict.bing.com","*.ssl.bing.com","*.appex.bing.com","*.platform.cn.bing.com","wp.m.bing.com","*.m.bing.com","global.bing.com","windowssearch.com","search.msn.com","*.bingsandbox.com","*.api.tiles.ditu.live.com","*.ditu.live.com","*.t0.tiles.ditu.live.com","*.t1.tiles.ditu.live.com","*.t2.tiles.ditu.live.com","*.t3.tiles.ditu.live.com","*.tiles.ditu.live.com","3d.live.com","api.search.live.com","beta.search.live.com","cnweb.search.live.com","dev.live.com","ditu.live.com","farecast.live.com","image.live.com","images.live.com","local.live.com.au","localsearch.live.com","ls4d.search.live.com","mail.live.com","mapindia.live.com","local.live.com","maps.live.com","maps.live.com.au","mindia.live.com","news.live.com","origin.cnweb.search.live.com","preview.local.live.com","search.live.com","test.maps.live.com","video.live.com","videos.live.com","virtualearth.live.com","wap.live.com","webmaster.live.com","webmasters.live.com","www.local.live.com.au","www.maps.live.com.au"]
+   * "ts":1543867200.143484,
+   * "id":"FxZ6gZ3YR6vFlIocq3",
+   * "certificate.version":3,
+   * "certificate.serial":"2D00003299D7071DB7D1708A42000000003299",
+   * "certificate.subject":"CN=www.bing.com",
+   * "certificate.issuer":"CN=Microsoft IT TLS CA 5,OU=Microsoft IT,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
+   * "certificate.not_valid_before":1500572828.0,
+   * "certificate.not_valid_after":1562780828.0,
+   * "certificate.key_alg":"rsaEncryption",
+   * "certificate.sig_alg":"sha256WithRSAEncryption",
+   * "certificate.key_type":"rsa",
+   * "certificate.key_length":2048,
+   * "certificate.exponent":"65537",
+   * "san.dns":["www.bing.com","dict.bing.com.cn","*.platform.bing.com","*.bing.com","bing.com","ieonline.microsoft.com","*.windowssearch.com","cn.ieonline.microsoft.com","*.origin.bing.com","*.mm.bing.net","*.api.bing.com","ecn.dev.virtualearth.net","*.cn.bing.net","*.cn.bing.com","ssl-api.bing.com","ssl-api.bing.net","*.api.bing.net","*.bingapis.com","bingsandbox.com","feedback.microsoft.com","insertmedia.bing.office.net","r.bat.bing.com","*.r.bat.bing.com","*.dict.bing.com.cn","*.dict.bing.com","*.ssl.bing.com","*.appex.bing.com","*.platform.cn.bing.com","wp.m.bing.com","*.m.bing.com","global.bing.com","windowssearch.com","search.msn.com","*.bingsandbox.com","*.api.tiles.ditu.live.com","*.ditu.live.com","*.t0.tiles.ditu.live.com","*.t1.tiles.ditu.live.com","*.t2.tiles.ditu.live.com","*.t3.tiles.ditu.live.com","*.tiles.ditu.live.com","3d.live.com","api.search.live.com","beta.search.live.com","cnweb.search.live.com","dev.live.com","ditu.live.com","farecast.live.com","image.live.com","images.live.com","local.live.com.au","localsearch.live.com","ls4d.search.live.com","mail.live.com","mapindia.live.com","local.live.com","maps.live.com","maps.live.com.au","mindia.live.com","news.live.com","origin.cnweb.search.live.com","preview.local.live.com","search.live.com","test.maps.live.com","video.live.com","videos.live.com","virtualearth.live.com","wap.live.com","webmaster.live.com","webmasters.live.com","www.local.live.com.au","www.maps.live.com.au"]
    * }
    *
    */
-  def fromX509(logs:Seq[JsonElement], schema:StructType):Seq[Row] = {
+  def fromX509(logs: Seq[JsonElement], schema: StructType): Seq[Row] = {
     logs.map(log => {
       fromX509(log.getAsJsonObject, schema)
     })
   }
 
-  def fromX509(oldObject:JsonObject, schema:StructType):Row = {
+  def fromX509(oldObject: JsonObject, schema: StructType): Row = {
 
     var newObject = oldObject
     /*
@@ -4664,7 +4688,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  def x509():StructType = {
+  def x509(): StructType = {
 
     var fields = Array(
 
@@ -4678,7 +4702,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
     )
 
-    /*** CERTIFICATE DESCRIPTION ***/
+    /** * CERTIFICATE DESCRIPTION ** */
 
     /* certificate: Basic information about the certificate.
      */
@@ -4706,7 +4730,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
        */
       StructField("san_other_fields", BooleanType, nullable = true),
 
-      /*** BASIC CONSTRAINTS ***/
+      /** * BASIC CONSTRAINTS ** */
 
       /* basic_constraints.ca: CA flag set?
        */
@@ -4723,11 +4747,11 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  /********************
+  /** ******************
    *
    * BASE SCHEMAS
    *
-   *******************/
+   * ***************** */
 
   private def certificate(): Array[StructField] = {
 
@@ -4743,11 +4767,11 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
       /* certificate.subject: Subject.
        */
-      StructField("cert_subject",  StringType, nullable = false),
+      StructField("cert_subject", StringType, nullable = false),
 
       /* certificate.cn: Last (most specific) common name.
        */
-      StructField("cert_cn",  StringType, nullable = true),
+      StructField("cert_cn", StringType, nullable = true),
 
       /* certificate.not_valid_before: Timestamp before when certificate is not valid.
        */
@@ -4759,11 +4783,11 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
       /* certificate.key_alg: Name of the key algorithm.
        */
-      StructField("cert_key_alg",  StringType, nullable = false),
+      StructField("cert_key_alg", StringType, nullable = false),
 
       /* certificate.sig_alg: Name of the signature algorithm.
        */
-      StructField("cert_sig_alg",  StringType, nullable = false),
+      StructField("cert_sig_alg", StringType, nullable = false),
 
       /* certificate.key_type: Key type, if key parsable by openssl (either rsa, dsa or ec).
        */
@@ -4787,7 +4811,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  private def conn_id():Array[StructField] = {
+  private def conn_id(): Array[StructField] = {
 
     val fields = Array(
 
@@ -4813,7 +4837,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  private def conn_id_nullable():Array[StructField] = {
+  private def conn_id_nullable(): Array[StructField] = {
 
     val fields = Array(
 
@@ -4839,7 +4863,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  private def replaceCertificate(oldObject:JsonObject):JsonObject = {
+  private def replaceCertificate(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
 
@@ -4868,7 +4892,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  private def replaceName(jsonObject:JsonObject, newName:String, oldName:String):JsonObject = {
+  private def replaceName(jsonObject: JsonObject, newName: String, oldName: String): JsonObject = {
 
     try {
 
@@ -4879,27 +4903,28 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
       jsonObject
 
     } catch {
-      case _:Throwable => jsonObject
+      case _: Throwable => jsonObject
     }
 
   }
+
   /*
    * Zeek specifies timestamps (absolute time) as Double
    * that defines seconds; this method transforms them
    * into milliseconds
    */
-  private def replaceTime(jsonObject:JsonObject, timeName:String):JsonObject = {
+  private def replaceTime(jsonObject: JsonObject, timeName: String): JsonObject = {
 
     if (jsonObject == null || jsonObject.get(timeName) == null) return jsonObject
 
-    var timestamp:Long = 0L
+    var timestamp: Long = 0L
     try {
 
       val ts = jsonObject.get(timeName).getAsDouble
       timestamp = (ts * 1000).asInstanceOf[Number].longValue()
 
     } catch {
-      case _:Throwable => /* Do nothing */
+      case _: Throwable => /* Do nothing */
     }
 
     jsonObject.remove(timeName)
@@ -4908,23 +4933,24 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
     jsonObject
 
   }
+
   /*
    * Zeek specifies intervals (relative time) as Double
    * that defines seconds; this method transforms them
    * into milliseconds
    */
-  private def replaceInterval(jsonObject:JsonObject, intervalName:String):JsonObject = {
+  private def replaceInterval(jsonObject: JsonObject, intervalName: String): JsonObject = {
 
     if (jsonObject == null || jsonObject.get(intervalName) == null) return jsonObject
 
-    var interval:Long = 0L
+    var interval: Long = 0L
     try {
 
       val ts = jsonObject.get(intervalName).getAsDouble
       interval = (ts * 1000).asInstanceOf[Number].longValue()
 
     } catch {
-      case _:Throwable => /* Do nothing */
+      case _: Throwable => /* Do nothing */
     }
 
     jsonObject.remove(intervalName)
@@ -4934,7 +4960,7 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
   }
 
-  private def replaceConnId(oldObject:JsonObject):JsonObject = {
+  private def replaceConnId(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
 

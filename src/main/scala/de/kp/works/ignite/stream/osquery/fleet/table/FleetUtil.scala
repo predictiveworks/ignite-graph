@@ -1,6 +1,6 @@
-package de.kp.works.ignite.stream.osquery.fleet
+package de.kp.works.ignite.stream.osquery.fleet.table
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -37,7 +37,7 @@ object FleetUtil {
   private val primaryKey = StructField(fleetKey, StringType, nullable = false)
   private val columnMap = Schema.getTypes
 
-  def fromResult(logs:Seq[JsonElement]):Seq[(String, StructType, Seq[Row])] = {
+  def fromResult(logs: Seq[JsonElement]): Seq[(String, StructType, Seq[Row])] = {
 
     logs
       /*
@@ -67,11 +67,12 @@ object FleetUtil {
       .toSeq
 
   }
+
   /**
    * This method accepts that each log object provided
    * is different with respect to its data format
    */
-  def fromResult(oldObject:JsonObject):(String, StructType, Seq[Row]) = {
+  def fromResult(oldObject: JsonObject): (String, StructType, Seq[Row]) = {
 
     val commonObject = new JsonObject
     /*
@@ -191,7 +192,7 @@ object FleetUtil {
        * action, is always the same.
        */
       val actions = diffResults.keySet().toSeq.sorted
-      var schema:StructType = null
+      var schema: StructType = null
 
       val rows = actions.flatMap(action => {
 
@@ -260,12 +261,16 @@ object FleetUtil {
        * specified in the query result, independent of the data
        * action, is always the same.
        */
-      var schema:StructType = null
+      var schema: StructType = null
       val rows = data.map(columns => {
 
         val rowObject = commonObject
         rowObject.addProperty(OsqueryConstants.ACTION, OsqueryConstants.SNAPSHOT)
-
+        /**
+         * The column names are sorted in alphabetical
+         * ascending order to ensure, that the schema
+         * field order is correct for all entries.
+         */
         val colnames = columns.getAsJsonObject.keySet.toSeq.sorted
         colnames.foreach(colName => rowObject.add(colName, columns.getAsJsonObject.get(colName)))
 
@@ -285,7 +290,7 @@ object FleetUtil {
 
   }
 
-  def result(columns:Seq[String]):StructType = {
+  def result(columns: Seq[String]): StructType = {
     /*
      * COMMON FIELDS
      */
@@ -319,12 +324,13 @@ object FleetUtil {
     StructType(fields)
 
   }
- /**
-  * Osquery creates status logs of its own execution, for log levels
-  * INFO, WARNING and ERROR. Note, this implementation expects a single
-  * log file that contains status messages of all levels.
-  */
-  def fromStatus(logs:Seq[JsonElement]):Seq[(String, StructType, Seq[Row])] = {
+
+  /**
+   * Osquery creates status logs of its own execution, for log levels
+   * INFO, WARNING and ERROR. Note, this implementation expects a single
+   * log file that contains status messages of all levels.
+   */
+  def fromStatus(logs: Seq[JsonElement]): Seq[(String, StructType, Seq[Row])] = {
     logs
       .map(log => fromStatus(log.getAsJsonObject))
       /*
@@ -341,7 +347,7 @@ object FleetUtil {
 
   }
 
-  def fromStatus(oldObject:JsonObject):(String, StructType, Seq[Row]) = {
+  def fromStatus(oldObject: JsonObject): (String, StructType, Seq[Row]) = {
 
     val rowObject = new JsonObject
     rowObject.addProperty(OsqueryConstants.MESSAGE, oldObject.toString)
@@ -353,7 +359,7 @@ object FleetUtil {
 
   }
 
-  def status():StructType = {
+  def status(): StructType = {
     /*
      * COMMON FIELDS
      */
@@ -368,9 +374,9 @@ object FleetUtil {
 
   }
 
-  /** HELPER METHODS **/
+  /** HELPER METHODS * */
 
-  private def getHostname(oldObject:JsonObject):String = {
+  private def getHostname(oldObject: JsonObject): String = {
     /*
      * The host name is represented by different
      * keys within the different result logs
@@ -390,7 +396,7 @@ object FleetUtil {
         .getAsString
 
     } catch {
-      case _:Throwable => ""
+      case _: Throwable => ""
     }
   }
 
