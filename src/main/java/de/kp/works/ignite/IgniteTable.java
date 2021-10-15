@@ -1,6 +1,6 @@
 package de.kp.works.ignite;
 /*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -55,6 +55,7 @@ public class IgniteTable extends IgniteBaseTable {
             return true;
 
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
 
@@ -122,6 +123,7 @@ public class IgniteTable extends IgniteBaseTable {
              IgniteMutation mutation = mutations.get(i);
              if (mutation.mutationType.equals(IgniteMutationType.DELETE)) {
 
+                 System.out.println("DELETE");
                  IgniteDelete deleteMutation = (IgniteDelete)mutation;
 
                  boolean success = delete(deleteMutation);
@@ -167,7 +169,7 @@ public class IgniteTable extends IgniteBaseTable {
                       * operation an exception is returned
                       */
                      results[i] = new Exception(
-                             "Deletion of element '" + putMutation.getId().toString() + "' failed in table '" + name + "'.");
+                             "Put of element '" + putMutation.getId().toString() + "' failed in table '" + name + "'.");
 
                  }
                  else

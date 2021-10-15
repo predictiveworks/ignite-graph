@@ -27,9 +27,15 @@ object Session {
   private val session: SparkSession = initialize
 
   def initialize:SparkSession = {
-
+    /*
+     * Initialize the overall configuration
+     * with the internal configuration file
+     */
+    WorksConf.init()
+    /*
+     * Extract internal Spark configuration
+     */
     val sparkCfg = WorksConf.getSparkCfg
-
     val driverCfg = sparkCfg.getConfig("driver")
 
     val driver_maxResultSize = driverCfg.getString("maxResultSize")
