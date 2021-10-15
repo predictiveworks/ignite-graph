@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.tls.table
+package de.kp.works.ignite.stream.osquery.fleet.graph
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -19,11 +19,25 @@ package de.kp.works.ignite.stream.osquery.tls.table
  */
 
 import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.TableWriter
-import de.kp.works.ignite.stream.osquery.tls.TLSEvent
+import de.kp.works.ignite.stream.GraphWriter
+import de.kp.works.ignite.stream.file.FileEvent
 
-class TLSTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
+class FleetGraphWriter(connect:IgniteConnect) extends GraphWriter(connect) {
 
-  def write(events: Seq[TLSEvent]): Unit = ???
+  def write(events:Seq[FileEvent]):Unit = {
+    /*
+      * Leverage the FleetTransformer to extract
+      * vertices and edges from the threat events
+      */
+    val transformer = FleetTransformer
+    val (vertices, edges) = transformer.transform(events)
+    /*
+     * Finally write vertices and edges to the
+     * respective output caches
+     */
+    writeVertices(vertices)
+    writeEdges(edges)
+
+  }
 
 }

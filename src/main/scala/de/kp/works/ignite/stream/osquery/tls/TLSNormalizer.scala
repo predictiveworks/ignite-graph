@@ -1,6 +1,6 @@
 package de.kp.works.ignite.stream.osquery.tls
 /*
- * Copyright (c) 2020 Dr. Krusche & Partner PartG. All rights reserved.
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -24,7 +24,7 @@ import de.kp.works.ignite.stream.osquery.tls.db.OsqueryNode
 
 import java.text.SimpleDateFormat
 
-object TLSTransform {
+object TLSNormalizer {
   /**
    * This method receives a node and its query result `data`
    * and converts the incoming log data into a series of fields,
@@ -32,8 +32,7 @@ object TLSTransform {
    * into batch format, which is used throughout the rest of this
    * service.
    */
-  def transform(node: OsqueryNode, data: JsonArray): JsonArray = {
-
+  def normalize(node: OsqueryNode, data: JsonArray): JsonArray = {
     /*
      * Extract node meta information
      */

@@ -21,8 +21,8 @@ package de.kp.works.ignite.stream.osquery.fleet
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.file.FileEvent
+import de.kp.works.ignite.stream.osquery.fleet.graph.FleetGraphWriter
 import de.kp.works.ignite.stream.osquery.fleet.table.FleetTableWriter
-import de.kp.works.ignite.stream.zeek.table.ZeekTableWriter
 
 class FleetWriter(connect:IgniteConnect) {
 
@@ -33,7 +33,8 @@ class FleetWriter(connect:IgniteConnect) {
 
     writeMode match {
       case "graph" =>
-        throw new Exception(s"Not open source yet.")
+        val writer = new FleetGraphWriter(connect)
+        writer.write(events)
       case "table" =>
         val writer = new FleetTableWriter(connect)
         writer.write(events)

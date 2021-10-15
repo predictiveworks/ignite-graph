@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.tls.table
+package de.kp.works.ignite.stream.osquery.tls.graph
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,12 +18,11 @@ package de.kp.works.ignite.stream.osquery.tls.table
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.TableWriter
+import de.kp.works.ignite.mutate.IgniteMutation
 import de.kp.works.ignite.stream.osquery.tls.TLSEvent
 
-class TLSTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
+object TLSTransformer {
 
-  def write(events: Seq[TLSEvent]): Unit = ???
+  def transform(events: Seq[TLSEvent]): (Seq[IgniteMutation], Seq[IgniteMutation]) = ???
 
 }

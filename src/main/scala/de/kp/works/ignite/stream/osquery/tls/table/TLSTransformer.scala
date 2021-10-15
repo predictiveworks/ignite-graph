@@ -18,12 +18,16 @@ package de.kp.works.ignite.stream.osquery.tls.table
  *
  */
 
-import de.kp.works.ignite.client.IgniteConnect
-import de.kp.works.ignite.stream.TableWriter
 import de.kp.works.ignite.stream.osquery.tls.TLSEvent
 
-class TLSTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
-
-  def write(events: Seq[TLSEvent]): Unit = ???
+object TLSTransformer {
+  /**
+   * This method receives a node and its query result `data`
+   * and converts the incoming log data into a series of fields,
+   * normalizing and/or aggregating both batch and event format
+   * into batch format, which is used throughout the rest of this
+   * service.
+   */
+  def transform(events: Seq[TLSEvent]): Unit = ???
 
 }

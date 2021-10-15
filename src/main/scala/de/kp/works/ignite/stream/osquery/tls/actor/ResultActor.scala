@@ -19,10 +19,11 @@ package de.kp.works.ignite.stream.osquery.tls.actor
  */
 import akka.http.scaladsl.model.HttpRequest
 import com.google.gson._
-import de.kp.works.ignite.stream.osquery.tls.{TLSEvent, TLSEventHandler, TLSTransform}
+import de.kp.works.ignite.stream.osquery.tls.{TLSEvent, TLSEventHandler, TLSNormalizer}
 import de.kp.works.ignite.stream.osquery.tls.actor.ResultActor._
 import de.kp.works.ignite.stream.osquery.OsqueryConstants
 import de.kp.works.ignite.stream.osquery.tls.db.{DBApi, OsqueryNode}
+import de.kp.works.ignite.stream.osquery.tls.table.TLSTransformer
 
 /*
  * EVENT FORMAT
@@ -124,7 +125,7 @@ class ResultActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
         val data = request.data
 
         /* Normalize query result */
-        val eventData = TLSTransform.transform(node, data).toString
+        val eventData = TLSNormalizer.normalize(node, data).toString
 
         val event = TLSEvent(eventType = OsqueryConstants.RESULT_EVENT, eventData = eventData)
         handler.eventArrived(event)

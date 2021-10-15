@@ -20,6 +20,7 @@ package de.kp.works.ignite.stream.osquery.tls
 
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
+import de.kp.works.ignite.stream.osquery.tls.graph.TLSGraphWriter
 import de.kp.works.ignite.stream.osquery.tls.table.TLSTableWriter
 
 class TLSWriter(connect:IgniteConnect) {
@@ -31,7 +32,8 @@ class TLSWriter(connect:IgniteConnect) {
 
     writeMode match {
       case "graph" =>
-        throw new Exception(s"Not open source yet.")
+        val writer = new TLSGraphWriter(connect)
+        writer.write(events)
       case "table" =>
         val writer = new TLSTableWriter(connect)
         writer.write(events)
