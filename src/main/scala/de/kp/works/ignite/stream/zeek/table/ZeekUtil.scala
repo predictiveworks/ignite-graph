@@ -18,14 +18,14 @@ package de.kp.works.ignite.stream.zeek.table
  *
  */
 
-import com.google.gson.{JsonArray, JsonElement, JsonObject}
+import com.google.gson.{JsonElement, JsonObject}
 import de.kp.works.conf.WorksConf
+import de.kp.works.ignite.stream.zeek.BaseUtil
 import de.kp.works.json.JsonUtil
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
-import scala.collection.JavaConversions._
 
-object ZeekUtil {
+object ZeekUtil extends BaseUtil {
 
   private val zeekCfg = WorksConf.getCfg(WorksConf.ZEEK_CONF)
   private val zeekKey = zeekCfg.getString("primaryKey")
@@ -60,19 +60,8 @@ object ZeekUtil {
   }
 
   def fromCaptureLoss(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and transform time values;
-     * as these fields are declared to be non nullable, we do not check
-     * their existence
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "ts_delta")
-
-    /* Transform into row */
+    val newObject = replaceCaptureLoss(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def capture_loss(): StructType = {
@@ -156,37 +145,8 @@ object ZeekUtil {
   }
 
   def fromConnection(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and transform time values;
-     as these fields are declared to be non nullable, we do not check
-     * their existence
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "duration")
-
-    newObject = replaceConnId(newObject)
-
-    val oldNames = List(
-      "orig_bytes",
-      "resp_bytes",
-      "local_orig",
-      "local_resp",
-      "orig_pkts",
-      "orig_ip_bytes",
-      "resp_pkts",
-      "resp_ip_bytes",
-      "orig_l2_addr",
-      "resp_l2_addr")
-
-    oldNames.foreach(oldName =>
-      newObject = replaceName(newObject, ZeekMapper.mapping(oldName), oldName)
-    )
-
-    /* Transform into row */
+    val newObject = replaceConnection(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def connection(): StructType = {
@@ -331,20 +291,8 @@ object ZeekUtil {
   }
 
   def fromDceRpc(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "rtt")
-
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceDceRpc(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def dce_rpc(): StructType = {
@@ -415,20 +363,8 @@ object ZeekUtil {
   }
 
   def fromDhcp(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "lease_time")
-
-    newObject = replaceInterval(newObject, "duration")
-
-    /* Transform into row */
+    val newObject = replaceDhcp(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def dhcp(): StructType = {
@@ -568,18 +504,8 @@ object ZeekUtil {
   }
 
   def fromDnp3(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceDnp3(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def dnp3(): StructType = {
@@ -657,59 +583,12 @@ object ZeekUtil {
   }
 
   def fromDns(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "rtt")
-
-    newObject = replaceConnId(newObject)
-
-    newObject = replaceName(newObject, "dns_aa", "AA")
-    newObject = replaceName(newObject, "dns_tc", "TC")
-    newObject = replaceName(newObject, "dns_rd", "RD")
-    newObject = replaceName(newObject, "dns_ra", "RA")
-    newObject = replaceName(newObject, "dns_z", "Z")
-
-    /*
-     * Rename and transform 'TTLs'
-     */
-    newObject = replaceName(newObject, "dns_ttls", "TTLs")
-    val ttls = newObject.remove("dns_ttls").getAsJsonArray
-
-    val new_ttls = new JsonArray()
-    ttls.foreach(ttl => {
-
-      var interval = 0L
-      try {
-
-        val ts = ttl.getAsDouble
-        interval = (ts * 1000).asInstanceOf[Number].longValue
-
-      } catch {
-        case _: Throwable => /* Do nothing */
-      }
-
-      new_ttls.add(interval)
-
-    })
-
-    newObject.add("dns_ttls", new_ttls)
-
-    /* Transform into row */
+    val newObject = replaceDns(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def dns(): StructType = {
-    /*
-CREATE STREAM dns_stream (
-RD BOOLEAN,
-WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
- */
+
     var fields = Array(
 
       /* ts: The earliest time at which a DNS protocol message over the
@@ -847,18 +726,8 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
   }
 
   def fromDpd(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceDpd(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def dpd(): StructType = {
@@ -935,21 +804,8 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
   }
 
   def fromFiles(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "duration")
-
-    newObject = replaceName(newObject, "source_ips", "tx_hosts")
-    newObject = replaceName(newObject, "destination_ips", "rx_hosts")
-
-    /* Transform into row */
+    val newObject = replaceFiles(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   /*
@@ -4888,92 +4744,6 @@ WITH (KAFKA_TOPIC='dns', VALUE_FORMAT='JSON');
 
     newObject = replaceName(newObject, "cert_exponent", "certificate.exponent")
     newObject = replaceName(newObject, "cert_curve", "certificate.curve")
-
-    newObject
-
-  }
-
-  private def replaceName(jsonObject: JsonObject, newName: String, oldName: String): JsonObject = {
-
-    try {
-
-      if (jsonObject == null || jsonObject.get(oldName) == null) return jsonObject
-      val value = jsonObject.remove(oldName)
-
-      jsonObject.add(newName, value)
-      jsonObject
-
-    } catch {
-      case _: Throwable => jsonObject
-    }
-
-  }
-
-  /*
-   * Zeek specifies timestamps (absolute time) as Double
-   * that defines seconds; this method transforms them
-   * into milliseconds
-   */
-  private def replaceTime(jsonObject: JsonObject, timeName: String): JsonObject = {
-
-    if (jsonObject == null || jsonObject.get(timeName) == null) return jsonObject
-
-    var timestamp: Long = 0L
-    try {
-
-      val ts = jsonObject.get(timeName).getAsDouble
-      timestamp = (ts * 1000).asInstanceOf[Number].longValue()
-
-    } catch {
-      case _: Throwable => /* Do nothing */
-    }
-
-    jsonObject.remove(timeName)
-    jsonObject.addProperty(timeName, timestamp)
-
-    jsonObject
-
-  }
-
-  /*
-   * Zeek specifies intervals (relative time) as Double
-   * that defines seconds; this method transforms them
-   * into milliseconds
-   */
-  private def replaceInterval(jsonObject: JsonObject, intervalName: String): JsonObject = {
-
-    if (jsonObject == null || jsonObject.get(intervalName) == null) return jsonObject
-
-    var interval: Long = 0L
-    try {
-
-      val ts = jsonObject.get(intervalName).getAsDouble
-      interval = (ts * 1000).asInstanceOf[Number].longValue()
-
-    } catch {
-      case _: Throwable => /* Do nothing */
-    }
-
-    jsonObject.remove(intervalName)
-    jsonObject.addProperty(intervalName, interval)
-
-    jsonObject
-
-  }
-
-  /**
-   * HINT: The provided connection parameters can be used
-   * to build a unique (hash) connection identifier to join
-   * with other data source like Osquery.
-   */
-  private def replaceConnId(oldObject: JsonObject): JsonObject = {
-
-    var newObject = oldObject
-
-    val oldNames = List("id.orig_h", "id.orig_p", "id.resp_h", "id.resp_p")
-    oldNames.foreach(oldName =>
-      newObject = replaceName(newObject, ZeekMapper.mapping(oldName), oldName)
-    )
 
     newObject
 

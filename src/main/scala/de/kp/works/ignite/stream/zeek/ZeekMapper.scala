@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.zeek.table
+package de.kp.works.ignite.stream.zeek
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -20,25 +20,25 @@ package de.kp.works.ignite.stream.zeek.table
 
 object ZeekMapper {
 
-  val mapping: Map[String, String] = Map (
+  val mapping: Map[String, String] = Map(
     /*
      * Mapping specification of connection
      * related Zeek fields
      */
-    "id.orig_h"     -> "source_ip",
-    "id.orig_p"     -> "source_port",
-    "id.resp_h"     -> "destination_ip",
-    "id.resp_p"     -> "destination_port",
-    "orig_bytes"    -> "source_bytes",
-    "resp_bytes"    -> "destination_bytes",
-    "local_orig"    -> "source_local",
-    "local_resp"    -> "destination_local",
-    "orig_pkts"     -> "source_pkts",
+    "id.orig_h" -> "source_ip",
+    "id.orig_p" -> "source_port",
+    "id.resp_h" -> "destination_ip",
+    "id.resp_p" -> "destination_port",
+    "orig_bytes" -> "source_bytes",
+    "resp_bytes" -> "destination_bytes",
+    "local_orig" -> "source_local",
+    "local_resp" -> "destination_local",
+    "orig_pkts" -> "source_pkts",
     "orig_ip_bytes" -> "source_ip_bytes",
-    "resp_pkts"     -> "destination_pkts",
+    "resp_pkts" -> "destination_pkts",
     "resp_ip_bytes" -> "destination_ip_bytes",
-    "orig_l2_addr"  -> "source_l2_addr",
-    "resp_l2_addr"  -> "destination_l2_addr"
+    "orig_l2_addr" -> "source_l2_addr",
+    "resp_l2_addr" -> "destination_l2_addr"
 
   )
 }

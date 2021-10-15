@@ -21,6 +21,7 @@ package de.kp.works.ignite.stream.zeek.graph
 import de.kp.works.ignite.mutate.IgniteMutation
 import de.kp.works.ignite.stream.file.FileEvent
 import de.kp.works.ignite.stream.zeek.BaseTransformer
+import de.kp.works.ignite.stream.zeek.ZeekFormats._
 
 object ZeekTransformer extends BaseTransformer {
 
@@ -33,6 +34,53 @@ object ZeekTransformer extends BaseTransformer {
         * of the log file)
         */
       val data = groupEvents(events)
+      /*
+       * STEP #2: Persist logs for each format individually
+       */
+      data.map { case (format, logs) =>
+
+        format match {
+          case CAPTURE_LOSS =>
+          case CONNECTION =>
+          case DCE_RPC =>
+          case DHCP =>
+          case DNP3 =>
+          case DNS =>
+          case DPD =>
+          case FILES =>
+          case FTP =>
+          case HTTP =>
+          case INTEL =>
+          case IRC =>
+          case KERBEROS =>
+          case MODBUS =>
+          case MYSQL =>
+          case NOTICE =>
+          case NTLM =>
+          case OCSP =>
+          case PE =>
+          case RADIUS =>
+          case RDP =>
+          case RFB =>
+          case SIP =>
+          case SMB_CMD =>
+          case SMB_FILES =>
+          case SMB_MAPPING =>
+          case SMTP =>
+          case SNMP =>
+          case SOCKS =>
+          case SSH =>
+          case SSL =>
+          case STATS =>
+          case SYSLOG =>
+          case TRACEROUTE =>
+          case TUNNEL =>
+          case WEIRD =>
+          case X509 =>
+          case _ => throw new Exception(s"[ZeekTransformer] Unknown format `$format.toString` detected.")
+
+        }
+      }
 
       ???
 
