@@ -21,6 +21,7 @@ package de.kp.works.ignite.stream.fiware
 import de.kp.works.conf.WorksConf
 import de.kp.works.ignite.client.IgniteConnect
 import de.kp.works.ignite.stream.fiware.graph.FiwareGraphWriter
+import de.kp.works.ignite.stream.fiware.table.FiwareTableWriter
 
 class FiwareWriter(connect:IgniteConnect) {
 
@@ -34,7 +35,8 @@ class FiwareWriter(connect:IgniteConnect) {
         val writer = new FiwareGraphWriter(connect)
         writer.write(events)
       case "table" =>
-        throw new Exception(s"Not open source yet.")
+        val writer = new FiwareTableWriter(connect)
+        writer.write(events)
       case _ =>
         throw new Exception(s"The configured writeMode `$writeMode` is not supported.")
     }

@@ -1,5 +1,4 @@
 package de.kp.works.ignite.stream.zeek.table
-
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
