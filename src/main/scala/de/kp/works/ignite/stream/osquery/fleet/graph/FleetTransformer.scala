@@ -23,7 +23,12 @@ import de.kp.works.ignite.stream.file.FileEvent
 import de.kp.works.ignite.stream.osquery.fleet.BaseTransformer
 
 object FleetTransformer extends BaseTransformer{
-
+  /**
+   * REMINDER: Extracting nodes & edges from event logs
+   * requires a suitable configuration of the timing
+   * windows and intervals associated with the temporary
+   * Ignite cache.
+   */
   def transform(events: Seq[FileEvent]): (Seq[IgniteMutation], Seq[IgniteMutation]) = {
 
     try {
