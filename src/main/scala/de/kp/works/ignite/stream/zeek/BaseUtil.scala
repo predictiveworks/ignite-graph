@@ -38,7 +38,7 @@ trait BaseUtil {
 
   }
 
-  def replaceConnection(oldObject: JsonObject): JsonObject = {
+  protected def replaceConnection(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
     /*
@@ -69,7 +69,7 @@ trait BaseUtil {
 
   }
 
-  def replaceDceRpc(oldObject: JsonObject): JsonObject = {
+  protected def replaceDceRpc(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
     /*
@@ -83,7 +83,7 @@ trait BaseUtil {
     newObject
   }
 
-  def replaceDhcp(oldObject: JsonObject): JsonObject = {
+  protected def replaceDhcp(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
     /*
@@ -98,7 +98,7 @@ trait BaseUtil {
 
   }
 
-  def replaceDnp3(oldObject: JsonObject): JsonObject = {
+  protected def replaceDnp3(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
     /*
@@ -112,7 +112,7 @@ trait BaseUtil {
 
   }
 
-  def replaceDns(oldObject: JsonObject): JsonObject = {
+  protected def replaceDns(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
     /*
@@ -158,7 +158,7 @@ trait BaseUtil {
 
   }
 
-  def replaceDpd(oldObject: JsonObject): JsonObject = {
+  protected def replaceDpd(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
     /*
@@ -172,7 +172,7 @@ trait BaseUtil {
 
   }
 
-  def replaceFiles(oldObject: JsonObject): JsonObject = {
+  protected def replaceFiles(oldObject: JsonObject): JsonObject = {
 
     var newObject = oldObject
     /*
@@ -184,6 +184,585 @@ trait BaseUtil {
 
     newObject = replaceName(newObject, "source_ips", "tx_hosts")
     newObject = replaceName(newObject, "destination_ips", "rx_hosts")
+
+    newObject
+
+  }
+
+  protected def replaceFtp(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject = replaceName(newObject, "data_channel_passive", "data_channel.passive")
+    newObject = replaceName(newObject, "data_channel_source_ip", "data_channel.orig_h")
+
+    newObject = replaceName(newObject, "data_channel_destination_ip", "data_channel.resp_h")
+    newObject = replaceName(newObject, "data_channel_destination_port", "data_channel.resp_p")
+
+    newObject
+
+  }
+
+  protected def replaceHttp(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceIntel(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject = replaceName(newObject, "seen_indicator", "seen.indicator")
+    newObject = replaceName(newObject, "seen_indicator_type", "seen.indicator_type")
+
+    newObject = replaceName(newObject, "seen_host", "seen.host")
+    newObject = replaceName(newObject, "seen_where", "seen.where")
+
+    newObject = replaceName(newObject, "seen_node", "seen.node")
+
+    newObject = replaceName(newObject, "cif_tags", "cif.tags")
+    newObject = replaceName(newObject, "cif_confidence", "cif.confidence")
+
+    newObject = replaceName(newObject, "cif_source", "cif.source")
+    newObject = replaceName(newObject, "cif_description", "cif.description")
+
+    newObject = replaceName(newObject, "cif_firstseen", "cif.firstseen")
+    newObject = replaceName(newObject, "cif_lastseen", "cif.lastseen")
+
+    newObject
+
+  }
+
+  protected def replaceIrc(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceKerberos(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceTime(newObject, "from")
+    newObject = replaceTime(newObject, "till")
+
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceModbus(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceMysql(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceNotice(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceInterval(newObject, "suppress_for")
+
+    newObject = replaceConnId(newObject)
+
+    newObject = replaceName(newObject, "source_ip", "src")
+    newObject = replaceName(newObject, "destination_ip", "dst")
+
+    newObject = replaceName(newObject, "source_port", "p")
+
+    newObject = replaceName(newObject, "country_code", "remote_location.country_code")
+    newObject = replaceName(newObject, "region", "remote_location.region")
+    newObject = replaceName(newObject, "city", "remote_location.city")
+
+    newObject = replaceName(newObject, "latitude", "remote_location.latitude")
+    newObject = replaceName(newObject, "longitude", "remote_location.longitude")
+
+    newObject
+
+  }
+
+  protected def replaceNtlm(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceOcsp(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceTime(newObject, "revoketime")
+
+    newObject = replaceTime(newObject, "thisUpdate")
+    newObject = replaceTime(newObject, "nextUpdate")
+
+    newObject = replaceName(newObject, "hash_algorithm", "hashAlgorithm")
+    newObject = replaceName(newObject, "issuer_name_hash", "issuerNameHash")
+
+    newObject = replaceName(newObject, "issuer_key_hash", "issuerKeyHash")
+    newObject = replaceName(newObject, "serial_number", "serialNumber")
+
+    newObject = replaceName(newObject, "cert_status", "certStatus")
+    newObject = replaceName(newObject, "revoke_time", "revoketime")
+
+
+    newObject = replaceName(newObject, "revoke_reason", "revokereason")
+    newObject = replaceName(newObject, "update_this", "thisUpdate")
+
+    newObject = replaceName(newObject, "update_next", "nextUpdate")
+
+    newObject
+
+  }
+
+  protected def replacePe(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceTime(newObject, "compile_ts")
+
+    newObject
+
+  }
+
+  protected def replaceRadius(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceInterval(newObject, "ttl")
+
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceRdp(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceRfb(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceSip(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceSmbCmd(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceInterval(newObject, "rtt")
+
+    newObject = replaceConnId(newObject)
+
+    newObject = replaceName(newObject, "file_ts", "referenced_file.ts")
+    newObject = replaceTime(newObject, "file_ts")
+
+    newObject = replaceName(newObject, "file_uid", "referenced_file.uid")
+    newObject = replaceName(newObject, "file_source_ip", "referenced_file.id.orig_h")
+
+    newObject = replaceName(newObject, "file_source_port", "referenced_file.id.orig_p")
+    newObject = replaceName(newObject, "file_destination_ip", "referenced_file.id.resp_h")
+
+    newObject = replaceName(newObject, "file_destination_port", "referenced_file.id.resp_p")
+    newObject = replaceName(newObject, "file_fuid", "referenced_file.fuid")
+
+    newObject = replaceName(newObject, "file_action", "referenced_file.action")
+    newObject = replaceName(newObject, "file_path", "referenced_file.path")
+
+    newObject = replaceName(newObject, "file_name", "referenced_file.name")
+    newObject = replaceName(newObject, "file_size", "referenced_file.size")
+
+    newObject = replaceName(newObject, "file_prev_name", "referenced_file.prev_name")
+
+    newObject = replaceName(newObject, "", "referenced_file.times.modified")
+    newObject = replaceTime(newObject, "file_times_modified")
+
+    newObject = replaceName(newObject, "file_times_accessed", "referenced_file.times.accessed")
+    newObject = replaceTime(newObject, "file_times_accessed")
+
+    newObject = replaceName(newObject, "file_times_created", "referenced_file.times.created")
+    newObject = replaceTime(newObject, "file_times_created")
+
+    newObject = replaceName(newObject, "file_times_changed", "referenced_file.times.changed")
+    newObject = replaceTime(newObject, "file_times_changed")
+
+    newObject
+
+  }
+
+  protected def replaceSmbFiles(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+
+    newObject = replaceTime(newObject, "times.modified")
+    newObject = replaceTime(newObject, "times.accessed")
+
+    newObject = replaceTime(newObject, "times.created")
+    newObject = replaceTime(newObject, "times.changed")
+
+    newObject = replaceConnId(newObject)
+
+    newObject = replaceName(newObject, "times_modified", "times.modified")
+    newObject = replaceName(newObject, "times_accessed", "times.accessed")
+
+    newObject = replaceName(newObject, "times_created", "times.created")
+    newObject = replaceName(newObject, "times_changed", "times.changed")
+
+    newObject
+
+  }
+
+  protected def replaceSmbMapping(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceSmtp(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceSnmp(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceTime(newObject, "up_since")
+
+    newObject = replaceInterval(newObject, "duration")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceSocks(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject = replaceName(newObject, "request_host", "request.host")
+    newObject = replaceName(newObject, "request_name", "request.name")
+    newObject = replaceName(newObject, "request_port", "request_p")
+
+    newObject = replaceName(newObject, "bound_host", "bound.host")
+    newObject = replaceName(newObject, "bound_name", "bound.name")
+    newObject = replaceName(newObject, "bound_port", "bound_p")
+
+    newObject
+
+  }
+
+  protected def replaceSsh(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject = replaceName(newObject, "country_code", "remote_location.country_code")
+    newObject = replaceName(newObject, "region", "remote_location.region")
+    newObject = replaceName(newObject, "city", "remote_location.city")
+
+    newObject = replaceName(newObject, "latitude", "remote_location.latitude")
+    newObject = replaceName(newObject, "longitude", "remote_location.longitude")
+
+    newObject
+
+  }
+
+  protected def replaceSsl(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject = replaceName(newObject, "notary_first_seen", "notary.first_seen")
+    newObject = replaceName(newObject, "notary_last_seen", "notary.last_seen")
+
+    newObject = replaceName(newObject, "notary_times_seen", "notary.times_seen")
+    newObject = replaceName(newObject, "notary_valid", "notary.valid")
+
+    newObject
+
+  }
+
+  protected def replaceStats(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceInterval(newObject, "pkt_lag")
+
+    newObject
+
+  }
+
+  protected def replaceSyslog(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceTraceroute(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+
+    newObject = replaceName(newObject, "source_ip", "src")
+    newObject = replaceName(newObject, "destination_ip", "dst")
+
+    newObject
+
+  }
+
+  protected def replaceTunnel(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceWeird(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceConnId(newObject)
+
+    newObject
+
+  }
+
+  protected def replaceX509(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+    /*
+     * Prepare JsonObject, i.e. rename fields and
+     * transform time values
+     */
+    newObject = replaceTime(newObject, "ts")
+    newObject = replaceCertificate(newObject)
+
+    newObject = replaceName(newObject, "san_dns", "san.dns")
+    newObject = replaceName(newObject, "san_uri", "san.uri")
+
+    newObject = replaceName(newObject, "san_email", "san.email")
+    newObject = replaceName(newObject, "san_ip", "san.ip")
+
+    newObject = replaceName(newObject, "san_other_fields", "san.other_fields")
+
+    newObject = replaceName(newObject, "basic_constraints_ca", "basic_constraints.ca")
+    newObject = replaceName(newObject, "basic_constraints_path_len", "basic_constraints.path_len")
+
+    newObject
+
+  }
+
+  protected def replaceCertificate(oldObject: JsonObject): JsonObject = {
+
+    var newObject = oldObject
+
+    newObject = replaceTime(newObject, "certificate.not_valid_before")
+    newObject = replaceTime(newObject, "certificate.not_valid_after")
+
+    newObject = replaceName(newObject, "cert_version", "certificate.version")
+    newObject = replaceName(newObject, "cert_serial", "certificate.serial")
+
+    newObject = replaceName(newObject, "cert_subject", "certificate.subject")
+    newObject = replaceName(newObject, "cert_cn", "certificate.cn")
+
+    newObject = replaceName(newObject, "cert_not_valid_before", "certificate.not_valid_before")
+    newObject = replaceName(newObject, "cert_not_valid_after", "certificate.not_valid_after")
+
+    newObject = replaceName(newObject, "cert_key_alg", "certificate.key_alg")
+    newObject = replaceName(newObject, "cert_sig_alg", "certificate.sig_alg")
+
+    newObject = replaceName(newObject, "cert_key_type", "certificate.key_type")
+    newObject = replaceName(newObject, "cert_key_length", "certificate.key_length")
+
+    newObject = replaceName(newObject, "cert_exponent", "certificate.exponent")
+    newObject = replaceName(newObject, "cert_curve", "certificate.curve")
 
     newObject
 

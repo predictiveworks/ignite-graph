@@ -980,24 +980,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromFtp(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    newObject = replaceName(newObject, "data_channel_passive", "data_channel.passive")
-    newObject = replaceName(newObject, "data_channel_source_ip", "data_channel.orig_h")
-
-    newObject = replaceName(newObject, "data_channel_destination_ip", "data_channel.resp_h")
-    newObject = replaceName(newObject, "data_channel_destination_port", "data_channel.resp_p")
-
-    /* Transform into row */
+    val newObject = replaceFtp(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def ftp(): StructType = {
@@ -1115,18 +1099,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromHttp(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceHttp(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def http(): StructType = {
@@ -1304,35 +1278,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromIntel(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    newObject = replaceName(newObject, "seen_indicator", "seen.indicator")
-    newObject = replaceName(newObject, "seen_indicator_type", "seen.indicator_type")
-
-    newObject = replaceName(newObject, "seen_host", "seen.host")
-    newObject = replaceName(newObject, "seen_where", "seen.where")
-
-    newObject = replaceName(newObject, "seen_node", "seen.node")
-
-    newObject = replaceName(newObject, "cif_tags", "cif.tags")
-    newObject = replaceName(newObject, "cif_confidence", "cif.confidence")
-
-    newObject = replaceName(newObject, "cif_source", "cif.source")
-    newObject = replaceName(newObject, "cif_description", "cif.description")
-
-    newObject = replaceName(newObject, "cif_firstseen", "cif.firstseen")
-    newObject = replaceName(newObject, "cif_lastseen", "cif.lastseen")
-
-    /* Transform into row */
+    val newObject = replaceIntel(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   /**
@@ -1528,39 +1475,6 @@ object ZeekUtil extends BaseUtil {
     fields = Array(primaryKey) ++ fields
     StructType(fields)
 
-    /*
-    Intel::Info
-    Type
-    record
-
-    seen: Intel::Seen &log
-    Where the data was seen.
-
-    matched: Intel::TypeSet &log
-    Which indicator types matched.
-
-    sources: set [string] &log &default = {  } &optional
-    Sources which supplied data that resulted in this match.
-
-    fuid: string &log &optional
-    (present if base/frameworks/intel/files.zeek is loaded)
-
-    If a file was associated with this intelligence hit, this is the uid for the file.
-
-    file_mime_type: string &log &optional
-    (present if base/frameworks/intel/files.zeek is loaded)
-
-    A mime type if the intelligence hit is related to a file. If the $f field is provided this will be automatically filled out.
-
-    file_desc: string &log &optional
-    (present if base/frameworks/intel/files.zeek is loaded)
-
-    Frequently files can be “described” to give a bit more context. If the $f field is provided this field will be automatically filled out.
-
-    cif: Intel::CIF &log &optional
-    (present if policy/integration/collective-intel/main.zeek is loaded)
-     */
-
   }
 
   /**
@@ -1588,18 +1502,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromIrc(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceIrc(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def irc(): StructType = {
@@ -1691,21 +1595,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromKerberos(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceTime(newObject, "from")
-    newObject = replaceTime(newObject, "till")
-
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceKerberos(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def kerberos(): StructType = {
@@ -1819,18 +1710,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromModbus(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceModbus(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def modbus(): StructType = {
@@ -1877,18 +1758,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromMysql(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceMysql(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def mysql(): StructType = {
@@ -1959,32 +1830,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromNotice(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "suppress_for")
-
-    newObject = replaceConnId(newObject)
-
-    newObject = replaceName(newObject, "source_ip", "src")
-    newObject = replaceName(newObject, "destination_ip", "dst")
-
-    newObject = replaceName(newObject, "source_port", "p")
-
-    newObject = replaceName(newObject, "country_code", "remote_location.country_code")
-    newObject = replaceName(newObject, "region", "remote_location.region")
-    newObject = replaceName(newObject, "city", "remote_location.city")
-
-    newObject = replaceName(newObject, "latitude", "remote_location.latitude")
-    newObject = replaceName(newObject, "longitude", "remote_location.longitude")
-
-    /* Transform into row */
+    val newObject = replaceNotice(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def notice(): StructType = {
@@ -2136,18 +1983,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromNtlm(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceNtlm(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def ntlm(): StructType = {
@@ -2217,36 +2054,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromOcsp(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceTime(newObject, "revoketime")
-
-    newObject = replaceTime(newObject, "thisUpdate")
-    newObject = replaceTime(newObject, "nextUpdate")
-
-    newObject = replaceName(newObject, "hash_algorithm", "hashAlgorithm")
-    newObject = replaceName(newObject, "issuer_name_hash", "issuerNameHash")
-
-    newObject = replaceName(newObject, "issuer_key_hash", "issuerKeyHash")
-    newObject = replaceName(newObject, "serial_number", "serialNumber")
-
-    newObject = replaceName(newObject, "cert_status", "certStatus")
-    newObject = replaceName(newObject, "revoke_time", "revoketime")
-
-
-    newObject = replaceName(newObject, "revoke_reason", "revokereason")
-    newObject = replaceName(newObject, "update_this", "thisUpdate")
-
-    newObject = replaceName(newObject, "update_next", "nextUpdate")
-
-    /* Transform into row */
+    val newObject = replaceOcsp(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def ocsp(): StructType = {
@@ -2318,18 +2127,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromPe(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceTime(newObject, "compile_ts")
-
-    /* Transform into row */
+    val newObject = replacePe(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def pe(): StructType = {
@@ -2423,20 +2222,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromRadius(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "ttl")
-
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceRadius(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def radius(): StructType = {
@@ -2515,18 +2302,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromRdp(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceRdp(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def rdp(): StructType = {
@@ -2640,18 +2417,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromRfb(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceRfb(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def rfb(): StructType = {
@@ -2758,18 +2525,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSip(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceSip(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def sip(): StructType = {
@@ -2922,52 +2679,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSmbCmd(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "rtt")
-
-    newObject = replaceConnId(newObject)
-
-    newObject = replaceName(newObject, "file_ts", "referenced_file.ts")
-    newObject = replaceTime(newObject, "file_ts")
-
-    newObject = replaceName(newObject, "file_uid", "referenced_file.uid")
-    newObject = replaceName(newObject, "file_source_ip", "referenced_file.id.orig_h")
-
-    newObject = replaceName(newObject, "file_source_port", "referenced_file.id.orig_p")
-    newObject = replaceName(newObject, "file_destination_ip", "referenced_file.id.resp_h")
-
-    newObject = replaceName(newObject, "file_destination_port", "referenced_file.id.resp_p")
-    newObject = replaceName(newObject, "file_fuid", "referenced_file.fuid")
-
-    newObject = replaceName(newObject, "file_action", "referenced_file.action")
-    newObject = replaceName(newObject, "file_path", "referenced_file.path")
-
-    newObject = replaceName(newObject, "file_name", "referenced_file.name")
-    newObject = replaceName(newObject, "file_size", "referenced_file.size")
-
-    newObject = replaceName(newObject, "file_prev_name", "referenced_file.prev_name")
-
-    newObject = replaceName(newObject, "", "referenced_file.times.modified")
-    newObject = replaceTime(newObject, "file_times_modified")
-
-    newObject = replaceName(newObject, "file_times_accessed", "referenced_file.times.accessed")
-    newObject = replaceTime(newObject, "file_times_accessed")
-
-    newObject = replaceName(newObject, "file_times_created", "referenced_file.times.created")
-    newObject = replaceTime(newObject, "file_times_created")
-
-    newObject = replaceName(newObject, "file_times_changed", "referenced_file.times.changed")
-    newObject = replaceTime(newObject, "file_times_changed")
-
-    /* Transform into row */
+    val newObject = replaceSmbCmd(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def smb_cmd(): StructType = {
@@ -3134,31 +2847,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSmbFiles(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-
-    newObject = replaceTime(newObject, "times.modified")
-    newObject = replaceTime(newObject, "times.accessed")
-
-    newObject = replaceTime(newObject, "times.created")
-    newObject = replaceTime(newObject, "times.changed")
-
-    newObject = replaceConnId(newObject)
-
-    newObject = replaceName(newObject, "times_modified", "times.modified")
-    newObject = replaceName(newObject, "times_accessed", "times.accessed")
-
-    newObject = replaceName(newObject, "times_created", "times.created")
-    newObject = replaceName(newObject, "times_changed", "times.changed")
-
-    /* Transform into row */
+    val newObject = replaceSmbFiles(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def smb_files(): StructType = {
@@ -3252,18 +2942,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSmbMapping(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceSmbMapping(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def smb_mapping(): StructType = {
@@ -3338,18 +3018,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSmtp(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceSmtp(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def smtp(): StructType = {
@@ -3492,21 +3162,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSnmp(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceTime(newObject, "up_since")
-
-    newObject = replaceInterval(newObject, "duration")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceSnmp(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def snmp(): StructType = {
@@ -3605,26 +3262,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSocks(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    newObject = replaceName(newObject, "request_host", "request.host")
-    newObject = replaceName(newObject, "request_name", "request.name")
-    newObject = replaceName(newObject, "request_port", "request_p")
-
-    newObject = replaceName(newObject, "bound_host", "bound.host")
-    newObject = replaceName(newObject, "bound_name", "bound.name")
-    newObject = replaceName(newObject, "bound_port", "bound_p")
-
-    /* Transform into row */
+    val newObject = replaceSocks(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def socks(): StructType = {
@@ -3727,25 +3366,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSsh(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    newObject = replaceName(newObject, "country_code", "remote_location.country_code")
-    newObject = replaceName(newObject, "region", "remote_location.region")
-    newObject = replaceName(newObject, "city", "remote_location.city")
-
-    newObject = replaceName(newObject, "latitude", "remote_location.latitude")
-    newObject = replaceName(newObject, "longitude", "remote_location.longitude")
-
-    /* Transform into row */
+    val newObject = replaceSsh(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def ssh(): StructType = {
@@ -3881,24 +3503,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSsl(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    newObject = replaceName(newObject, "notary_first_seen", "notary.first_seen")
-    newObject = replaceName(newObject, "notary_last_seen", "notary.last_seen")
-
-    newObject = replaceName(newObject, "notary_times_seen", "notary.times_seen")
-    newObject = replaceName(newObject, "notary_valid", "notary.valid")
-
-    /* Transform into row */
+    val newObject = replaceSsl(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def ssl(): StructType = {
@@ -4061,18 +3667,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromStats(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceInterval(newObject, "pkt_lag")
-
-    /* Transform into row */
+    val newObject = replaceStats(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def stats(): StructType = {
@@ -4209,18 +3805,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromSyslog(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceSyslog(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def syslog(): StructType = {
@@ -4282,20 +3868,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromTraceroute(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-
-    newObject = replaceName(newObject, "source_ip", "src")
-    newObject = replaceName(newObject, "destination_ip", "dst")
-
-    /* Transform into row */
+    val newObject = replaceTraceroute(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def traceroute(): StructType = {
@@ -4351,18 +3925,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromTunnel(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceTunnel(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def tunnel(): StructType = {
@@ -4433,18 +3997,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromWeird(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceConnId(newObject)
-
-    /* Transform into row */
+    val newObject = replaceWeird(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def weird(): StructType = {
@@ -4520,29 +4074,8 @@ object ZeekUtil extends BaseUtil {
   }
 
   def fromX509(oldObject: JsonObject, schema: StructType): Row = {
-
-    var newObject = oldObject
-    /*
-     * Prepare JsonObject, i.e. rename fields and
-     * transform time values
-     */
-    newObject = replaceTime(newObject, "ts")
-    newObject = replaceCertificate(newObject)
-
-    newObject = replaceName(newObject, "san_dns", "san.dns")
-    newObject = replaceName(newObject, "san_uri", "san.uri")
-
-    newObject = replaceName(newObject, "san_email", "san.email")
-    newObject = replaceName(newObject, "san_ip", "san.ip")
-
-    newObject = replaceName(newObject, "san_other_fields", "san.other_fields")
-
-    newObject = replaceName(newObject, "basic_constraints_ca", "basic_constraints.ca")
-    newObject = replaceName(newObject, "basic_constraints_path_len", "basic_constraints.path_len")
-
-    /* Transform into row */
+    val newObject = replaceX509(oldObject)
     JsonUtil.json2Row(newObject, schema)
-
   }
 
   def x509(): StructType = {
@@ -4717,35 +4250,6 @@ object ZeekUtil extends BaseUtil {
     )
 
     fields
-
-  }
-
-  private def replaceCertificate(oldObject: JsonObject): JsonObject = {
-
-    var newObject = oldObject
-
-    newObject = replaceTime(newObject, "certificate.not_valid_before")
-    newObject = replaceTime(newObject, "certificate.not_valid_after")
-
-    newObject = replaceName(newObject, "cert_version", "certificate.version")
-    newObject = replaceName(newObject, "cert_serial", "certificate.serial")
-
-    newObject = replaceName(newObject, "cert_subject", "certificate.subject")
-    newObject = replaceName(newObject, "cert_cn", "certificate.cn")
-
-    newObject = replaceName(newObject, "cert_not_valid_before", "certificate.not_valid_before")
-    newObject = replaceName(newObject, "cert_not_valid_after", "certificate.not_valid_after")
-
-    newObject = replaceName(newObject, "cert_key_alg", "certificate.key_alg")
-    newObject = replaceName(newObject, "cert_sig_alg", "certificate.sig_alg")
-
-    newObject = replaceName(newObject, "cert_key_type", "certificate.key_type")
-    newObject = replaceName(newObject, "cert_key_length", "certificate.key_length")
-
-    newObject = replaceName(newObject, "cert_exponent", "certificate.exponent")
-    newObject = replaceName(newObject, "cert_curve", "certificate.curve")
-
-    newObject
 
   }
 
