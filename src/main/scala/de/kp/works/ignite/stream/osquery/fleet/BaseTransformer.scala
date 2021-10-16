@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.fleet.graph
+package de.kp.works.ignite.stream.osquery.fleet
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -18,30 +18,31 @@ package de.kp.works.ignite.stream.osquery.fleet.graph
  *
  */
 
-import de.kp.works.ignite.mutate.IgniteMutation
+import com.google.gson.{JsonElement, JsonParser}
 import de.kp.works.ignite.stream.file.FileEvent
-import de.kp.works.ignite.stream.osquery.fleet.BaseTransformer
 
-object FleetTransformer extends BaseTransformer{
+trait BaseTransformer {
 
-  def transform(events: Seq[FileEvent]): (Seq[IgniteMutation], Seq[IgniteMutation]) = {
+  /**
+   * Convert `eventType` (file name) into Fleet format
+   * and deserialize event data. Restrict to those
+   * formats that are support by the current version.
+   */
+  def groupEvents(events: Seq[FileEvent]): Seq[(FleetFormats.Value, Seq[JsonElement])] = {
 
-    try {
+    events
+      .map(event =>
+        (FleetFormatUtil.fromFile(event.eventType), JsonParser.parseString(event.eventData))
+      )
+      .filter { case (format, _) => format != null }
       /*
-       * STEP #1: Collect Fleet log events with respect
-       * to their eventType (which refers to the name
-       * of the log file)
+       * Group logs by format and prepare format specific
+       * log processing
        */
-      val data = groupEvents(events)
-      /*
-       * STEP #2: Transform logs for each format individually
-       */
+      .groupBy { case (format, _) => format }
+      .map { case (format, logs) => (format, logs.map(_._2)) }
+      .toSeq
 
-      ???
-
-    } catch {
-      case _: Throwable => (Seq.empty[IgniteMutation], Seq.empty[IgniteMutation])
-    }
   }
 
 }
