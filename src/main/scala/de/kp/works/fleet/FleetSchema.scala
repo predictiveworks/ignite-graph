@@ -1,4 +1,4 @@
-package de.kp.works.ignite.stream.osquery.fleet.table
+package de.kp.works.fleet
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -21,10 +21,10 @@ package de.kp.works.ignite.stream.osquery.fleet.table
 import org.apache.spark.sql.types._
 
 /**
- * [FleetFrame] contains DataFrame compliant schema
+ * [FleetSchema] contains DataFrame compliant schema
  * specifications for all Osquery tables of v4.6.0
  */
-object FleetFrame {
+object FleetSchema {
 
   def account_policy_data(): StructType = {
 
