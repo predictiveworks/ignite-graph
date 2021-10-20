@@ -1,4 +1,5 @@
-package de.kp.works.ignite.stream.zeek
+package de.kp.works.transform.zeek
+
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *

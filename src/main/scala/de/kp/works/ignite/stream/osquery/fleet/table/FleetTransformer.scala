@@ -17,10 +17,9 @@ package de.kp.works.ignite.stream.osquery.fleet.table
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
-import com.google.gson.JsonParser
 import de.kp.works.ignite.stream.file.FileEvent
-import de.kp.works.fleet.FleetFormats.{FleetFormat, RESULT, STATUS}
 import de.kp.works.ignite.stream.osquery.fleet.BaseTransformer
+import de.kp.works.transform.fleet.FleetFormats.{FleetFormat, RESULT, STATUS}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructType
 

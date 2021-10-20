@@ -21,7 +21,7 @@ package de.kp.works.ignite.stream.zeek.graph
 import de.kp.works.ignite.mutate.IgniteMutation
 import de.kp.works.ignite.stream.file.FileEvent
 import de.kp.works.ignite.stream.zeek.BaseTransformer
-import de.kp.works.ignite.stream.zeek.ZeekFormats._
+import de.kp.works.transform.zeek.ZeekFormats._
 
 object ZeekTransformer extends BaseTransformer {
 

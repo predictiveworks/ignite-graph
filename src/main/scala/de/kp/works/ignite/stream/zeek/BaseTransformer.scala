@@ -20,6 +20,7 @@ package de.kp.works.ignite.stream.zeek
 
 import com.google.gson.{JsonElement, JsonParser}
 import de.kp.works.ignite.stream.file.FileEvent
+import de.kp.works.transform.zeek.{ZeekFormatUtil, ZeekFormats}
 
 trait BaseTransformer {
 

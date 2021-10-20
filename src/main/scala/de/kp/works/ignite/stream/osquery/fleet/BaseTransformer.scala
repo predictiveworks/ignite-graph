@@ -19,8 +19,8 @@ package de.kp.works.ignite.stream.osquery.fleet
  */
 
 import com.google.gson.{JsonElement, JsonParser}
-import de.kp.works.fleet.{FleetFormatUtil, FleetFormats}
 import de.kp.works.ignite.stream.file.FileEvent
+import de.kp.works.transform.fleet.{FleetFormatUtil, FleetFormats}
 
 trait BaseTransformer {
 
