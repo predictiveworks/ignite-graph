@@ -6,7 +6,14 @@
 
     <groupId>de.kp.works</groupId>
     <artifactId>ignite-graph</artifactId>
+    <packaging>pom</packaging>
     <version>0.4.0</version>
+    <modules>
+        <module>works-ignite-common</module>
+        <module>works-ignite-graph</module>
+        <module>works-ignite-streamer</module>
+        <module>works-ignite-spark</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -167,10 +174,8 @@
         </dependency>
 
      </dependencies>
-
-    <build>
+     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -188,6 +193,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -196,33 +202,6 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>4.4.0</version>
-                <configuration>
-                    <scalaVersion>2.11.12</scalaVersion>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>scala-compile</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>scala-test-compile</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -235,48 +214,30 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
+             <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>4.4.0</version>
                 <configuration>
-                    <filters>
-                        <filter>
-                            <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                                <exclude>META-INF/*.RSA</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.scalatest</groupId>
-                <artifactId>scalatest-maven-plugin</artifactId>
-                <version>1.0</version>
-                <configuration>
-                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
-                    <junitxml>.</junitxml>
-                    <filereports>WDF TestSuite.txt</filereports>
+                    <scalaVersion>2.11.12</scalaVersion>
+                    <args>
+                        <arg>-unchecked</arg>
+                        <arg>-deprecation</arg>
+                    </args>
+                    <addJavacArgs>-deprecation</addJavacArgs>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>test</id>
+                        <id>scala-compile</id>
+                        <phase>process-resources</phase>
                         <goals>
-                            <goal>test</goal>
+                            <goal>add-source</goal>
+                            <goal>compile</goal>
                         </goals>
                     </execution>
-                </executions>
+                 </executions>
             </plugin>
         </plugins>
     </build>
