@@ -21,7 +21,6 @@
 
         <scala.binary.version>2.11</scala.binary.version>
 
-        <alpakka.version>2.0.2</alpakka.version>
         <ignite.version>2.8.1</ignite.version>
         <jackson.version>2.10.0</jackson.version>
         <kryo.version>5.1.1</kryo.version>
@@ -38,31 +37,6 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-actors</artifactId>
             <version>${scala.version}</version>
-        </dependency>
-
-        <!-- AKKA
-        -->
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-http_${scala.binary.version}</artifactId>
-            <version>10.1.14</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-stream_${scala.binary.version}</artifactId>
-            <version>2.5.31</version>
-        </dependency>
-
-        <!-- ALPAKKA FILESYSTEM
-
-        The version 2.0.2 was selected as it is compliant
-        with other Akka-based libraries of this project.
-        -->
-        <dependency>
-            <groupId>com.lightbend.akka</groupId>
-            <artifactId>akka-stream-alpakka-file_${scala.binary.version}</artifactId>
-            <version>${alpakka.version}</version>
         </dependency>
 
         <!-- GSON
@@ -103,14 +77,6 @@
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_2.11</artifactId>
             <version>4.0.1</version>
-        </dependency>
-
-        <!-- OKHTTP - SSE
-         -->
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp-sse</artifactId>
-            <version>${okhttp.version}</version>
         </dependency>
 
         <!-- KRYO
