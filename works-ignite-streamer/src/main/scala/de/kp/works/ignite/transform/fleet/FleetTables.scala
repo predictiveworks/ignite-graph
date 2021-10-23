@@ -297,4 +297,12 @@ object FleetTables extends Enumeration {
   val YARA_EVENTS: FleetTables.Value = Value(270, "yara_events")
   val YCLOUD_INSTANCE_METADATA: FleetTables.Value = Value(271, "ycloud_instance_metadata")
   val YUM_SOURCES: FleetTables.Value = Value(272, "yum_sources")
+  /*
+   * The list of Osquery tables (version 4.6.0) is extended
+   * by a proprietary `osquery_status` table to also take
+   * status log event into account
+   *
+   */
+  val OSQUERY_STATUS: FleetTables.Value = Value(273, "osquery_status")
+
 }

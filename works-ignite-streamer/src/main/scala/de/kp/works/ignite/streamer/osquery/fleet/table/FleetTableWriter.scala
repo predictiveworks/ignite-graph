@@ -53,10 +53,9 @@ class FleetTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
       val transformed = FleetTransformer.transform(events)
       /*
        * STEP #3: Write logs that refer to a certain Osquery
-       * format (RESULT, STATUS) to individual Apache Ignite
-       * caches.
+       * table to individual Apache Ignite caches.
        */
-      transformed.foreach{case(_, table, schema, rows) =>
+      transformed.foreach{case(table, schema, rows) =>
 
         val dataframe = session.createDataFrame(session.sparkContext.parallelize(rows), schema)
         save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)

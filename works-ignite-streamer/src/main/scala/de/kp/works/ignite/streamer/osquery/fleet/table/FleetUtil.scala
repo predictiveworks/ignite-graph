@@ -23,6 +23,7 @@ import de.kp.works.ignite.conf.WorksConf
 import de.kp.works.ignite.json.JsonUtil
 import de.kp.works.ignite.streamer.osquery.OsqueryConstants
 import de.kp.works.ignite.streamer.osquery.schema.Schema
+import de.kp.works.ignite.transform.fleet.FleetSchema
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
@@ -35,7 +36,11 @@ object FleetUtil {
   private val fleetKey = fleetCfg.getString("primaryKey")
 
   private val primaryKey = StructField(fleetKey, StringType, nullable = false)
-  private val columnMap = Schema.getTypes
+
+  private val X_WORKS_ACTION    = "x_works_action"
+  private val X_WORKS_HOSTNAME  = "x_works_hostname"
+  private val X_WORKS_NAME      = "x-works_name"
+  private val X_WORKS_TIMESTAMP = "x_works_timestamp"
 
   def fromResult(logs: Seq[JsonElement]): Seq[(String, StructType, Seq[Row])] = {
 
@@ -72,9 +77,13 @@ object FleetUtil {
    * This method accepts that each log object provided
    * is different with respect to its data format
    */
-  def fromResult(oldObject: JsonObject): (String, StructType, Seq[Row]) = {
-
-    val commonObject = new JsonObject
+  def fromResult(oldObj: JsonObject): (String, StructType, Seq[Row]) = {
+    /*
+     * STEP #1: Normalize log events with formats,
+     * event, batch and snapshot into a single JSON
+     * format representation
+     */
+    val commonObj = new JsonObject
     /*
      * Extract `name` (of the query) and normalize `calendarTime`:
      *
@@ -92,18 +101,17 @@ object FleetUtil {
      *
      * UTC
      */
-    val name = oldObject.get(OsqueryConstants.NAME).getAsString
-    commonObject.addProperty(OsqueryConstants.NAME, name)
+    val name = oldObj.get(OsqueryConstants.NAME).getAsString
+    commonObj.addProperty(X_WORKS_NAME, name)
 
-    val calendarTime = oldObject.get(OsqueryConstants.CALENDAR_TIME).getAsString
+    val calendarTime = oldObj.get(OsqueryConstants.CALENDAR_TIME).getAsString
     val datetime = transformCalTime(calendarTime)
 
     val timestamp = datetime.getTime
-    commonObject.addProperty(OsqueryConstants.TIMESTAMP, timestamp)
+    commonObj.addProperty(X_WORKS_TIMESTAMP, timestamp)
 
-    val hostname = getHostname(oldObject)
-    commonObject.addProperty(OsqueryConstants.HOSTNAME, hostname)
-
+    val hostname = getHostname(oldObj)
+    commonObj.addProperty(X_WORKS_HOSTNAME, hostname)
     /*
      * In this case, `event format`, columns is a single
      * object that must be added to the overall output
@@ -124,12 +132,12 @@ object FleetUtil {
      *  "numerics": false
      * }
      */
-    val (schema, rows) = if (oldObject.get(OsqueryConstants.COLUMNS) != null) {
+    val rowObjs = if (oldObj.get(OsqueryConstants.COLUMNS) != null) {
 
-      val action = oldObject.get(OsqueryConstants.ACTION).getAsString
+      val action = oldObj.get(OsqueryConstants.ACTION).getAsString
 
-      val rowObject = commonObject
-      rowObject.addProperty(OsqueryConstants.ACTION, action)
+      val rowObj = commonObj
+      rowObj.addProperty(X_WORKS_ACTION, action)
       /*
        * Extract log event specific format and thereby
        * assume that the columns provided are the result
@@ -138,18 +146,20 @@ object FleetUtil {
        * NOTE: the mechanism below does not work for adhoc
        * (distributed) queries.
        */
-      val columns = oldObject.get(OsqueryConstants.COLUMNS).getAsJsonObject
+      val columns = oldObj.get(OsqueryConstants.COLUMNS).getAsJsonObject
       /*
-       * Extract the column names in ascending order
+       * Extract the column names in ascending order to
+       * enable a correct match with the schema definition
        */
       val colnames = columns.keySet.toSeq.sorted
-      colnames.foreach(colName => rowObject.add(colName, columns.get(colName)))
-
+      colnames.foreach(colName => rowObj.add(colName, columns.get(colName)))
+      /*
       val schema = result(colnames)
       val row = JsonUtil.json2Row(rowObject, schema)
 
       (schema, Seq(row))
-
+      */
+      Seq(rowObj)
     }
     /*
      * If a query identifies multiple state changes, the batched format
@@ -183,36 +193,31 @@ object FleetUtil {
      *    "numerics": false
      *  }
      */
-    else if (oldObject.get(OsqueryConstants.DIFF_RESULTS) != null) {
+    else if (oldObj.get(OsqueryConstants.DIFF_RESULTS) != null) {
 
-      val diffResults = oldObject.get(OsqueryConstants.DIFF_RESULTS).getAsJsonObject
+      val diffResults = oldObj.get(OsqueryConstants.DIFF_RESULTS).getAsJsonObject
       /*
        * The subsequent transformation assumes that the columns
        * specified in the query result, independent of the data
        * action, is always the same.
        */
       val actions = diffResults.keySet().toSeq.sorted
-      var schema: StructType = null
-
-      val rows = actions.flatMap(action => {
+      actions.flatMap(action => {
 
         val data = diffResults.get(action).getAsJsonArray
         data.map(columns => {
 
-          val rowObject = commonObject
-          rowObject.addProperty(OsqueryConstants.ACTION, action)
+          val rowObj = commonObj
+          rowObj.addProperty(X_WORKS_ACTION, action)
 
           val colnames = columns.getAsJsonObject.keySet.toSeq.sorted
-          colnames.foreach(colName => rowObject.add(colName, columns.getAsJsonObject.get(colName)))
+          colnames.foreach(colName => rowObj.add(colName, columns.getAsJsonObject.get(colName)))
 
-          if (schema == null) schema = result(colnames)
-          JsonUtil.json2Row(rowObject, schema)
+          rowObj
 
         })
 
       })
-
-      (schema, rows)
 
     }
     /*
@@ -253,74 +258,77 @@ object FleetUtil {
      *    "numerics": false
      *  }
      */
-    else if (oldObject.get(OsqueryConstants.SNAPSHOT) != null) {
+    else if (oldObj.get(OsqueryConstants.SNAPSHOT) != null) {
 
-      val data = oldObject.get(OsqueryConstants.SNAPSHOT).getAsJsonArray
+      val data = oldObj.get(OsqueryConstants.SNAPSHOT).getAsJsonArray
       /*
        * The subsequent transformation assumes that the columns
        * specified in the query result, independent of the data
        * action, is always the same.
        */
-      var schema: StructType = null
-      val rows = data.map(columns => {
+      data.map(columns => {
 
-        val rowObject = commonObject
-        rowObject.addProperty(OsqueryConstants.ACTION, OsqueryConstants.SNAPSHOT)
+        val rowObj = commonObj
+        rowObj.addProperty(X_WORKS_ACTION, OsqueryConstants.SNAPSHOT)
         /**
          * The column names are sorted in alphabetical
          * ascending order to ensure, that the schema
          * field order is correct for all entries.
          */
         val colnames = columns.getAsJsonObject.keySet.toSeq.sorted
-        colnames.foreach(colName => rowObject.add(colName, columns.getAsJsonObject.get(colName)))
+        colnames.foreach(colName => rowObj.add(colName, columns.getAsJsonObject.get(colName)))
 
-        if (schema == null) schema = result(colnames)
-        JsonUtil.json2Row(rowObject, schema)
+        rowObj
 
       }).toSeq
-
-      (schema, rows)
 
     }
     else {
       throw new Exception("Query result encountered that cannot be transformed.")
     }
+    /*
+     * STEP #2: Determine schema that refers to the
+     * extract JSON event objects and transform into
+     * Apache Spark compliant rows
+     */
+    val table = rowObjs.head.get(OsqueryConstants.NAME).getAsString
+    val schema = result_table(table)
 
-    (name, schema, rows)
+    val rows = rowObjs.map(rowObj => JsonUtil.json2Row(rowObj, schema))
+    (table, schema, rows)
 
   }
 
-  def result(columns: Seq[String]): StructType = {
+  def result_table(table:String): StructType = {
     /*
      * COMMON FIELDS
+     *
+     * In order to avoid naming conflicts with Osquery based column
+     * names, these metadata columns are prefixed by `x_works_`.
      */
     var fields = Array(
-      /* The `name` (of the query)
-       */
-      StructField(OsqueryConstants.NAME, StringType, nullable = false),
-      /* The timestamp of the event
-       */
-      StructField(OsqueryConstants.TIMESTAMP, LongType, nullable = false),
-      /* The hostname of the event
-       */
-      StructField(OsqueryConstants.HOSTNAME, StringType, nullable = false),
-      /* The action of the event
-       */
-      StructField(OsqueryConstants.ACTION, StringType, nullable = false)
+      /* The `name` (of the query) */
+      StructField(X_WORKS_NAME, StringType, nullable = false),
+      /* The timestamp of the event */
+      StructField(X_WORKS_TIMESTAMP, LongType, nullable = false),
+      /* The hostname of the event */
+      StructField(X_WORKS_HOSTNAME, StringType, nullable = false),
+      /* The action of the event */
+      StructField(X_WORKS_ACTION, StringType, nullable = false)
     )
     /*
      * REQUEST SPECIFIC FIELDS
      *
-     * The fields are sorted in ascending order to match
-     * the provided log message.
-     *
-     * As the columns exist, we specify their fields as
-     * nullable = false
+     * The remaining schema fields, that describe the columns
+     * associated with a result log event are retrieved via
+     * method invocation
      */
-    fields = fields ++ columns
-      .map(column => StructField(column, columnMap(column), nullable = false))
+    val methods = FleetSchema.getClass.getMethods
 
-    fields = Array(primaryKey) ++ fields
+    val method = methods.filter(m => m.getName == table).head
+    val schema = method.invoke(FleetSchema).asInstanceOf[StructType]
+
+    fields = Array(primaryKey) ++ fields ++ schema.fields
     StructType(fields)
 
   }
@@ -334,13 +342,13 @@ object FleetUtil {
     logs
       .map(log => fromStatus(log.getAsJsonObject))
       /*
-       * Group the transformed results with respect to the query or table name
+       * Group the transformed results with respect
+       * to the table name
        */
       .groupBy { case (name, _, _) => name }
       .map { case (name, values) =>
         val schema = values.head._2
         val rows = values.flatMap(_._3)
-
         (name, schema, rows)
       }
       .toSeq
@@ -352,26 +360,16 @@ object FleetUtil {
     val rowObject = new JsonObject
     rowObject.addProperty(OsqueryConstants.MESSAGE, oldObject.toString)
 
-    val schema = status()
+    val schema = status_table()
     val row = JsonUtil.json2Row(rowObject, schema)
 
-    ("status_log", schema, Seq(row))
+    ("osquery_status", schema, Seq(row))
 
   }
 
-  def status(): StructType = {
-    /*
-     * COMMON FIELDS
-     */
-    var fields = Array(
-      /* The `name` (of the query)
-       */
-      StructField(OsqueryConstants.MESSAGE, StringType, nullable = false)
-    )
-
-    fields = Array(primaryKey) ++ fields
+  def status_table(): StructType = {
+    val fields = Array(primaryKey) ++ FleetSchema.osquery_status().fields
     StructType(fields)
-
   }
 
   /** HELPER METHODS * */

@@ -4853,6 +4853,23 @@ object FleetSchema {
     StructType(fields)
 
   }
+  /*
+   * The list of Osquery tables (version 4.6.0) is extended
+   * by a proprietary `osquery_status` table to also take
+   * status log event into account.
+   *
+   * Status events are represented by single column table
+   * where the column contains the serialized message.
+   *
+   */
+  def osquery_status(): StructType = {
 
+    val fields = Array(
+      StructField("message", StringType, nullable = false)
+    )
+
+    StructType(fields)
+
+  }
 
 }

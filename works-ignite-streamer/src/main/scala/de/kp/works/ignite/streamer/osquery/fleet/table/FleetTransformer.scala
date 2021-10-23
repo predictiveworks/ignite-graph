@@ -19,13 +19,13 @@ package de.kp.works.ignite.streamer.osquery.fleet.table
  */
 import de.kp.works.ignite.file.FileEvent
 import de.kp.works.ignite.streamer.osquery.fleet.BaseTransformer
-import de.kp.works.ignite.transform.fleet.FleetFormats.{FleetFormat, RESULT, STATUS}
+import de.kp.works.ignite.transform.fleet.FleetFormats.{RESULT, STATUS}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructType
 
 object FleetTransformer extends BaseTransformer {
 
-  def transform(events: Seq[FileEvent]): Seq[(FleetFormat, String, StructType, Seq[Row])] = {
+  def transform(events: Seq[FileEvent]): Seq[(String, StructType, Seq[Row])] = {
 
     try {
       /*
@@ -41,19 +41,24 @@ object FleetTransformer extends BaseTransformer {
 
         format match {
           case RESULT =>
-            val transformed = FleetUtil.fromResult(logs)
-            transformed.map { case (name, schema, rows) => (format, name, schema, rows) }
+            /*
+             * The result `log` events are described with
+             * respect to the query name.
+             *
+             * Note, this streamer expects that each query
+             * name is equivalent to an Osquery table.
+             */
+            FleetUtil.fromResult(logs)
 
           case STATUS =>
-            val transformed = FleetUtil.fromStatus(logs)
-            transformed.map { case (name, schema, rows) => (format, name, schema, rows) }
+            FleetUtil.fromStatus(logs)
 
           case _ => throw new Exception(s"[FleetTransformer] Unknown format `$format.toString` detected.")
         }
       }
 
     } catch {
-      case _: Throwable => Seq.empty[(FleetFormat, String, StructType, Seq[Row])]
+      case _: Throwable => Seq.empty[(String, StructType, Seq[Row])]
     }
 
   }
