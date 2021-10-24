@@ -23,8 +23,16 @@ import de.kp.works.ignite.streamer.osquery.OsqueryConstants
 import de.kp.works.ignite.streamer.osquery.tls.db.OsqueryNode
 
 import java.text.SimpleDateFormat
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 object TLSNormalizer {
+
+  private val X_WORKS_ACTION    = "x_works_action"
+  private val X_WORKS_HOSTNAME  = "x_works_hostname"
+  private val X_WORKS_NAME      = "x-works_name"
+  private val X_WORKS_TIMESTAMP = "x_works_timestamp"
+
   /**
    * This method receives a node and its query result `data`
    * and converts the incoming log data into a series of fields,
@@ -32,19 +40,19 @@ object TLSNormalizer {
    * into batch format, which is used throughout the rest of this
    * service.
    */
-  def normalize(node: OsqueryNode, data: JsonArray): JsonArray = {
+  def normalize(node: OsqueryNode, data: JsonArray): Map[String, JsonArray] = {
     /*
      * Extract node meta information
      */
     val uuid = node.uuid
     val host = node.hostIdentifier
 
-    val events = new JsonArray
+    val result = mutable.Map.empty[String, JsonArray]
 
     val iter = data.iterator
     while (iter.hasNext) {
 
-      val item = iter.next.getAsJsonObject
+      val oldObj = iter.next.getAsJsonObject
       /*
        * STEP #1: Extract `name` (of the query) and normalize
        * `calendarTime`:
@@ -63,81 +71,93 @@ object TLSNormalizer {
        *
        * UTC
        */
-      val name = item.get(OsqueryConstants.NAME).getAsString
+      val commonObj = new JsonObject
 
-      val calendarTime = item.get(OsqueryConstants.CALENDAR_TIME).getAsString
+      val name = oldObj.get(OsqueryConstants.NAME).getAsString
+      commonObj.addProperty(X_WORKS_NAME, name)
+
+      val calendarTime = oldObj.get(OsqueryConstants.CALENDAR_TIME).getAsString
       val datetime = transformCalTime(calendarTime)
 
       val timestamp = datetime.getTime
+      commonObj.addProperty(X_WORKS_TIMESTAMP, timestamp)
 
-      if (item.get(OsqueryConstants.COLUMNS) != null) {
+      commonObj.addProperty(X_WORKS_HOSTNAME, host)
+      if (oldObj.get(OsqueryConstants.COLUMNS) != null) {
 
         try {
-          /*
-           * In this case, `event format`, columns is a single
-           * object that must be added to the overall output
-           */
-          val action = item.get(OsqueryConstants.ACTION).getAsString
-          val columns = item.get(OsqueryConstants.COLUMNS).getAsJsonObject
 
-          val field = buildField(uuid, host, timestamp, name, action, columns)
-          events.add(field)
+          val batchObj = commonObj
+
+          val action = oldObj.get(OsqueryConstants.ACTION).getAsString
+          batchObj.addProperty(X_WORKS_ACTION, action)
+          /*
+           * Extract log event specific format and thereby
+           * assume that the columns provided are the result
+           * of an offline configuration process.
+           *
+           * NOTE: the mechanism below does not work for adhoc
+           * (distributed) queries.
+           */
+         val columns = oldObj.get(OsqueryConstants.COLUMNS).getAsJsonObject
+          /*
+           * Extract the column names in ascending order to
+           * enable a correct match with the schema definition
+           */
+          val colnames = columns.keySet.toSeq.sorted
+          colnames.foreach(colName => batchObj.add(colName, columns.get(colName)))
+
+          if (!result.contains(name))
+            result += name -> new JsonArray
+
+          result(name).add(batchObj)
 
         } catch {
           case _: Throwable => /* Do nothing */
         }
 
       }
-      else if (item.get(OsqueryConstants.DIFF_RESULTS) != null) {
+      else if (oldObj.get(OsqueryConstants.DIFF_RESULTS) != null) {
 
-        val diffResults = item.get(OsqueryConstants.DIFF_RESULTS).getAsJsonObject
-        if (diffResults.get(OsqueryConstants.ADDED) != null) {
+        val diffResults = oldObj.get(OsqueryConstants.DIFF_RESULTS).getAsJsonObject
 
-          val added = diffResults.get(OsqueryConstants.ADDED).getAsJsonArray
-          (0 until added.size).foreach(i => {
+        val actions = diffResults.keySet().toSeq.sorted
+        actions.foreach(action => {
 
-            val columns = added.get(i)
-            try {
-              val field = buildField(uuid, host, timestamp, name, "added", columns.getAsJsonObject)
-              events.add(field)
+          val data = diffResults.get(action).getAsJsonArray
+          data.foreach(columns => {
 
-            } catch {
-              case _: Throwable => /* Do nothing */
-            }
+            val batchObj = commonObj
+            batchObj.addProperty(X_WORKS_ACTION, action)
 
-          })
-        }
+            val colnames = columns.getAsJsonObject.keySet.toSeq.sorted
+            colnames.foreach(colName => batchObj.add(colName, columns.getAsJsonObject.get(colName)))
 
-        if (diffResults.get(OsqueryConstants.REMOVED) != null) {
+            if (!result.contains(name))
+              result += name -> new JsonArray
 
-          val removed = diffResults.get(OsqueryConstants.REMOVED).getAsJsonArray
-          (0 until removed.size).foreach(i => {
-
-            val columns = removed.get(i)
-            try {
-              val field = buildField(uuid, host, timestamp, name, "removed", columns.getAsJsonObject)
-              events.add(field)
-
-            } catch {
-              case _: Throwable => /* Do nothing */
-            }
+            result(name).add(batchObj)
 
           })
-        }
+
+        })
+
       }
-      else if (item.get(OsqueryConstants.SNAPSHOT) != null) {
+      else if (oldObj.get(OsqueryConstants.SNAPSHOT) != null) {
 
-        val snapshot = item.get(OsqueryConstants.SNAPSHOT).getAsJsonArray
-        (0 until snapshot.size).foreach(i => {
+        val snapshot = oldObj.get(OsqueryConstants.SNAPSHOT).getAsJsonArray
+        snapshot.foreach(columns => {
 
-          val columns = snapshot.get(i)
-          try {
-            val field = buildField(uuid, host, timestamp, name, "snapshot", columns.getAsJsonObject)
-            events.add(field)
+          val batchObj = commonObj
+          batchObj.addProperty(X_WORKS_ACTION, "snapshot")
 
-          } catch {
-            case _: Throwable => /* Do nothing */
-          }
+          val colnames = columns.getAsJsonObject.keySet.toSeq.sorted
+          colnames.foreach(colName => batchObj.add(colName, columns.getAsJsonObject.get(colName)))
+
+          if (!result.contains(name))
+            result += name -> new JsonArray
+
+          result(name).add(batchObj)
 
         })
       }
@@ -147,36 +167,7 @@ object TLSNormalizer {
 
     }
 
-    events
-
-  }
-
-  /*
-   * This method transforms normalized `event`, `batch` (diffResults)
-   * and `snapshot` logs into a common field format
-   *
-   * @node: node key
-   * @host: host identifier
-   *
-   */
-  private def buildField(node: String, host: String, timestamp: Long, name: String, action: String, columns: JsonObject): JsonObject = {
-
-    val field = new JsonObject
-
-    /* Node meta information */
-
-    field.addProperty(OsqueryConstants.NODE, node)
-    field.addProperty(OsqueryConstants.HOST, host)
-
-    /* Entry information */
-
-    field.addProperty(OsqueryConstants.NAME, name)
-    field.addProperty(OsqueryConstants.ACTION, action)
-
-    field.addProperty(OsqueryConstants.TIMESTAMP, timestamp)
-    field.add(OsqueryConstants.COLUMNS, columns)
-
-    field
+    result.toMap
 
   }
 

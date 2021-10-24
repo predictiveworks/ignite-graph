@@ -48,53 +48,60 @@ class StatusActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
 
       try {
 
-        val eventData = buildEvents(request).toString
+        val batch = buildBatch(request).toString
+        /*
+         * Send each status message as log event to the
+         * output channel; this approach is equivalent
+         * to the Fleet based mechanism.
+         */
+        batch.foreach(batchObj => {
 
-        val event = TLSEvent(eventType = OsqueryConstants.STATUS_EVENT, eventData = eventData)
-        handler.eventArrived(event)
+          val event = TLSEvent(eventType = "tls/osquery_status", eventData = batchObj.toString)
+          handler.eventArrived(event)
+
+        })
+
 
       } catch {
         case t:Throwable => origin ! StatusRsp("Status logging failed: " + t.getLocalizedMessage, success = false)
       }
   }
 
-  private def buildEvents(request:StatusReq):JsonArray = {
-    /*
-     * Repack request and send to REDIS instance
-     */
-    val events = new JsonArray
+  private def buildBatch(request:StatusReq):JsonArray = {
+
+    val batch = new JsonArray
 
     val node = request.node
     val data = request.data.iterator
 
     while (data.hasNext) {
 
-      val item = data.next.getAsJsonObject
-      val event = new JsonObject()
+      val oldObj = data.next.getAsJsonObject
+      val batchObj = new JsonObject()
       /*
        * Assign header to event
        */
-      event.addProperty(OsqueryConstants.HOST_IDENTIFIER, node.hostIdentifier)
-      event.addProperty(OsqueryConstants.NODE_IDENT, node.uuid)
-      event.addProperty(OsqueryConstants.NODE_KEY, node.nodeKey)
+      batchObj.addProperty(OsqueryConstants.HOST_IDENTIFIER, node.hostIdentifier)
+      batchObj.addProperty(OsqueryConstants.NODE_IDENT, node.uuid)
+      batchObj.addProperty(OsqueryConstants.NODE_KEY, node.nodeKey)
 
       /*
        * Assign body to event
        */
-      item.entrySet.foreach(entry => {
+      oldObj.entrySet.foreach(entry => {
 
         val k = entry.getKey
         val v = entry.getValue
 
-        event.add(k, v)
+        batchObj.add(k, v)
 
       })
 
-      events.add(event)
+      batch.add(batchObj)
 
     }
 
-    events
+    batch
 
   }
 

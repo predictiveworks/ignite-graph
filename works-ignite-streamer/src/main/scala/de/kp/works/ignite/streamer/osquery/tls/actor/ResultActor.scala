@@ -124,11 +124,20 @@ class ResultActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
         val node = request.node
         val data = request.data
 
-        /* Normalize query result */
-        val eventData = TLSNormalizer.normalize(node, data).toString
+        /*
+         * This implementation supports different query result
+         * withing a single result request.
+         *
+         * Send each batch of a certain table (or query) name
+         * to the output channel
+         */
+        val transformed = TLSNormalizer.normalize(node, data)
+        transformed.foreach{case(table, batch) => {
 
-        val event = TLSEvent(eventType = OsqueryConstants.RESULT_EVENT, eventData = eventData)
-        handler.eventArrived(event)
+          val event = TLSEvent(eventType = s"tls/$table", eventData = batch.toString)
+          handler.eventArrived(event)
+
+        }}
 
       } catch {
         case t:Throwable => origin ! ResultRsp("Result logging failed: " + t.getLocalizedMessage, success = false)
