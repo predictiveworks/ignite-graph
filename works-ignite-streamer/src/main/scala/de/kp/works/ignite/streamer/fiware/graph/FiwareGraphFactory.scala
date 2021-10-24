@@ -19,7 +19,6 @@ package de.kp.works.ignite.streamer.fiware.graph
  */
 
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.fiware.FiwareTransformer
 import de.kp.works.ignite.streamer.fiware.graph.transformer._
 
 object FiwareModels extends Enumeration {

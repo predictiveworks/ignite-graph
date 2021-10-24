@@ -61,7 +61,7 @@ class ZeekTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
          * Therefore, we intercept the generated dataframe here and serialize
          * all ArrayType fields before writing to Apache Ignite
          */
-        val table = "zeek_ " + format.toString.replace(".", "_")
+        val table = "zeek_" + format.toString.replace(".", "_")
 
         save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
       }

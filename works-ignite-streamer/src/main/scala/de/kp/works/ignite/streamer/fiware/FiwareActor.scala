@@ -99,7 +99,7 @@ abstract class BaseActor extends Actor with ActorLogging {
    * request and to transform into an internal JSON format for
    * further processing.
    */
-  def toFiwareNotification(request:HttpRequest):FiwareNotification = {
+  def toFiwareNotification(request:HttpRequest):FiwareEvent = {
 
     /** HEADERS **/
 
@@ -123,7 +123,7 @@ abstract class BaseActor extends Actor with ActorLogging {
 
     /* We expect that the Orion Context Broker sends a JSON object */
     val payload = JsonParser.parseString(body).getAsJsonObject
-    FiwareNotification(service, servicePath, payload)
+    FiwareEvent(service, servicePath, payload)
 
   }
 

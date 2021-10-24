@@ -49,7 +49,7 @@ class FiwareProcessor(
    * event query in a distinct manner; the eventStore is used
    * as a buffer before it is flushed and cleared
    */
-  private val eventStore = mutable.HashMap.empty[String,FiwareNotification]
+  private val eventStore = mutable.HashMap.empty[String,FiwareEvent]
   /**
    * The frequency we flush the internal store and write
    * data to the predefined output is currently set to
@@ -78,7 +78,7 @@ class FiwareProcessor(
       val mutable.Buffer(service, servicePath, payload) =
         values.tail.map(_.asInstanceOf[String])
 
-      eventStore += k -> FiwareNotification(service,servicePath, JsonParser.parseString(payload).getAsJsonObject)
+      eventStore += k -> FiwareEvent(service,servicePath, JsonParser.parseString(payload).getAsJsonObject)
     })
     /*
      * Clear extracted cache entries fast

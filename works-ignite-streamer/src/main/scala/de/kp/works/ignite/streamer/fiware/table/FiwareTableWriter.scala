@@ -19,11 +19,45 @@ package de.kp.works.ignite.streamer.fiware.table
  */
 
 import de.kp.works.ignite.IgniteConnect
-import de.kp.works.ignite.streamer.fiware.FiwareNotification
+import de.kp.works.ignite.conf.WorksConf
+import de.kp.works.ignite.streamer.Session
+import de.kp.works.ignite.streamer.fiware.FiwareEvent
 import de.kp.works.ignite.writer.TableWriter
+import org.apache.spark.sql.SaveMode
 
 class FiwareTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
 
-  def write(events:Seq[FiwareNotification]):Unit = ???
+  private val fiwareCfg = WorksConf.getCfg(WorksConf.FIWARE_CONF)
+
+  private val primaryKey = fiwareCfg.getString("primaryKey")
+  private val tableParameters = fiwareCfg.getString("tableParameters")
+
+  def write(events:Seq[FiwareEvent]):Unit = {
+
+    try {
+      /*
+       * STEP #1: Retrieve Spark session and make sure
+       * that an Apache Ignite node is started
+       */
+      val session = Session.getSession
+      /*
+       * STEP #2: Transform the Fiware notifications into an
+       * Apache Spark compliant format
+       */
+      val (schema, rows) = FiwareTransformer.transform(events)
+      /*
+       * STEP #3: Write notifications to individual Apache Ignite
+       * cache
+       */
+      val dataframe = session.createDataFrame(session.sparkContext.parallelize(rows), schema)
+
+      val table = "fiware_events"
+      save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
+
+    } catch {
+      case _:Throwable => /* Do nothing */
+    }
+
+  }
 
 }

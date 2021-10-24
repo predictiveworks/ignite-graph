@@ -28,7 +28,7 @@ class FiwareWriter(connect:IgniteConnect) {
   private val fiwareCfg = WorksConf.getCfg(WorksConf.FIWARE_CONF)
   private val writeMode = fiwareCfg.getString("writeMode")
 
-  def write(events:Seq[FiwareNotification]):Unit = {
+  def write(events:Seq[FiwareEvent]):Unit = {
 
     writeMode match {
       case "graph" =>

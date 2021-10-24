@@ -126,11 +126,11 @@ class FiwareEngine(connect:IgniteConnect) extends BaseEngine(connect) {
     (cache, fiwareStreamer)
   }
 
-  private def createExtractor: StreamSingleTupleExtractor[FiwareNotification, String, BinaryObject] = {
+  private def createExtractor: StreamSingleTupleExtractor[FiwareEvent, String, BinaryObject] = {
 
-    new StreamSingleTupleExtractor[FiwareNotification,String,BinaryObject]() {
+    new StreamSingleTupleExtractor[FiwareEvent,String,BinaryObject]() {
 
-      override def extract(notification:FiwareNotification):java.util.Map.Entry[String,BinaryObject] = {
+      override def extract(notification:FiwareEvent):java.util.Map.Entry[String,BinaryObject] = {
 
         val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
         try {
@@ -148,7 +148,7 @@ class FiwareEngine(connect:IgniteConnect) extends BaseEngine(connect) {
     }
   }
 
-  private def buildEntry(notification:FiwareNotification): (String, BinaryObject) = {
+  private def buildEntry(notification:FiwareEvent): (String, BinaryObject) = {
 
     val builder = ignite.binary().builder(FiwareConstants.FIWARE_CACHE)
     builder.setField(FiwareConstants.FIELD_SERVICE, notification.service)

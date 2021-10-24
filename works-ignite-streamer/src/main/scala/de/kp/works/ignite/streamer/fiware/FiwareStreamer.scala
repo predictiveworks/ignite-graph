@@ -26,7 +26,7 @@ trait FiwareEventHandler {
 
   def connectionLost():Unit
 
-  def notificationArrived(notification:FiwareNotification):Unit
+  def notificationArrived(notification:FiwareEvent):Unit
 
 }
 /**
@@ -35,7 +35,7 @@ trait FiwareEventHandler {
  * Broker by providing a HTTP notification endpoint.
  */
 class FiwareStreamer[K,V]
-  extends StreamAdapter[FiwareNotification, K, V] with FiwareEventHandler with IgniteStreamer {
+  extends StreamAdapter[FiwareEvent, K, V] with FiwareEventHandler with IgniteStreamer {
 
   /** FiwareServer */
 
@@ -84,7 +84,7 @@ class FiwareStreamer[K,V]
   override def connectionLost():Unit = {
   }
 
-  override def notificationArrived(notification: FiwareNotification): Unit = {
+  override def notificationArrived(notification: FiwareEvent): Unit = {
 
     val log = getIgnite.log()
     /*

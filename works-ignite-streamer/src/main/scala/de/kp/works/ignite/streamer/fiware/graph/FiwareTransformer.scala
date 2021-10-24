@@ -1,4 +1,5 @@
-package de.kp.works.ignite.streamer.fiware
+package de.kp.works.ignite.streamer.fiware.graph
+
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -19,6 +20,7 @@ package de.kp.works.ignite.streamer.fiware
  */
 
 import de.kp.works.ignite.mutate.IgnitePut
+import de.kp.works.ignite.streamer.fiware.FiwareEvent
 import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
 
@@ -62,9 +64,9 @@ trait FiwareTransformer {
 
   implicit val formats: DefaultFormats.type = DefaultFormats
 
-  def transformNotification(notification:FiwareNotification):(Seq[IgnitePut], Seq[IgnitePut])
+  def transformNotification(notification:FiwareEvent):(Seq[IgnitePut], Seq[IgnitePut])
 
-  def transform(notifications:Seq[FiwareNotification]):(Seq[IgnitePut], Seq[IgnitePut]) = {
+  def transform(notifications:Seq[FiwareEvent]):(Seq[IgnitePut], Seq[IgnitePut]) = {
 
     var edges = Seq.empty[IgnitePut]
     var vertices = Seq.empty[IgnitePut]
@@ -82,7 +84,7 @@ trait FiwareTransformer {
 
   }
 
-  protected def toNgsi(notification:FiwareNotification):Notification = {
+  protected def toNgsi(notification:FiwareEvent):Notification = {
 
     val service = notification.service
     val servicePath = notification.servicePath
@@ -117,7 +119,7 @@ trait FiwareTransformer {
 
   }
 
-  protected def toNgsiLD(notification:FiwareNotification):NotificationLD = {
+  protected def toNgsiLD(notification:FiwareEvent):NotificationLD = {
 
     val service = notification.service
     val servicePath = notification.servicePath

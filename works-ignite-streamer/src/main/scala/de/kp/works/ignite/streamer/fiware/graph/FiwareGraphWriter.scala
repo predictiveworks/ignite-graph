@@ -19,12 +19,12 @@ package de.kp.works.ignite.streamer.fiware.graph
  */
 
 import de.kp.works.ignite.IgniteConnect
-import de.kp.works.ignite.streamer.fiware.FiwareNotification
+import de.kp.works.ignite.streamer.fiware.FiwareEvent
 import de.kp.works.ignite.writer.GraphWriter
 
 class FiwareGraphWriter(connect:IgniteConnect) extends GraphWriter(connect) {
 
-  def write(events:Seq[FiwareNotification]):Unit = {
+  def write(events:Seq[FiwareEvent]):Unit = {
     /*
      * Leverage the FiwareGraphFactory to extract
      * vertices and edges from the notifications

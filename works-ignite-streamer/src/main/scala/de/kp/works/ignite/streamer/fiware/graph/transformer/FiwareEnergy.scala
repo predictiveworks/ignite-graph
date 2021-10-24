@@ -19,11 +19,12 @@ package de.kp.works.ignite.streamer.fiware.graph.transformer
  */
 
 import de.kp.works.ignite.mutate.IgnitePut
-import de.kp.works.ignite.streamer.fiware.{FiwareNotification, FiwareTransformer}
+import de.kp.works.ignite.streamer.fiware.FiwareEvent
+import de.kp.works.ignite.streamer.fiware.graph.FiwareTransformer
 
 object FiwareEnergy extends FiwareTransformer {
 
-  override def transformNotification(notification: FiwareNotification): (Seq[IgnitePut], Seq[IgnitePut]) = {
+  override def transformNotification(notification: FiwareEvent): (Seq[IgnitePut], Seq[IgnitePut]) = {
     throw new Exception("Not implemented yet")
   }
 

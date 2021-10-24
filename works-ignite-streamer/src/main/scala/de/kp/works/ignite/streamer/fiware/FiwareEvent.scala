@@ -20,7 +20,7 @@ package de.kp.works.ignite.streamer.fiware
 
 import com.google.gson.JsonObject
 
-case class FiwareNotification(
+case class FiwareEvent(
   service:String,
   servicePath:String,
   payload:JsonObject)
