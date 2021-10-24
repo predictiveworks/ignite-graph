@@ -49,12 +49,12 @@ class StatusActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
       try {
 
         val batch = buildBatch(request).toString
-        /*
-         * Send each status message as log event to the
-         * output channel; this approach is equivalent
-         * to the Fleet based mechanism.
-         */
         batch.foreach(batchObj => {
+          /*
+           * Send each status message as log event to the
+           * output channel; this approach is equivalent
+           * to the Fleet based mechanism.
+           */
 
           val event = TLSEvent(eventType = "tls/osquery_status", eventData = batchObj.toString)
           handler.eventArrived(event)
@@ -66,7 +66,10 @@ class StatusActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
         case t:Throwable => origin ! StatusRsp("Status logging failed: " + t.getLocalizedMessage, success = false)
       }
   }
-
+  /**
+   * A helper method to transform a status
+   * request into a batch of message object
+   */
   private def buildBatch(request:StatusReq):JsonArray = {
 
     val batch = new JsonArray
@@ -77,13 +80,13 @@ class StatusActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
     while (data.hasNext) {
 
       val oldObj = data.next.getAsJsonObject
-      val batchObj = new JsonObject()
+      val statusObj = new JsonObject()
       /*
        * Assign header to event
        */
-      batchObj.addProperty(OsqueryConstants.HOST_IDENTIFIER, node.hostIdentifier)
-      batchObj.addProperty(OsqueryConstants.NODE_IDENT, node.uuid)
-      batchObj.addProperty(OsqueryConstants.NODE_KEY, node.nodeKey)
+      statusObj.addProperty(OsqueryConstants.HOST_IDENTIFIER, node.hostIdentifier)
+      statusObj.addProperty(OsqueryConstants.NODE_IDENT, node.uuid)
+      statusObj.addProperty(OsqueryConstants.NODE_KEY, node.nodeKey)
 
       /*
        * Assign body to event
@@ -93,9 +96,15 @@ class StatusActor(api:DBApi, handler:TLSEventHandler) extends BaseActor(api) {
         val k = entry.getKey
         val v = entry.getValue
 
-        batchObj.add(k, v)
+        statusObj.add(k, v)
 
       })
+      /*
+       * Status messages are provided as serialized
+       * message objects
+       */
+      val batchObj = new JsonObject
+      batchObj.addProperty(OsqueryConstants.MESSAGE, statusObj.toString)
 
       batch.add(batchObj)
 

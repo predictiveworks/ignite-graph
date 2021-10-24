@@ -1,4 +1,5 @@
-package de.kp.works.ignite.streamer.osquery.tls.table
+package de.kp.works.ignite.streamer.opencti.table
+
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
@@ -21,18 +22,18 @@ package de.kp.works.ignite.streamer.osquery.tls.table
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
 import de.kp.works.ignite.streamer.Session
-import de.kp.works.ignite.streamer.osquery.tls.TLSEvent
+import de.kp.works.ignite.streamer.opencti.SseEvent
 import de.kp.works.ignite.writer.TableWriter
 import org.apache.spark.sql.SaveMode
 
-class TLSTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
+class CTITableWriter(connect:IgniteConnect) extends TableWriter(connect) {
 
-  private val tlsCfg = WorksConf.getCfg(WorksConf.OSQUERY_CONF)
+  private val ctiCfg = WorksConf.getCfg(WorksConf.OPENCTI_CONF)
 
-  private val primaryKey = tlsCfg.getString("primaryKey")
-  private val tableParameters = tlsCfg.getString("tableParameters")
+  private val primaryKey = ctiCfg.getString("primaryKey")
+  private val tableParameters = ctiCfg.getString("tableParameters")
 
-  def write(events: Seq[TLSEvent]): Unit = {
+  def write(sseEvents: Seq[SseEvent]):Unit = {
 
     try {
       /*
@@ -41,19 +42,29 @@ class TLSTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
        */
       val session = Session.getSession
       /*
-       * STEP #2: Transform the Osquery events into an
+       * STEP #2: Transform the OpenCTI events into an
        * Apache Spark compliant format
        */
-      val transformed = TLSTransformer.transform(events)
+      val transformed = CTITransformer.transform(sseEvents)
       /*
-       * STEP #3: Write logs that refer to a certain Osquery
-       * table to individual Apache Ignite caches.
+       * STEP #3: Write logs that refer to a certain STIX
+       * format to individual Apache Ignite caches
        */
-      transformed.foreach{case(table, schema, rows) =>
+      transformed.foreach{case(format, schema, rows) =>
 
         val dataframe = session.createDataFrame(session.sparkContext.parallelize(rows), schema)
-        save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
+        /*
+         * OpenCTI events ship with ArrayType(LongType|StringType) fields,
+         * but Apache Ignite currently does not support this data type.
+         *
+         * See: https://issues.apache.org/jira/browse/IGNITE-9229
+         *
+         * Therefore, we intercept the generated dataframe here and serialize
+         * all ArrayType fields before writing to Apache Ignite
+         */
+        val table = "opencti_ " + format.replace(".", "_")
 
+        save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
       }
 
     } catch {

@@ -21,6 +21,7 @@ package de.kp.works.ignite.streamer.opencti
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
 import de.kp.works.ignite.streamer.opencti.graph.CTIGraphWriter
+import de.kp.works.ignite.streamer.opencti.table.CTITableWriter
 
 class CTIWriter(connect:IgniteConnect) {
 
@@ -34,7 +35,8 @@ class CTIWriter(connect:IgniteConnect) {
         val writer = new CTIGraphWriter(connect)
         writer.write(events)
       case "table" =>
-        throw new Exception(s"Not open source yet.")
+        val writer = new CTITableWriter(connect)
+        writer.write(events)
       case _ =>
         throw new Exception(s"The configured writeMode `$writeMode` is not supported.")
     }
