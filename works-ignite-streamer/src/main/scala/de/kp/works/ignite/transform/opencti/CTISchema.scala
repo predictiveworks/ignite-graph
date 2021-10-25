@@ -30,6 +30,7 @@ object CTISchema {
        * this sighting
        */
       StructField("action", StringType, nullable = false),
+      StructField("operation", StringType, nullable = false),
       /*
        * Each sighting is identified by `id` and `type`
        */
@@ -64,6 +65,7 @@ object CTISchema {
        * this STIX object
        */
       StructField("action", StringType, nullable = false),
+      StructField("action", StringType, nullable = false),
       /*
        * Each STIX object is identified by `id` and `type`
        */
@@ -91,9 +93,11 @@ object CTISchema {
       StructField("SHA3_512", StringType, nullable = true),
       StructField("SSDEEP",   StringType, nullable = true),
       /*
-       * References the identity that created this object
+       * References the identity that created this object;
+       * In order to harmonize create & update requests,
+       * this filed is specified as an Array
        */
-      StructField("created_by_ref", StringType, nullable = true),
+      StructField("created_by_ref", ArrayType(StringType, containsNull = false), nullable = true),
       /*
        * The references to external objects; this is
        * specified as a set of serialized objects

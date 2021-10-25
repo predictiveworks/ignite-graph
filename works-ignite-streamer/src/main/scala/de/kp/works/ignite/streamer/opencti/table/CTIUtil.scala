@@ -33,6 +33,9 @@ object CTIUtil extends BaseUtil {
 
   private val primaryKey = StructField(ctiKey, StringType, nullable = false)
 
+  private val emptyBatch  = new JsonArray
+  private val emptySchema = StructType(Array.empty[StructField])
+
   /** CREATE SUPPORT **/
 
   def createSighting(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = {
@@ -101,6 +104,7 @@ object CTIUtil extends BaseUtil {
 
       val batchObj = new JsonObject
       batchObj.addProperty("action", "create")
+      batchObj.addProperty("operation", "add")
 
       batchObj.addProperty("entity_id", entityId)
       batchObj.addProperty("entity_type", entityType)
@@ -150,7 +154,7 @@ object CTIUtil extends BaseUtil {
      * Metadata information that (optionally) refer to other
      * STIX objects
      */
-    var createdByRef:String = "NULL"
+    val createdByRef: JsonArray = new JsonArray
     var externalRefs:JsonArray = new JsonArray
 
     var killChains:JsonArray = new JsonArray
@@ -173,7 +177,7 @@ object CTIUtil extends BaseUtil {
        * Creator is transformed to an edge
        */
       val value = createCreatedBy(filteredData)
-      createdByRef = value.getOrElse("NULL")
+      createdByRef.add(value.getOrElse("NULL"))
       /*
        * Remove 'created_by_ref' from the provided dataset
        * to restrict further processing to object properties
@@ -297,13 +301,14 @@ object CTIUtil extends BaseUtil {
 
       val batchObj = new JsonObject
       batchObj.addProperty("action", "create")
+      batchObj.addProperty("operation", "add")
 
       batchObj.addProperty("entity_id", entityId)
       batchObj.addProperty("entity_type", entityType)
       /*
        * Assign references to the batch object
        */
-      batchObj.addProperty("created_by_ref", createdByRef)
+      batchObj.add("created_by_ref", createdByRef)
       batchObj.add("external_references", externalRefs)
 
       batchObj.add("kill_chain_phases", killChains)
@@ -380,7 +385,300 @@ object CTIUtil extends BaseUtil {
 
   def updateSighting(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = ???
 
-  def updateStixObject(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = ???
+  def updateStixObject(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = {
+    /*
+    * Retrieve patch data from data
+    */
+    val patch = getPatch(data)
+    if (patch.isDefined) {
+
+      val batch = new JsonArray
+      val patchData = patch.get
+      /*
+       * Patch (update) data are organized with respect
+       * to the associated data operation (add | remove etc)
+       */
+      patchData.keySet.foreach(operation => {
+        var properties = patchData(operation).asInstanceOf[Map[String, List[Any]]]
+
+        val createdByRef:JsonArray = new JsonArray
+        val externalRefs:JsonArray = new JsonArray
+
+        val killChains:JsonArray = new JsonArray
+        val objectLabels:JsonArray = new JsonArray
+
+        val objectMarkings:JsonArray = new JsonArray
+        val objectRefs:JsonArray = new JsonArray
+
+        var hashes:Map[String,String] = Map.empty[String,String]
+
+        if (properties.contains("created_by_ref")) {
+          /**
+           * CREATED BY
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to Identity
+           * objects
+           */
+          val values = properties("created_by_ref")
+          values match {
+            case references: List[_] =>
+              references.foreach(reference =>
+                createdByRef.add(reference.asInstanceOf[String])
+              )
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `created_by_ref` patch is not a List[String].")
+          }
+          /*
+           * Remove `created_by_ref` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "created_by_ref"))
+        }
+        if (properties.contains("external_references")) {
+          /**
+           * EXTERNAL REFERENCES
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * objects
+           */
+          val values = properties("external_references")
+          values match {
+            case references: List[_] =>
+              references.foreach(reference =>
+                externalRefs.add(reference.asInstanceOf[String])
+              )
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `external_references` patch is not a List[String].")
+          }
+          /*
+           * Remove `external_references` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "external_references"))
+        }
+        if (properties.contains("kill_chain_phases")) {
+          /**
+           * KILL CHAIN PHASES
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * kill chain objects
+           */
+          val values = properties("kill_chain_phases")
+          values match {
+            case references: List[_] =>
+              references.foreach(reference =>
+                killChains.add(reference.asInstanceOf[String])
+              )
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `kill_chain_phases` patch is not a List[String].")
+          }
+          /*
+           * Remove `kill_chain_phases` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "kill_chain_phases"))
+        }
+        if (properties.contains("labels")) {
+          /**
+           * OBJECT LABELS
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * object label objects
+           */
+          val values = properties("labels")
+          values match {
+            case references: List[_] =>
+              references.foreach(reference =>
+                objectLabels.add(reference.asInstanceOf[String])
+              )
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `labels` patch is not a List[String].")
+          }
+          /*
+           * Remove `labels` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "labels"))
+        }
+        if (properties.contains("object_marking_refs")) {
+          /**
+           * OBJECT MARKINGS
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * object marking objects
+           */
+          val values = properties("object_marking_refs")
+          values match {
+            case references: List[_] =>
+              references.foreach(reference =>
+                objectMarkings.add(reference.asInstanceOf[String])
+              )
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `object_marking_refs` patch is not a List[String].")
+          }
+          /*
+           * Remove `object_marking_refs` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "object_marking_refs"))
+        }
+        if (properties.contains("object_refs")) {
+          /**
+           * OBJECT REFERENCES
+           *
+           * The current implementation expects that the values
+           * provided by the patch are identifiers to external
+           * object references
+           */
+          val values = properties("object_refs")
+          values match {
+            case references: List[_] =>
+              references.foreach(reference =>
+                objectRefs.add(reference.asInstanceOf[String])
+              )
+            case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `object_refs` patch is not a List[String].")
+          }
+          /*
+           * Remove `object_refs` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "object_refs"))
+        }
+        if (properties.contains("hashes")) {
+          /**
+           * HASHES
+           *
+           * This implementation expects that `hashes` is an attribute
+           * name within a certain patch; relevant, however, are the
+           * hash values associated with the hash algorithm.
+           */
+          val values = properties("hashes")
+          values.head match {
+            case _: Map[_,_] =>
+              hashes = values.asInstanceOf[List[Map[String,String]]]
+                .map(hash => {
+                  /*
+                   * We expect the hash properties as [Map] with fields
+                   * `algorithm` and `hash`.
+                   */
+                  (hash("algorithm"), hash("hash"))
+                }).toMap
+             case _ =>
+              val now = new Date().toString
+              throw new Exception(s"[ERROR] $now - The `hashes` patch is not a List[Map[String,String].")
+          }
+          /*
+           * Remove `hashes` from properties
+           */
+          properties = properties.filterKeys(k => !(k == "hashes"))
+        }
+        /*
+         * Update remaining properties of the SDO or SCO
+         */
+        properties.keySet.foreach(propKey => {
+
+          val batchObj = new JsonObject
+          batchObj.addProperty("action", "update")
+          batchObj.addProperty("operation", operation)
+
+          batchObj.addProperty("entity_id", entityId)
+          batchObj.addProperty("entity_type", entityType)
+          /*
+           * Assign references to the batch object
+           */
+          batchObj.add("created_by_ref", createdByRef)
+          batchObj.add("external_references", externalRefs)
+
+          batchObj.add("kill_chain_phases", killChains)
+          batchObj.add("object_labels", objectLabels)
+
+          batchObj.add("object_marking_refs", objectMarkings)
+          batchObj.add("object_refs", objectRefs)
+          /*
+           * Assign defined hash values to the batch
+           * object whether the hashes exist or not
+           */
+          STIX.STANDARD_HASHES.foreach(hash => {
+
+            val value = hashes.getOrElse(hash, "NULL")
+            batchObj.addProperty(hash, value)
+
+          })
+          /*
+           * The property key is interpreted as attribute
+           * name and harmonized with other data sources
+           * like Fiware
+           */
+          batchObj.addProperty("attr_name", propKey)
+
+          val values = properties(propKey)
+          /*
+           * The patch mechanism represents all attribute values
+           * as [List] even there is only a single value specified
+           */
+          if (values.size == 1) {
+            val value = values.head
+            value match {
+              case _: List[Any] =>
+
+                val propType = getBasicType(value)
+                batchObj.addProperty("attr_type", s"List[$propType]")
+
+                val serialized = mapper.writeValueAsString(value)
+                batchObj.addProperty("attr_value", serialized)
+
+              case _ =>
+                try {
+
+                  val propType = getBasicType(value)
+                  batchObj.addProperty("attr_type", s"$propType")
+
+                  val serialized = mapper.writeValueAsString(value)
+                  batchObj.addProperty("attr_value", serialized)
+
+                } catch {
+                  case _:Throwable => /* Do nothing */
+                }
+
+            }
+          } else {
+            /*
+             * This is genuine [List] of values: it is expected that
+             * this list contains basic values only
+             */
+            try {
+
+              val propType = getBasicType(values.head)
+              batchObj.addProperty("attr_type", s"List[$propType]")
+
+              val serialized = mapper.writeValueAsString(values)
+              batchObj.addProperty("attr_value", serialized)
+
+            } catch {
+              case _:Throwable => /* Do nothing */
+            }
+
+          }
+        })
+
+      })
+
+      val fields = Array(primaryKey) ++ CTISchema.stix_object().fields
+      val schema = StructType(fields)
+
+      (schema, batch)
+
+    }
+    else
+      (emptySchema, emptyBatch)
+
+  }
 
   /** HELPER METHODS **/
 
