@@ -272,11 +272,11 @@ object EdgeTransformer extends BaseTransformer {
      * the indicator or cyber observable.
      */
     val fromId =
-      if (data.contains("sighting_of_ref")) {
-        data("sighting_of_ref").asInstanceOf[String]
+      if (filteredData.contains("sighting_of_ref")) {
+        filteredData("sighting_of_ref").asInstanceOf[String]
       }
-      else if (data.contains("x_opencti_sighting_of_ref")) {
-        data("x_opencti_sighting_of_ref").asInstanceOf[String]
+      else if (filteredData.contains("x_opencti_sighting_of_ref")) {
+        filteredData("x_opencti_sighting_of_ref").asInstanceOf[String]
       }
       else {
         val now = new java.util.Date().toString
@@ -288,12 +288,12 @@ object EdgeTransformer extends BaseTransformer {
     /** TO **/
 
     val toId =
-      if (data.contains("where_sighted_refs")) {
+      if (filteredData.contains("where_sighted_refs")) {
         /*
          * OpenCTI specifies the `from` identifier as [List],
          * with a single list element
          */
-        val ids = data("where_sighted_refs").asInstanceOf[List[String]]
+        val ids = filteredData("where_sighted_refs").asInstanceOf[List[String]]
         if (ids.isEmpty) {
           val now = new java.util.Date().toString
           throw new Exception(s"[ERROR] $now - Sighting does not contain a `to` identifier.")
@@ -338,9 +338,9 @@ object EdgeTransformer extends BaseTransformer {
 
       val (propType, propValu) = field match {
         case "attribute_count" | "count" | "confidence" =>
-          ("INT", data.getOrElse(field, 0).asInstanceOf[Int].toString)
+          ("INT", filteredData.getOrElse(field, 0).asInstanceOf[Int].toString)
         case _ =>
-          ("STRING", data.getOrElse(field, "").asInstanceOf[String])
+          ("STRING", filteredData.getOrElse(field, "").asInstanceOf[String])
       }
 
       val propKey = field
@@ -722,11 +722,11 @@ object EdgeTransformer extends BaseTransformer {
               val vertex = initializeVertex(vertexId, KILL_CHAIN_PHASE, "create")
 
               /* kill_chain_name */
-              val kill_chain_name = data.getOrElse("kill_chain_name", "").asInstanceOf[String]
+              val kill_chain_name = value.getOrElse("kill_chain_name", "").asInstanceOf[String]
               vertex.addColumn("kill_chain_name", "STRING", kill_chain_name)
 
               /* phase_name */
-              val phase_name = data.getOrElse("phase_name", "").asInstanceOf[String]
+              val phase_name = value.getOrElse("phase_name", "").asInstanceOf[String]
               vertex.addColumn("phase_name", "STRING", phase_name)
               /*
                * Assign created [Vertex] and [Edge] to the list of
@@ -1183,19 +1183,19 @@ object EdgeTransformer extends BaseTransformer {
               val vertex = initializeVertex(vertexId, EXTERNAL_REFERENCE, "create")
 
               /* source_name */
-              val source_name = data.getOrElse("source_name", "").asInstanceOf[String]
+              val source_name = value.getOrElse("source_name", "").asInstanceOf[String]
               vertex.addColumn("source_name", "STRING", source_name)
 
               /* description */
-              val description = data.getOrElse("description", "").asInstanceOf[String]
+              val description = value.getOrElse("description", "").asInstanceOf[String]
               vertex.addColumn("description", "STRING", description)
 
               /* url */
-              val url = data.getOrElse("url", "").asInstanceOf[String]
+              val url = value.getOrElse("url", "").asInstanceOf[String]
               vertex.addColumn("url", "STRING", url)
 
               /* external_id */
-              val external_id = data.getOrElse("external_id", "").asInstanceOf[String]
+              val external_id = value.getOrElse("external_id", "").asInstanceOf[String]
               vertex.addColumn("external_id", "STRING", external_id)
 
               /*
@@ -1205,7 +1205,7 @@ object EdgeTransformer extends BaseTransformer {
                *  "SHA-256": "..."
                * }
                */
-              if (data.contains("hashes")) {
+              if (value.contains("hashes")) {
                 val hashes = transformHashes(data("hashes"))
                 hashes.foreach{case (k,v) =>
                   vertex.addColumn(k, "STRING", v)

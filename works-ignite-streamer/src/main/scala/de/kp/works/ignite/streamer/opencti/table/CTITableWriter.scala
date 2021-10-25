@@ -50,21 +50,23 @@ class CTITableWriter(connect:IgniteConnect) extends TableWriter(connect) {
        * STEP #3: Write logs that refer to a certain STIX
        * format to individual Apache Ignite caches
        */
-      transformed.foreach{case(format, schema, rows) =>
+      transformed.foreach{case(entity, schema, rows) =>
+        if (rows.nonEmpty) {
 
-        val dataframe = session.createDataFrame(session.sparkContext.parallelize(rows), schema)
-        /*
-         * OpenCTI events ship with ArrayType(LongType|StringType) fields,
-         * but Apache Ignite currently does not support this data type.
-         *
-         * See: https://issues.apache.org/jira/browse/IGNITE-9229
-         *
-         * Therefore, we intercept the generated dataframe here and serialize
-         * all ArrayType fields before writing to Apache Ignite
-         */
-        val table = "opencti_ " + format.replace(".", "_")
+          val dataframe = session.createDataFrame(session.sparkContext.parallelize(rows), schema)
+          /*
+           * OpenCTI events ship with ArrayType(LongType|StringType) fields,
+           * but Apache Ignite currently does not support this data type.
+           *
+           * See: https://issues.apache.org/jira/browse/IGNITE-9229
+           *
+           * Therefore, we intercept the generated dataframe here and serialize
+           * all ArrayType fields before writing to Apache Ignite
+           */
+          val table = "opencti_ " + entity
 
-        save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
+          save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
+        }
       }
 
     } catch {
