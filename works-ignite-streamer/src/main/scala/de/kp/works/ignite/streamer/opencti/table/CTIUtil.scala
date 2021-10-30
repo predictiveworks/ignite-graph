@@ -141,6 +141,134 @@ object CTIUtil extends BaseUtil {
    * described as a single JsonObject
    */
   def createStixObject(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = {
+    /*
+     * Extract other attributes from the provided payload.
+
+     * Basic fields are:
+     * - id
+     * - type
+     *
+     * - hashes
+     * - source_ref
+     * - spec_version
+     * - start_time
+     * - stop_time
+     * - target_ref
+     * - x_opencti_id
+     * - x_opencti_source_ref
+     * - x_opencti_target_ref
+     */
+    val filter = Seq("id", "type")
+     /*
+     * Field rules used by OpenCTI (see stix.js)
+     *
+     * (1) Specify relation `from`
+     *
+     * If the specified type is `sighting` the field is named `sighting_of_ref`
+     * and otherwise `source_ref`.  This field contains an identifier as
+     * [String] and is accompanied by `x_opencti_* ` to specify the internal
+     * counterpart
+     *
+     * (2) Specify relation `to`
+     *
+     * If the specified type is `sighting` the field is named `where_sighted_refs`
+     * and otherwise `target_ref`. The field contains a list of identifiers
+     * and is accompanied by `x_opencti_target_ref`, which contains the bare id.
+     *
+     * (3) Region specific input cases
+     *
+     * Field `x_opencti_stix_ids` contains a list of identifiers
+     *
+     * (4) Marking definition
+     *
+     * Field `name`             [String]
+     * Field `definition_type`  [String]
+     * Field `definition`       [Map[String,String]] where the key is equal to the
+     * definition type
+     *
+     * (5) Object references
+     *
+     * Field `object_refs [List[Map[String,Any]] or List[String]
+    *
+     * In case of a simple list, the list items define identifiers, and
+     * otherwise, it is Map of
+     *
+     * - reference [String]
+     * - value     [String]
+     * - x_opencti_internal_id [String]
+     *
+     * (6) Marking references
+     *
+     * Field `object_marking_refs` [List[Map[String,Any]] or List[String]
+     *
+     * In case of a simple list, the list items define identifiers, and
+     * otherwise, it is Map of
+     *
+     * - reference [String]
+     * - value     [String]
+     * - x_opencti_internal_id [String]
+     *
+     * (6) Created By
+     *
+     * Field `created_by_ref` Map[String, Any] or [String]
+     *
+     * In case of a [String], this field defines an identifier and
+     * otherwise, it is a Map of
+      *
+     * - reference [String]
+     * - value     [String]
+     * - x_opencti_internal_id [String]
+     *
+     * (7) Embedded relations
+     *
+     * Field `labels` [List[Map[String,Any]] or List[String]
+     *
+     * In case of a simple list, the list items define identifiers, and
+     * otherwise, it is Map of
+     *
+     * - reference [String]
+     * - value     [String]
+     * - x_opencti_internal_id [String]
+     *
+     * (8) Kill chain phases
+     *
+     * Field `kill_chain_phases` [List[Map[String,Any]]
+     *
+     * The Map either specifies
+     *
+     * - kill_chain_name [String]
+     * - phase_name      [String]
+     *
+     * or
+     *
+     * - reference [String]
+     * - value     [String]
+     * - x_opencti_internal_id [String]
+     *
+     * (9) External references
+     *
+     * Field `external_references` [List[Map[String,Any]]
+     *
+     * The Map either specifies
+     *
+     * - source_name [String]
+     * - description [String]
+     * - url         [String]
+     * - hashes      ???
+     * - external_id [String]
+     *
+     * or
+     *
+     * - reference [String]
+     * - value     [String]
+     * - x_opencti_internal_id [String]
+     *
+     * (10) Attribute filtering
+     *
+     * This is the final step where previous mappings are added
+     * to the event as [key] = val
+     *
+     */
 
     var filteredData = data
     /*
@@ -375,15 +503,81 @@ object CTIUtil extends BaseUtil {
 
   }
 
-  /** DELETE SUPPORT  */
-
-  def deleteSighting(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = ???
-
-  def deleteStixObject(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = ???
-
   /** UPDATE SUPPORT  */
 
-  def updateSighting(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = ???
+  def updateSighting(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = {
+
+    /*
+     * Retrieve patch from data
+     */
+    val patch = getPatch(data)
+    if (patch.isDefined) {
+
+      val batch = new JsonArray
+
+      val sightingRef: String = "NULL"
+      val sightedRefs: String = "NULL"
+
+      val patchData = patch.get
+      patchData.keySet.foreach(operation => {
+        val properties = patchData(operation).asInstanceOf[Map[String, List[Any]]]
+        val fields = Seq(
+          "attribute_count",
+          "confidence",
+          "count",
+          "created",
+          "created_by_ref",
+          "description",
+          "first_seen",
+          "last_seen",
+          "modified",
+          "name")
+
+        fields.foreach(field => {
+
+          if (properties.contains(field)) {
+
+            val batchObj = new JsonObject
+            batchObj.addProperty("action", "create")
+            batchObj.addProperty("operation", operation)
+
+            batchObj.addProperty("entity_id", entityId)
+            batchObj.addProperty("entity_type", entityType)
+
+            batchObj.addProperty("sighting_of_ref", sightingRef)
+            batchObj.addProperty("where_sighted_refs", sightedRefs)
+
+            batchObj.addProperty("attr_name", field)
+
+            field match {
+              case "attribute_count" | "confidence" | "count" =>
+                val value = properties(field).head.asInstanceOf[Int]
+
+                batchObj.addProperty("attr_type", "INT")
+                batchObj.addProperty("attr_value", value.toString)
+
+              case _ =>
+                val value = properties(field).head.asInstanceOf[String]
+
+                batchObj.addProperty("attr_type", "STRING")
+                batchObj.addProperty("attr_value", value)
+            }
+
+            batch.add(batchObj)
+          }
+        })
+      })
+
+      val fields = Array(primaryKey) ++ CTISchema.sighting().fields
+      val schema = StructType(fields)
+
+      (schema, batch)
+
+    }
+    else
+      (emptySchema, emptyBatch)
+
+  }
 
   def updateStixObject(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = {
     /*
@@ -948,29 +1142,16 @@ object CTIUtil extends BaseUtil {
       val result = new JsonArray
 
       val markings = data("object_marking_refs").asInstanceOf[List[Any]]
-      markings.foreach {
+      markings.foreach(marking => {
         /*
-         * This is the expected default description of references
-         * to object markings
+         * OpenCTI specifies object markings with different
+         * formats; this implementation resolves them into
+         * a list of serialized values
          */
-        case value: String =>
-          result.add(value)
-        /*
-         * The OpenCTI code base also specifies the subsequent format
-         * to describe reference to object markings for a STIX object.
-         */
-        case marking@(_: Map[_, _]) =>
-          val value = marking.asInstanceOf[Map[String, Any]]
-          /*
-           * The `value` of the provided Map refers to the
-           * Object Marking object (see OpenCTI data model).
-           */
-          result.add(value("value").asInstanceOf[String])
+        val value = mapper.writeValueAsString(marking)
+        result.add(value)
 
-        case _ =>
-          val now = new java.util.Date().toString
-          throw new Exception(s"[ERROR] $now - The data type of the provided object marking is not supported.")
-      }
+      })
 
       Some(result)
 

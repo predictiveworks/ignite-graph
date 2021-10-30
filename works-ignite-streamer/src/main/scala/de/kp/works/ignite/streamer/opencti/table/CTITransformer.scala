@@ -28,7 +28,10 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
 import scala.collection.JavaConversions._
-
+/**
+ * The [CTITransformer] is implemented to transform STIX
+ * object and sightings. Relations are currently not supported.
+ */
 object CTITransformer {
 
   private val mapper = new ObjectMapper()
@@ -78,11 +81,9 @@ object CTITransformer {
           val (schema, batch) = event match {
             case "create" =>
               transformCreate(entityId, entityType, data:Map[String, Any])
-            case "delete" =>
-              transformDelete(entityId, entityType, data:Map[String, Any])
-            case "merge" | "sync" => (emptySchema, emptyBatch)
             case "update" =>
               transformUpdate(entityId, entityType, data:Map[String, Any])
+            case "delete" | "merge" | "sync" => (emptySchema, emptyBatch)
             case _ =>
               val now = new java.util.Date().toString
               throw new Exception(s"[ERROR] $now - Unknown event type detected: $event")
@@ -166,53 +167,6 @@ object CTITransformer {
        * or a STIX Cyber Observable
        */
       CTIUtil.createStixObject(entityId, entityType, data)
-    }
-
-  }
-
-  private def transformDelete(entityId: String, entityType: String, data: Map[String, Any]):(StructType, JsonArray) = {
-
-    val isEdge = STIX.isStixEdge(entityType.toLowerCase)
-    if (isEdge) {
-
-      if (STIX.isStixRelationship(entityType.toLowerCase)) {
-        /*
-        * The current implementation does not support
-        * STIX relationships; it is up to the user to
-        * build relations between Ignite caches.
-        */
-        return (emptySchema, emptyBatch)
-      }
-
-      if (STIX.isStixSighting(entityType.toLowerCase)) {
-        return CTIUtil.deleteSighting(entityId, entityType, data)
-      }
-
-      if (STIX.isStixObservableRelationship(entityType.toLowerCase)) {
-        /*
-         * The current implementation does not support
-         * STIX observable relationships; it is up to
-         * the user to build relations between Ignite
-         * caches.
-         */
-        return (emptySchema, emptyBatch)
-      }
-
-      if (STIX.isStixMetaRelationship(entityType.toLowerCase)) {
-        /*
-         * The current implementation does not support
-         * STIX metadata relationships; it is up to
-         * the user to build relations between Ignite
-         * caches.
-         */
-        return (emptySchema, emptyBatch)
-      }
-
-      val now = new java.util.Date().toString
-      throw new Exception(s"[ERROR] $now - Unknown relation type detected.")
-    }
-    else {
-      CTIUtil.deleteStixObject(entityId, entityType, data)
     }
 
   }

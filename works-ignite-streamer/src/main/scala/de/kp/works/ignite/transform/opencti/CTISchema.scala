@@ -29,7 +29,7 @@ object CTISchema {
        * The action specified by OpenCTI how to process
        * this sighting
        */
-      StructField("action", StringType, nullable = false),
+      StructField("action",    StringType, nullable = false),
       StructField("operation", StringType, nullable = false),
       /*
        * Each sighting is identified by `id` and `type`
@@ -64,8 +64,8 @@ object CTISchema {
        * The action specified by OpenCTI how to process
        * this STIX object
        */
-      StructField("action", StringType, nullable = false),
-      StructField("action", StringType, nullable = false),
+      StructField("action",    StringType, nullable = false),
+      StructField("operation", StringType, nullable = false),
       /*
        * Each STIX object is identified by `id` and `type`
        */
