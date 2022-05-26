@@ -1,10 +1,7 @@
-package de.kp.works.ignite.streamer.osquery.fleet
+package de.kp.works.ignite.streamer.beat
 
-import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.core.BaseStream
-
-/*
- * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
+/**
+ * Copyright (c) 20129 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,20 +19,20 @@ import de.kp.works.ignite.core.BaseStream
  *
  */
 
+import de.kp.works.ignite.conf.WorksConf
+import de.kp.works.ignite.core.BaseStream
+
 /**
- * The [FleetStream] receives result & status log events from a FleetDM server.
- * It is expected that filesystem logging is enabled as this Apache Ignite stream
- * is backed by a File Monitor.
- *
- * Different from the [TLSStream], this Ignite streamer does not support distributed
- * queries.
+ * [BeatStream] is the SSE streaming application
+ * of [IgniteGraph] that integrates with Works &
+ * Sensor Beats.
  */
-object FleetStream extends BaseStream {
+object BeatStream extends BaseStream {
 
-  override var channel: String = WorksConf.FLEETDM_CONF
+  override var channel: String = WorksConf.BEAT_CONF
 
-  override var programName: String = "FleetStream"
-  override var programDesc: String = "Ignite streaming support for Fleet log events."
+  override var programName: String = "BeatStream"
+  override var programDesc: String = "Ignite streaming support for Beat SSE events."
 
   override def launch(args: Array[String]): Unit = {
 
@@ -50,10 +47,10 @@ object FleetStream extends BaseStream {
         igniteConnect = Some(buildIgniteConnect(c, channel))
         /*
          * Build streaming context and finally start the
-         * service that listens to Osquery events.
+         * service that listens to Works & Sensor Beat events.
          */
-        val engine = new FleetEngine(igniteConnect.get)
-        igniteStream = engine.buildStream
+        val beatIgnite = new BeatEngine(igniteConnect.get)
+        igniteStream = beatIgnite.buildStream
 
         start()
 

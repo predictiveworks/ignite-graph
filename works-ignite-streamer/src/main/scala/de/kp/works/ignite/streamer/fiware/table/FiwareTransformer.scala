@@ -121,7 +121,7 @@ object FiwareTransformer {
             rowObj.addProperty("metadata", metadata)
             rowObj.add("entityCtx", entityCtx)
 
-            JsonUtil.json2Row(rowObj, schema))
+            JsonUtil.json2Row(rowObj, schema)
 
           })
 
@@ -132,7 +132,7 @@ object FiwareTransformer {
       (schema, rows)
 
     } catch {
-      case _: Throwable => (StructType(Array()), Seq.empty[Row])
+      case _: Throwable => (StructType(Array.empty[StructField]), Seq.empty[Row])
     }
   }
 

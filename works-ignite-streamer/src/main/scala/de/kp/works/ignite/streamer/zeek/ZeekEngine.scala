@@ -20,8 +20,8 @@ package de.kp.works.ignite.streamer.zeek
 
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
+import de.kp.works.ignite.core.{BaseEngine, IgniteStream, IgniteStreamContext}
 import de.kp.works.ignite.file.FileEvent
-import de.kp.works.ignite.streamer.{BaseEngine, IgniteStream, IgniteStreamContext}
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.stream.StreamSingleTupleExtractor

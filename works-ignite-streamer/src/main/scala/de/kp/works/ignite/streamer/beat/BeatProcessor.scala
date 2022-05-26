@@ -1,5 +1,6 @@
-package de.kp.works.ignite.streamer.fiware
-/*
+package de.kp.works.ignite.streamer.beat
+
+/**
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -18,10 +19,10 @@ package de.kp.works.ignite.streamer.fiware
  *
  */
 
-import com.google.gson.JsonParser
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
 import de.kp.works.ignite.core.IgniteProcessor
+import de.kp.works.ignite.sse.SseEvent
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.cache.query.SqlFieldsQuery
@@ -29,37 +30,36 @@ import org.apache.ignite.cache.query.SqlFieldsQuery
 import scala.collection.JavaConversions.asScalaBuffer
 import scala.collection.mutable
 
-class FiwareProcessor(
+class BeatProcessor(
   cache:IgniteCache[String,BinaryObject],
   connect:IgniteConnect) extends IgniteProcessor(cache) {
 
   private val eventFields = Array(
     "_key",
-    FiwareConstants.FIELD_SERVICE,
-    FiwareConstants.FIELD_SERVICE_PATH,
-    FiwareConstants.FIELD_PAYLOAD).mkString(",")
+    BeatConstants.FIELD_ID,
+    BeatConstants.FIELD_TYPE,
+    BeatConstants.FIELD_DATA).mkString(",")
   /**
    * Apache Ignite SQL query to retrieve the content of
    * the temporary notification cache including the _key
    */
   override protected val eventQuery =
-    new SqlFieldsQuery(s"select $eventFields from ${FiwareConstants.FIWARE_CACHE}")
+    new SqlFieldsQuery(s"select $eventFields from ${BeatConstants.BEAT_CACHE}")
   /**
    * This store is introduced to collect the result from the
    * event query in a distinct manner; the eventStore is used
    * as a buffer before it is flushed and cleared
    */
-  private val eventStore = mutable.HashMap.empty[String,FiwareEvent]
+  private val eventStore = mutable.HashMap.empty[String,SseEvent]
   /**
    * The frequency we flush the internal store and write
    * data to the predefined output is currently set to
    * 2 times of the stream buffer flush frequency
    */
-  private val conf = WorksConf.getStreamerCfg(WorksConf.FIWARE_CONF)
+  private val conf = WorksConf.getStreamerCfg(WorksConf.OPENCTI_CONF)
   override val flushWindow:Int = conf.getInt("flushWindow")
 
-  private val writer = new FiwareWriter(connect)
-
+  private val writer = new BeatWriter(connect)
   /**
    * A helper method to apply the event query to the selected
    * Ignite cache, retrieve the results and write them to the
@@ -75,15 +75,16 @@ class FiwareProcessor(
       val k = values.head.asInstanceOf[String]
       keys.add(k)
 
-      val mutable.Buffer(service, servicePath, payload) =
+      val mutable.Buffer(eventId, eventType, data) =
         values.tail.map(_.asInstanceOf[String])
 
-      eventStore += k -> FiwareEvent(service,servicePath, JsonParser.parseString(payload).getAsJsonObject)
+      eventStore += k -> SseEvent(eventId, eventType, data)
     })
     /*
      * Clear extracted cache entries fast
      */
     cache.clearAll(keys)
+
   }
   /**
    * A helper method to process the extracted cache entries

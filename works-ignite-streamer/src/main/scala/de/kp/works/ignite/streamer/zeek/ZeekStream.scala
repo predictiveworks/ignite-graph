@@ -1,7 +1,7 @@
 package de.kp.works.ignite.streamer.zeek
 
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.BaseStream
+import de.kp.works.ignite.core.BaseStream
 
 /*
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
@@ -39,13 +39,13 @@ object ZeekStream extends BaseStream {
 
       try {
 
-        connect = Some(buildConnect(c, channel))
+        igniteConnect = Some(buildIgniteConnect(c, channel))
         /*
          * Build streaming context and finally start the
          * service that listens to Zeek log events.
          */
-        val zeekEngine = new ZeekEngine(connect.get)
-        service = zeekEngine.buildStream
+        val zeekEngine = new ZeekEngine(igniteConnect.get)
+        igniteStream = zeekEngine.buildStream
 
         start()
 

@@ -20,8 +20,8 @@ package de.kp.works.ignite.streamer.osquery.fleet.table
 
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
+import de.kp.works.ignite.core.Session
 import de.kp.works.ignite.file.FileEvent
-import de.kp.works.ignite.streamer.Session
 import de.kp.works.ignite.writer.TableWriter
 import org.apache.spark.sql.SaveMode
 /**

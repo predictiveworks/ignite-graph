@@ -1,6 +1,6 @@
-package de.kp.works.ignite.streamer.opencti.graph
+package de.kp.works.ignite.streamer.beat.graph
 
-/*
+/**
  * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -19,25 +19,29 @@ package de.kp.works.ignite.streamer.opencti.graph
  *
  */
 
-import de.kp.works.ignite.IgniteConnect
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import de.kp.works.ignite.mutate.IgniteMutation
 import de.kp.works.ignite.sse.SseEvent
-import de.kp.works.ignite.writer.GraphWriter
 
-class CTIGraphWriter(connect:IgniteConnect) extends GraphWriter(connect) {
+import scala.collection.mutable
 
-  def write(events:Seq[SseEvent]):Unit = {
-    /*
-     * Leverage the CTITransformer to extract
-     * vertices and edges from the threat events
-     */
-    val transformer = CTITransformer
-    val (vertices, edges) = transformer.transform(events)
-    /*
-     * Finally write vertices and edges to the
-     * respective output caches
-     */
-    writeVertices(vertices)
-    writeEdges(edges)
+object BeatTransformer {
+
+  private val mapper = new ObjectMapper()
+  mapper.registerModule(DefaultScalaModule)
+
+  /**
+   * Events format :: SseEvent(id, event, data)
+   */
+  def transform(sseEvents: Seq[SseEvent]): (Seq[IgniteMutation], Seq[IgniteMutation]) = {
+
+    val vertices = mutable.ArrayBuffer.empty[IgniteMutation]
+    val edges = mutable.ArrayBuffer.empty[IgniteMutation]
+
+    // TODO
+
+    (vertices, edges)
 
   }
 

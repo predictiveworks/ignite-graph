@@ -21,7 +21,7 @@ package de.kp.works.ignite.streamer.opencti.graph
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import de.kp.works.ignite.mutate.{IgniteDelete, IgniteMutation, IgnitePut}
-import de.kp.works.ignite.streamer.opencti.SseEvent
+import de.kp.works.ignite.sse.SseEvent
 import de.kp.works.ignite.streamer.opencti.graph.transformer.{EdgeTransformer, VertexTransformer}
 import de.kp.works.ignite.transform.opencti.stix.STIX
 

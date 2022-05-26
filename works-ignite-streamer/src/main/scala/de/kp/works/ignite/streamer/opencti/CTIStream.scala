@@ -1,7 +1,7 @@
 package de.kp.works.ignite.streamer.opencti
 
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.BaseStream
+import de.kp.works.ignite.core.BaseStream
 
 /*
  * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
@@ -43,13 +43,13 @@ object CTIStream extends BaseStream {
 
       try {
 
-        connect = Some(buildConnect(c, channel))
+        igniteConnect = Some(buildIgniteConnect(c, channel))
         /*
          * Build streaming context and finally start the
          * service that listens to OpenCTI events.
          */
-        val ctiIgnite = new CTIEngine(connect.get)
-        service = ctiIgnite.buildStream
+        val ctiIgnite = new CTIEngine(igniteConnect.get)
+        igniteStream = ctiIgnite.buildStream
 
         start()
 

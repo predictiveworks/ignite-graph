@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.google.gson.JsonArray
 import de.kp.works.ignite.json.JsonUtil
-import de.kp.works.ignite.streamer.opencti.SseEvent
+import de.kp.works.ignite.sse.SseEvent
 import de.kp.works.ignite.transform.opencti.stix.STIX
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._

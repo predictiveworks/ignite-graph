@@ -1,6 +1,7 @@
-package de.kp.works.ignite.streamer.zeek
-/*
- * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+package de.kp.works.ignite.streamer.beat
+
+/**
+ * Copyright (c) 2019 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,16 +20,16 @@ package de.kp.works.ignite.streamer.zeek
  */
 
 import de.kp.works.ignite.core.IgniteStreamer
-import de.kp.works.ignite.file.{FileEvent, FileEventHandler}
+import de.kp.works.ignite.sse.{SseEvent, SseEventHandler}
 import org.apache.ignite.IgniteException
 import org.apache.ignite.stream.StreamAdapter
 
-class ZeekStreamer[K,V]
-  extends StreamAdapter[FileEvent, K, V] with FileEventHandler with IgniteStreamer {
+class BeatStreamer[K,V]
+  extends StreamAdapter[SseEvent, K, V] with SseEventHandler with IgniteStreamer {
 
-  /** Zeek Service */
+  /** Beat Service */
 
-  private var service:Option[ZeekService] = None
+  private var service:Option[BeatService] = None
 
   /** State keeping. */
   private val stopped = true
@@ -38,9 +39,9 @@ class ZeekStreamer[K,V]
   override def start():Unit = {
 
     if (!stopped)
-      throw new IgniteException("Attempted to start an already started Zeek Streamer.")
+      throw new IgniteException("Attempted to start an already started Beat Streamer.")
 
-    service = Some(new ZeekService())
+    service = Some(new BeatService())
     service.get.setEventHandler(this)
 
     service.get.start()
@@ -52,13 +53,13 @@ class ZeekStreamer[K,V]
   override def stop():Unit = {
 
     if (stopped)
-      throw new IgniteException("Failed to stop Zeek Streamer (already stopped).")
+      throw new IgniteException("Failed to stop Beat Streamer (already stopped).")
 
     if (service.isEmpty)
-      throw new IgniteException("Failed to stop the Zeek Service (never started).")
+      throw new IgniteException("Failed to stop the Beat Service (never started).")
     /*
      * Stopping the streamer equals stopping
-     * the Zeek event service
+     * the OpenCTI event service
      */
     service.get.stop()
 
@@ -66,11 +67,15 @@ class ZeekStreamer[K,V]
 
   /********************************
    *
-   *  Zeek event handler method
+   *  Beat event handler methods
    *
    *******************************/
 
-  override def eventArrived(event: FileEvent): Unit = {
+  override def connectionLost(): Unit = {/* Do nothing */}
+  /**
+   * Events format :: SseEvent(id, event, data)
+   */
+  override def eventArrived(event: SseEvent): Unit = {
 
     val log = getIgnite.log()
     /*

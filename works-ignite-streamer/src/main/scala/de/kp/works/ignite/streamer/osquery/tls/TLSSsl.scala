@@ -20,7 +20,7 @@ package de.kp.works.ignite.streamer.osquery.tls
 
 import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.BaseSsl
+import de.kp.works.ignite.core.BaseSsl
 
 object TLSSsl extends BaseSsl {
 

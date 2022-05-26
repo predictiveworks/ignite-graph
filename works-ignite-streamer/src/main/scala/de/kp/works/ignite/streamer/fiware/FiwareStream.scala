@@ -20,7 +20,7 @@ package de.kp.works.ignite.streamer.fiware
 
 
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.BaseStream
+import de.kp.works.ignite.core.BaseStream
 
 /**
  * [FiwareStream] is the FIWARE streaming application
@@ -44,13 +44,13 @@ object FiwareStream extends BaseStream {
 
       try {
 
-        connect = Some(buildConnect(c, channel))
+        igniteConnect = Some(buildIgniteConnect(c, channel))
         /*
          * Build streaming context and finally start the
          * service that listens to Fiware events.
          */
-        val fiwareIgnite = new FiwareEngine(connect.get)
-        service = fiwareIgnite.buildStream
+        val fiwareIgnite = new FiwareEngine(igniteConnect.get)
+        igniteStream = fiwareIgnite.buildStream
 
         start()
 

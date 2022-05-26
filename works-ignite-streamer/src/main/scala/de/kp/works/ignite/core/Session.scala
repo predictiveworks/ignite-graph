@@ -1,7 +1,7 @@
-package de.kp.works.ignite.streamer
+package de.kp.works.ignite.core
 
-/*
- * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+/**
+ * Copyright (c) 2021 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,7 +20,6 @@ package de.kp.works.ignite.streamer
  */
 
 import de.kp.works.ignite.conf.WorksConf
-import org.apache.ignite.{Ignite, Ignition}
 import org.apache.spark.sql.SparkSession
 
 object Session {

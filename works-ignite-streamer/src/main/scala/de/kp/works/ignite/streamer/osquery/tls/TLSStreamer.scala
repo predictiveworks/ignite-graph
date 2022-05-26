@@ -19,7 +19,7 @@ package de.kp.works.ignite.streamer.osquery.tls
  *
  */
 
-import de.kp.works.ignite.streamer.IgniteStreamer
+import de.kp.works.ignite.core.IgniteStreamer
 import de.kp.works.ignite.streamer.osquery.tls.db.DBApi
 import org.apache.ignite.stream.StreamAdapter
 import org.apache.ignite.IgniteException

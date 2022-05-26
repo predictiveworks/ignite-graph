@@ -18,20 +18,13 @@ package de.kp.works.ignite.streamer.opencti
  *
  */
 
-import de.kp.works.ignite.streamer.IgniteStreamer
+import de.kp.works.ignite.core.IgniteStreamer
+import de.kp.works.ignite.sse.{SseEvent, SseEventHandler}
 import org.apache.ignite.IgniteException
 import org.apache.ignite.stream.StreamAdapter
 
-trait CTIEventHandler {
-
-  def connectionLost():Unit
-
-  def eventArrived(event:SseEvent):Unit
-
-}
-
 class CTIStreamer[K,V]
-  extends StreamAdapter[SseEvent, K, V] with CTIEventHandler with IgniteStreamer {
+  extends StreamAdapter[SseEvent, K, V] with SseEventHandler with IgniteStreamer {
 
   /** OpenCTI Service */
 

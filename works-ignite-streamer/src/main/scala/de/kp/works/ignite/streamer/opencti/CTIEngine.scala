@@ -1,6 +1,6 @@
 package de.kp.works.ignite.streamer.opencti
-/*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+/**
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,7 +20,8 @@ package de.kp.works.ignite.streamer.opencti
 
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.{BaseEngine, IgniteStream, IgniteStreamContext}
+import de.kp.works.ignite.core.{BaseEngine, IgniteStream, IgniteStreamContext}
+import de.kp.works.ignite.sse.SseEvent
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.stream.StreamSingleTupleExtractor

@@ -1,6 +1,7 @@
-package de.kp.works.ignite.streamer
-/*
- * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
+package de.kp.works.ignite.core
+
+/**
+ * Copyright (c) 2021 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,10 +19,20 @@ package de.kp.works.ignite.streamer
  *
  */
 
-trait IgniteStreamer {
+import com.typesafe.config.Config
+import de.kp.works.ignite.ssl.SslOptions
 
-  def start(): Unit
+import javax.net.ssl.SSLContext
 
-  def stop(): Unit
+trait BaseSsl {
+
+  protected def buildSSLContext(securityCfg: Config): SSLContext = {
+    val sslOptions = getSslOptions(securityCfg)
+    sslOptions.getSslContext
+  }
+
+  protected def getSslOptions(securityCfg: Config): SslOptions = {
+    SslOptions.getOptions(securityCfg)
+  }
 
 }

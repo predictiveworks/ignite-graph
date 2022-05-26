@@ -1,6 +1,7 @@
-package de.kp.works.ignite.streamer.opencti
-/*
- * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+package de.kp.works.ignite.streamer.beat
+
+/**
+ * Copyright (c) 2019 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,22 +22,22 @@ package de.kp.works.ignite.streamer.opencti
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
 import de.kp.works.ignite.sse.SseEvent
-import de.kp.works.ignite.streamer.opencti.graph.CTIGraphWriter
-import de.kp.works.ignite.streamer.opencti.table.CTITableWriter
+import de.kp.works.ignite.streamer.beat.graph.BeatGraphWriter
+import de.kp.works.ignite.streamer.beat.table.BeatTableWriter
 
-class CTIWriter(connect:IgniteConnect) {
+class BeatWriter(connect:IgniteConnect) {
 
-  private val ctiCfg = WorksConf.getCfg(WorksConf.OPENCTI_CONF)
-  private val writeMode = ctiCfg.getString("writeMode")
+  private val beatCfg = WorksConf.getCfg(WorksConf.BEAT_CONF)
+  private val writeMode = beatCfg.getString("writeMode")
 
   def write(events:Seq[SseEvent]):Unit = {
 
     writeMode match {
       case "graph" =>
-        val writer = new CTIGraphWriter(connect)
+        val writer = new BeatGraphWriter(connect)
         writer.write(events)
       case "table" =>
-        val writer = new CTITableWriter(connect)
+        val writer = new BeatTableWriter(connect)
         writer.write(events)
       case _ =>
         throw new Exception(s"The configured writeMode `$writeMode` is not supported.")

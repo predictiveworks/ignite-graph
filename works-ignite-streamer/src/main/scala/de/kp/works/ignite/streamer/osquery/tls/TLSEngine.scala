@@ -21,7 +21,7 @@ package de.kp.works.ignite.streamer.osquery.tls
 
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.{BaseEngine, IgniteStream, IgniteStreamContext}
+import de.kp.works.ignite.core.{BaseEngine, IgniteStream, IgniteStreamContext}
 import de.kp.works.ignite.streamer.osquery.tls.db.DBApi
 import de.kp.works.ignite.streamer.osquery.OsqueryConstants
 import org.apache.ignite.IgniteCache

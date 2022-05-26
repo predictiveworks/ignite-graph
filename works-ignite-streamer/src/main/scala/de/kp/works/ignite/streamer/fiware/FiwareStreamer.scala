@@ -18,7 +18,7 @@ package de.kp.works.ignite.streamer.fiware
  *
  */
 
-import de.kp.works.ignite.streamer.IgniteStreamer
+import de.kp.works.ignite.core.IgniteStreamer
 import org.apache.ignite.IgniteException
 import org.apache.ignite.stream.StreamAdapter
 

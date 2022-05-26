@@ -1,7 +1,7 @@
-package de.kp.works.ignite.streamer.opencti.graph
+package de.kp.works.ignite.streamer.beat.graph
 
-/*
- * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+/**
+ * Copyright (c) 2019 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,14 +23,14 @@ import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.sse.SseEvent
 import de.kp.works.ignite.writer.GraphWriter
 
-class CTIGraphWriter(connect:IgniteConnect) extends GraphWriter(connect) {
+class BeatGraphWriter(connect:IgniteConnect) extends GraphWriter(connect) {
 
   def write(events:Seq[SseEvent]):Unit = {
     /*
-     * Leverage the CTITransformer to extract
-     * vertices and edges from the threat events
+     * Leverage the BeatTransformer to extract
+     * vertices and edges from the SSE events
      */
-    val transformer = CTITransformer
+    val transformer = BeatTransformer
     val (vertices, edges) = transformer.transform(events)
     /*
      * Finally write vertices and edges to the

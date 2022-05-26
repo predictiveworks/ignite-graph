@@ -1,6 +1,7 @@
-package de.kp.works.ignite.streamer.opencti
-/*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+package de.kp.works.ignite.sse
+
+/**
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,10 +20,16 @@ package de.kp.works.ignite.streamer.opencti
  */
 
 import de.kp.works.ignite.ssl.SslOptions
-
 import java.util.concurrent.Executors
 
 /**
+ * This [SseReceiver] actually supports SSE events from OpenCTI
+ * and Works & Sensor Beats. The receiver leverages an SSE client
+ * to connect to the exposed SSE endpoint and listens to the SSE
+ * event stream.
+ *
+ * OpenCTI
+ * -------
  * OpenCTI is currently using REDIS Stream as its technical layer.
  * Each time data is modified in the OpenCTI database, a specific
  * event is added in the stream.
@@ -36,26 +43,36 @@ import java.util.concurrent.Executors
  *
  * and open an SSE connection to start receiving live events.
  *
- * The [CTIReceiver] leverages an SSE client to connect to the
- * exposed SSE endpoint and listens to the OpenCTI event stream.
+ * Works & Sensor Beats
+ * --------------------
+ *
+ * In order to provides a really easy consuming protocol Works &
+ * Sensor Beats provide an SSE endpoint.
+ *
+ * Every user with respective access rights can open and access
+ *
+ * http(s)://[host]:[port]/{beat|sensor}/stream]
+ *
+ * and open an SSE connection to start receiving live events.
+ *
  */
-class CTIReceiver(
+class SseReceiver(
    /*
-    * The endpoint of the OpenCTI server
+    * The endpoint of the SSE server
     */
    endpoint:String,
    /*
     * The callback used to send events to
     */
-   eventHandler: CTIEventHandler,
+   eventHandler: SseEventHandler,
    /*
     * The (optional) authorization token
-    * to access the OpenCTI server
+    * to access the SSE server
     */
    authToken:Option[String] = None,
    /*
     * The optional SSL configuration to
-    * access a secure OpenCTI server
+    * access a secure SSE server
     */
    sslOptions:Option[SslOptions] = None,
    /* The number of threads to use for processing */
@@ -69,15 +86,14 @@ class CTIReceiver(
      */
     val worker = new Runnable {
       /*
-       * Initialize the connector to the
-       * OpenCTI server
+       * Initialize the connector to the SSE server
        */
-      private val connector = new CTIConnector(endpoint, eventHandler, authToken, sslOptions)
+      private val connector = new SseConnector(endpoint, eventHandler, authToken, sslOptions)
 
       override def run(): Unit = {
 
         val now = new java.util.Date().toString
-        println(s"[CTIReceiver] $now - Receiver worker started.")
+        println(s"[SseReceiver] $now - Receiver worker started.")
 
         connector.start()
 
@@ -97,7 +113,7 @@ class CTIReceiver(
 
   def stop():Unit = {
 
-    /* Stop listening to the OpenCTI events stream  */
+    /* Stop listening to the SSE events stream  */
     executorService.shutdown()
     executorService.shutdownNow()
 

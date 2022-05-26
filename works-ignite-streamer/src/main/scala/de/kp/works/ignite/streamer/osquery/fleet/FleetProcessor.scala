@@ -20,8 +20,8 @@ package de.kp.works.ignite.streamer.osquery.fleet
 
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
+import de.kp.works.ignite.core.IgniteProcessor
 import de.kp.works.ignite.file.FileEvent
-import de.kp.works.ignite.streamer.IgniteProcessor
 import de.kp.works.ignite.streamer.osquery.OsqueryConstants
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject

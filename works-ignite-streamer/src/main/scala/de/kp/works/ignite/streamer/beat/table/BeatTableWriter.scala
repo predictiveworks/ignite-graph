@@ -1,7 +1,7 @@
-package de.kp.works.ignite.streamer.opencti.table
+package de.kp.works.ignite.streamer.beat.table
 
-/*
- * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+/**
+ * Copyright (c) 2019 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,9 +26,9 @@ import de.kp.works.ignite.sse.SseEvent
 import de.kp.works.ignite.writer.TableWriter
 import org.apache.spark.sql.SaveMode
 
-class CTITableWriter(connect:IgniteConnect) extends TableWriter(connect) {
+class BeatTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
 
-  private val ctiCfg = WorksConf.getCfg(WorksConf.OPENCTI_CONF)
+  private val ctiCfg = WorksConf.getCfg(WorksConf.BEAT_CONF)
 
   private val primaryKey = ctiCfg.getString("primaryKey")
   private val tableParameters = ctiCfg.getString("tableParameters")
@@ -42,20 +42,20 @@ class CTITableWriter(connect:IgniteConnect) extends TableWriter(connect) {
        */
       val session = Session.getSession
       /*
-       * STEP #2: Transform the OpenCTI events into an
+       * STEP #2: Transform the Beat SSE events into an
        * Apache Spark compliant format
        */
-      val transformed = CTITransformer.transform(sseEvents)
+      val transformed = BeatTransformer.transform(sseEvents)
       /*
-       * STEP #3: Write logs that refer to a certain STIX
-       * format to individual Apache Ignite caches
+       * STEP #3: Write logs that refer to a certain SSE event
+       * type to individual Apache Ignite caches
        */
       transformed.foreach{case(entity, schema, rows) =>
         if (rows.nonEmpty) {
 
           val dataframe = session.createDataFrame(session.sparkContext.parallelize(rows), schema)
           /*
-           * OpenCTI events ship with ArrayType(LongType|StringType) fields,
+           * Beat SSE events ship with ArrayType(LongType|StringType) fields,
            * but Apache Ignite currently does not support this data type.
            *
            * See: https://issues.apache.org/jira/browse/IGNITE-9229
@@ -63,8 +63,7 @@ class CTITableWriter(connect:IgniteConnect) extends TableWriter(connect) {
            * Therefore, we intercept the generated dataframe here and serialize
            * all ArrayType fields before writing to Apache Ignite
            */
-          val table = "opencti_ " + entity
-
+          val table = "beat_ " + entity
           save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
         }
       }

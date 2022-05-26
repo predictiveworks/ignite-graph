@@ -1,6 +1,7 @@
 package de.kp.works.ignite.streamer.opencti
-/*
- * Copyright (c) 20129 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+
+/**
+ * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,11 +20,12 @@ package de.kp.works.ignite.streamer.opencti
  */
 
 import de.kp.works.ignite.conf.WorksConf
+import de.kp.works.ignite.sse.{SseReceiver, SseEventHandler}
 import de.kp.works.ignite.ssl.SslOptions
 
 class CTIService {
 
-  private var eventHandler:Option[CTIEventHandler] = None
+  private var eventHandler:Option[SseEventHandler] = None
   /**
    * Specify the callback to be used by this service
    * to send OpenCTI events to the respective Ignite
@@ -32,7 +34,7 @@ class CTIService {
    * The current implementation leverages the CTI
    * Streamer as callback
    */
-  def setEventHandler(handler:CTIEventHandler):CTIService = {
+  def setEventHandler(handler:SseEventHandler):CTIService = {
     this.eventHandler = Some(handler)
     this
   }
@@ -69,7 +71,7 @@ class CTIService {
     val sslOptions = SslOptions.getOptions(securityCfg)
 
     val numThreads = receiverCfg.getInt("numThreads")
-    val receiver = new CTIReceiver(
+    val receiver = new SseReceiver(
       endpoint,
       eventHandler.get,
       authToken,

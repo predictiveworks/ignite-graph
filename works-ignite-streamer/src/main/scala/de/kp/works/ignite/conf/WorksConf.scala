@@ -1,5 +1,5 @@
 package de.kp.works.ignite.conf
-/*
+/**
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -18,13 +18,16 @@ package de.kp.works.ignite.conf
  *
  */
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigObject}
+
+import scala.collection.JavaConversions.asScalaBuffer
 
 object WorksConf {
 
   private val path = "reference.conf"
 
-  val FIWARE_CONF = "fiware"
+  val BEAT_CONF    = "beat"
+  val FIWARE_CONF  = "fiware"
   val FLEETDM_CONF = "osquery_fleet"
   val OPENCTI_CONF = "opencti"
   val OSQUERY_CONF = "osquery_tls"
@@ -74,6 +77,8 @@ object WorksConf {
 
   def getCfg(name: String): Config = {
     name match {
+      case BEAT_CONF =>
+        cfg.get.getConfig("beat")
       case FIWARE_CONF =>
         cfg.get.getConfig("fiware")
       case FLEETDM_CONF =>
@@ -90,8 +95,10 @@ object WorksConf {
   }
 
   /**
-   * The current version of this project supports four different
-   * data sources, Fiware, FleetDM, OpenCTI, Osquery and Zeek.
+   * The current version of this project supports multiple
+   * data sources, Beat, Fiware, FleetDM, OpenCTI, Osquery
+   * and Zeek.
+   *
    * This choice is based on our Cy(I)IoT initiative to bring
    * endpoints, network and data to a single platform.
    */
@@ -102,7 +109,7 @@ object WorksConf {
 
   /**
    * This method offers the configuration for those
-   * Apache Ignite streamers, that are based on a
+   * Apache Ignite streamers, that are based on a single
    * Receiver
    */
   def getReceiverCfg(name: String): Config = {
@@ -114,6 +121,34 @@ object WorksConf {
 
       val conf = getCfg(name)
       conf.getConfig("receiver")
+
+    }
+    else
+      throw new Exception(s"Receiver configuration for `$name` is not supported.")
+
+  }
+  /**
+   * This method provides the receiver configurations
+   * for those Apache Ignite streamers that support
+   * multiple receivers
+   */
+  def getReceiversCfg(name: String): List[Config] = {
+
+    if (Array(
+      BEAT_CONF).contains(name)) {
+
+      val conf = getCfg(name)
+      val receivers = conf.getList("receivers")
+
+      receivers.map {
+        case configObject: ConfigObject =>
+          configObject.toConfig
+
+        case _ =>
+          val now = new java.util.Date()
+          throw new Exception(s"[ERROR] $now.toString - Receivers are not configured properly.")
+      }
+      .toList
 
     }
     else
@@ -160,10 +195,11 @@ object WorksConf {
   def getSystemName(name: String): String = {
 
     name match {
+      case BEAT_CONF    => "beat-monitor"
       case FLEETDM_CONF => "fleetdm-monitor"
-      case FIWARE_CONF => "fiware-server"
+      case FIWARE_CONF  => "fiware-server"
       case OSQUERY_CONF => "osquery-server"
-      case ZEEK_CONF => "zeek-monitor"
+      case ZEEK_CONF    => "zeek-monitor"
       case _ =>
         throw new Exception(s"Actor system for `$name` is not supported.")
     }

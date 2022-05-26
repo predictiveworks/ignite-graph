@@ -1,5 +1,6 @@
-package de.kp.works.ignite.streamer.opencti
-/*
+package de.kp.works.ignite.sse
+
+/**
  * Copyright (c) 2020 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -23,13 +24,14 @@ import okhttp3.Response
 import okhttp3.sse.{EventSource, EventSourceListener, EventSources}
 
 /**
- * The [CTIConnector] connects & listens to the OpenCTI
- * events stream via an SSE client and write these events
- * to the provided output handler.
+ * The [SseConnector] connects & listens to the event
+ * stream of a certain Works or Sensor Beat via an SSE
+ * client and write these events to the provided output
+ * handler.
  */
-class CTIConnector(
+class SseConnector(
   endpoint: String,
-  callback: CTIEventHandler,
+  callback: SseEventHandler,
   authToken: Option[String] = None,
   sslOptions: Option[SslOptions] = None) {
 
@@ -52,21 +54,7 @@ class CTIConnector(
       override def onOpen(eventSource:EventSource, response:Response):Unit = {
         /* Do nothing */
       }
-      /*
-       * Events format
-       *
-       * The events published by OpenCTI are based on the STIX format:
-       *
-       * id: {Event stream id} -> Like 1620249512318-0
-       * event: {Event type} -> create / update / delete
-       * data: { -> The complete event data
-       *    markings: [] -> Array of markings IDS of the element
-       *    origin: {Data Origin} -> Complex object with different information about the origin of the event
-       *    data: {STIX data} -> The STIX representation of the data.
-       *    message -> A simple string to easy understand the event
-       *    version -> The version number of the event
-       * }
-       */
+
       override def onEvent(eventSource:EventSource, eventId:String, eventType:String, eventData:String):Unit = {
         callback.eventArrived(SseEvent(eventId, eventType, eventData))
       }
@@ -88,7 +76,7 @@ class CTIConnector(
   def restart(t:Throwable): Unit = {
 
     val now = new java.util.Date().toString
-    println(s"[CTIConnector] $now - Restart due to: ${t.getLocalizedMessage}")
+    println(s"[SseConnector] $now - Restart due to: ${t.getLocalizedMessage}")
 
     start()
 

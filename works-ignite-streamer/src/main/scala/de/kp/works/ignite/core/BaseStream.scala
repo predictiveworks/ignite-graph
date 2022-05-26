@@ -1,6 +1,7 @@
-package de.kp.works.ignite.streamer
-/*
- * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
+package de.kp.works.ignite.core
+
+/**
+ * Copyright (c) 2021 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -36,8 +37,8 @@ trait BaseStream {
 
   protected var channel: String
 
-  protected var connect: Option[IgniteConnect] = None
-  protected var service: Option[IgniteStreamContext] = None
+  protected var igniteConnect: Option[IgniteConnect] = None
+  protected var igniteStream: Option[IgniteStreamContext] = None
 
   private val fileHelpText = "The path to the configuration file."
 
@@ -55,7 +56,7 @@ trait BaseStream {
 
   }
 
-  protected def buildConnect(c: CliConfig, channel: String): IgniteConnect = {
+  protected def buildIgniteConnect(c: CliConfig, channel: String): IgniteConnect = {
     /*
      * STEP #1: Initialize the common configuration
      * either from an internal or external config
@@ -104,16 +105,16 @@ trait BaseStream {
 
   def start(): Unit = {
 
-    if (service.isEmpty)
+    if (igniteStream.isEmpty)
       throw new Exception("Initialization of the Ignite streaming service failed.")
 
-    service.get.start()
+    igniteStream.get.start()
 
   }
 
   def stop(): Unit = {
-    if (service.isDefined)
-      service.get.stop()
+    if (igniteStream.isDefined)
+      igniteStream.get.stop()
   }
 
 }

@@ -1,6 +1,7 @@
-package de.kp.works.ignite.streamer.fiware
-/*
- * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+package de.kp.works.ignite.streamer.beat
+
+/**
+ * Copyright (c) 2019 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,47 +18,60 @@ package de.kp.works.ignite.streamer.fiware
  * @author Stefan Krusche, Dr. Krusche & Partner PartG
  *
  */
+
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
 import de.kp.works.ignite.core.{BaseEngine, IgniteStream, IgniteStreamContext}
+import de.kp.works.ignite.sse.SseEvent
 import org.apache.ignite.IgniteCache
 import org.apache.ignite.binary.BinaryObject
 import org.apache.ignite.stream.StreamSingleTupleExtractor
 
 import java.security.MessageDigest
 import scala.collection.JavaConversions.mapAsJavaMap
-/**
- * [FiwareIgnite] is responsible for streaming Fiware Broker
- * notifications into a temporary cache and also their final
- * processing as edges & vertices of an information network.
- */
-class FiwareEngine(connect:IgniteConnect) extends BaseEngine(connect) {
 
-  override var cacheName:String = FiwareConstants.FIWARE_CACHE
+/**
+ * [BeatEngine] is responsible for streaming Works & Sensor Beat
+ * SSE events into a temporary cache and also their final processing
+ * as edges & vertices of an information network.
+ */
+class BeatEngine(connect:IgniteConnect) extends BaseEngine(connect) {
+
+  override var cacheName: String = BeatConstants.BEAT_CACHE
 
   if (!WorksConf.isInit)
-    throw new Exception("[FiwareIgnite] No configuration initialized. Streaming cannot be started.")
+    throw new Exception("[BeatEngine] No configuration initialized. Streaming cannot be started.")
 
-  private val conf = WorksConf.getStreamerCfg(WorksConf.FIWARE_CONF)
-
+  private val conf = WorksConf.getStreamerCfg(WorksConf.BEAT_CONF)
+  /**
+   * This is the main method to build the Beat
+   * streaming service (see BeatStream object).
+   *
+   * The respective [IgniteBeatContext] combines
+   * the plain Ignite streamer with the cache
+   * and its specific processor.
+   *
+   * The context also comprises the connector to
+   * the Beat SSE event stream.
+   */
   override def buildStream:Option[IgniteStreamContext] = {
 
     try {
 
-      val (myCache,myStreamer) = prepareStreamer
+      val (myCache, myStreamer) = prepareStreamer
       val myThreads = conf.getInt("numThreads")
       /*
        * Build stream
        */
       val myStream: IgniteStream = new IgniteStream {
-        override val processor = new FiwareProcessor(myCache, connect)
+        override val processor = new BeatProcessor(myCache, connect)
       }
       /*
        * Build stream context
        */
       val myStreamContext: IgniteStreamContext = new IgniteStreamContext {
         override val stream: IgniteStream = myStream
-        override val streamer: FiwareStreamer[String, BinaryObject] = myStreamer
+        override val streamer: BeatStreamer[String, BinaryObject] = myStreamer
 
         override val numThreads: Int = myThreads
       }
@@ -65,14 +79,13 @@ class FiwareEngine(connect:IgniteConnect) extends BaseEngine(connect) {
       Some(myStreamContext)
 
     } catch {
-      case t:Throwable =>
+      case t: Throwable =>
         println(s"[ERROR] Stream preparation for 'ingestion' operation failed: ${t.getLocalizedMessage}")
         None
     }
-
   }
 
-  private def prepareStreamer:(IgniteCache[String,BinaryObject],FiwareStreamer[String,BinaryObject]) = {
+  private def prepareStreamer:(IgniteCache[String,BinaryObject],BeatStreamer[String,BinaryObject]) = {
     /*
      * The auto flush frequency of the stream buffer is
      * internally set to 0.5 sec (500 ms)
@@ -106,13 +119,13 @@ class FiwareEngine(connect:IgniteConnect) extends BaseEngine(connect) {
      * which buffers will be flushed even if they are not full
      */
     streamer.autoFlushFrequency(autoFlushFrequency)
-    val fiwareStreamer = new FiwareStreamer[String,BinaryObject]()
+    val beatStreamer = new BeatStreamer[String,BinaryObject]()
 
-    fiwareStreamer.setIgnite(ignite)
-    fiwareStreamer.setStreamer(streamer)
+    beatStreamer.setIgnite(ignite)
+    beatStreamer.setStreamer(streamer)
     /*
-     * The Fiware extractor is the linking element between the
-     * Fiware notification and its specification as Apache Ignite
+     * The Beat extractor is the linking element between the
+     * Beat SSE events and its specification as Apache Ignite
      * cache entry.
      *
      * We currently leverage a single tuple extractor as we do
@@ -120,83 +133,81 @@ class FiwareEngine(connect:IgniteConnect) extends BaseEngine(connect) {
      * tuple extraction. Additional performance requirements can
      * lead to a channel in the selected extractor
      */
-    val fiwareExtractor = createExtractor
-    fiwareStreamer.setSingleTupleExtractor(fiwareExtractor)
+    val beatExtractor = createExtractor
+    beatStreamer.setSingleTupleExtractor(beatExtractor)
 
-    (cache, fiwareStreamer)
+    (cache, beatStreamer)
+
   }
 
-  private def createExtractor: StreamSingleTupleExtractor[FiwareEvent, String, BinaryObject] = {
+  private def createExtractor: StreamSingleTupleExtractor[SseEvent, String, BinaryObject] = {
 
-    new StreamSingleTupleExtractor[FiwareEvent,String,BinaryObject]() {
+    new StreamSingleTupleExtractor[SseEvent,String,BinaryObject]() {
 
-      override def extract(notification:FiwareEvent):java.util.Map.Entry[String,BinaryObject] = {
+      override def extract(event:SseEvent):java.util.Map.Entry[String,BinaryObject] = {
 
         val entries = scala.collection.mutable.HashMap.empty[String,BinaryObject]
         try {
 
-          val (cacheKey, cacheValue) = buildEntry(notification)
+          val (cacheKey, cacheValue) = buildEntry(event)
           entries.put(cacheKey,cacheValue)
 
         } catch {
           case e:Exception => e.printStackTrace()
         }
-
         entries.entrySet().iterator().next
 
       }
     }
   }
+  /**
+   * Events format :: SseEvent(id, event, data)
+   */
+  private def buildEntry(event:SseEvent):(String, BinaryObject) = {
 
-  private def buildEntry(notification:FiwareEvent): (String, BinaryObject) = {
+    val builder = ignite.binary().builder(BeatConstants.BEAT_CACHE)
+    builder.setField(BeatConstants.FIELD_ID, event.eventId)
 
-    val builder = ignite.binary().builder(FiwareConstants.FIWARE_CACHE)
-    builder.setField(FiwareConstants.FIELD_SERVICE, notification.service)
-
-    builder.setField(FiwareConstants.FIELD_SERVICE_PATH, notification.servicePath)
-    builder.setField(FiwareConstants.FIELD_PAYLOAD, notification.payload.toString)
+    builder.setField(BeatConstants.FIELD_TYPE, event.eventType)
+    builder.setField(BeatConstants.FIELD_DATA, event.data)
 
     val cacheValue = builder.build()
     /*
      * The cache key is built from the content
      * to enable the detection of duplicates.
      *
-     * (see FiwareProcessor)
+     * (see BeatProcessor)
      */
     val serialized = Seq(
-      notification.service,
-      notification.servicePath,
-      notification.payload.toString).mkString("#")
+      event.eventId,
+      event.eventType,
+      event.data).mkString("#")
 
     val cacheKey = new String(MessageDigest.getInstance("MD5")
       .digest(serialized.getBytes("UTF-8")))
 
     (cacheKey, cacheValue)
-
   }
   /**
    * A helper method to build the fields of an Apache
    * Ignite QueryEntity; this entity reflects the format
-   * of a Fiware notification
+   * of an SSE message
    */
   override def buildFields():java.util.LinkedHashMap[String,String] = {
 
     val fields = new java.util.LinkedHashMap[String,String]()
     /*
-     * The service that is associated
-     * with the notification
+     * The event identifier
      */
-    fields.put(FiwareConstants.FIELD_SERVICE,"java.lang.String")
+    fields.put(BeatConstants.FIELD_ID,"java.lang.String")
     /*
-     * The service path that is associated
-     * with the notification
+     * The event type
      */
-    fields.put(FiwareConstants.FIELD_SERVICE_PATH,"java.lang.String")
+    fields.put(BeatConstants.FIELD_TYPE,"java.lang.String")
     /*
-     * The payload that is associated
-     * with the notification
+     * The data that is associated with the event
      */
-    fields.put(FiwareConstants.FIELD_PAYLOAD,"java.lang.String")
+    fields.put(BeatConstants.FIELD_DATA,"java.lang.String")
     fields
 
   }

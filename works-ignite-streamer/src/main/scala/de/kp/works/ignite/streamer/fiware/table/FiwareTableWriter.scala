@@ -20,7 +20,7 @@ package de.kp.works.ignite.streamer.fiware.table
 
 import de.kp.works.ignite.IgniteConnect
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.Session
+import de.kp.works.ignite.core.Session
 import de.kp.works.ignite.streamer.fiware.FiwareEvent
 import de.kp.works.ignite.writer.TableWriter
 import org.apache.spark.sql.SaveMode

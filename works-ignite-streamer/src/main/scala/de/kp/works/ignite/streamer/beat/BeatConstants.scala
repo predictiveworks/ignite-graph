@@ -1,6 +1,7 @@
-package de.kp.works.ignite.streamer
-/*
- * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
+package de.kp.works.ignite.streamer.beat
+
+/**
+ * Copyright (c) 2019 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,20 +19,16 @@ package de.kp.works.ignite.streamer
  *
  */
 
-import com.typesafe.config.Config
-import de.kp.works.ignite.ssl.SslOptions
+object BeatConstants {
 
-import javax.net.ssl.SSLContext
+  /**
+   * The cache name used to temporarily store
+   * Beat event messages
+   */
+  val BEAT_CACHE:String = "beat_events"
 
-trait BaseSsl {
-
-  protected def buildSSLContext(securityCfg: Config): SSLContext = {
-    val sslOptions = getSslOptions(securityCfg)
-    sslOptions.getSslContext
-  }
-
-  protected def getSslOptions(securityCfg: Config): SslOptions = {
-    SslOptions.getOptions(securityCfg)
-  }
+  val FIELD_ID:String   = "eventId"
+  val FIELD_TYPE:String = "eventType"
+  val FIELD_DATA:String = "eventData"
 
 }

@@ -19,8 +19,8 @@ package de.kp.works.ignite.streamer.osquery.fleet
  *
  */
 
+import de.kp.works.ignite.core.IgniteStreamer
 import de.kp.works.ignite.file.{FileEvent, FileEventHandler}
-import de.kp.works.ignite.streamer.IgniteStreamer
 import org.apache.ignite.stream.StreamAdapter
 import org.apache.ignite.IgniteException
 

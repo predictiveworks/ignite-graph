@@ -1,7 +1,7 @@
 package de.kp.works.ignite.streamer.osquery.tls
 
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.BaseStream
+import de.kp.works.ignite.core.BaseStream
 
 /*
  * Copyright (c) 2021 Dr. Krusche & Partner PartG. All rights reserved.
@@ -39,13 +39,13 @@ object TLSStream extends BaseStream {
 
       try {
 
-        connect = Some(buildConnect(c, channel))
+        igniteConnect = Some(buildIgniteConnect(c, channel))
         /*
          * Build streaming context and finally start the
          * service that listens to Osquery events.
          */
-        val engine = new TLSEngine(connect.get)
-        service = engine.buildStream
+        val engine = new TLSEngine(igniteConnect.get)
+        igniteStream = engine.buildStream
 
         start()
 
