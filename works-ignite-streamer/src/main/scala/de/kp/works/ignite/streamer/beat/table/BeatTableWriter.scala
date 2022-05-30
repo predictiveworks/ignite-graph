@@ -28,10 +28,10 @@ import org.apache.spark.sql.SaveMode
 
 class BeatTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
 
-  private val ctiCfg = WorksConf.getCfg(WorksConf.BEAT_CONF)
+  private val beatCfg = WorksConf.getCfg(WorksConf.BEAT_CONF)
 
-  private val primaryKey = ctiCfg.getString("primaryKey")
-  private val tableParameters = ctiCfg.getString("tableParameters")
+  private val primaryKey = beatCfg.getString("primaryKey")
+  private val tableParameters = beatCfg.getString("tableParameters")
 
   def write(sseEvents: Seq[SseEvent]):Unit = {
 
@@ -50,9 +50,8 @@ class BeatTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
        * STEP #3: Write logs that refer to a certain SSE event
        * type to individual Apache Ignite caches
        */
-      transformed.foreach{case(entity, schema, rows) =>
+      transformed.foreach{case(table, schema, rows) =>
         if (rows.nonEmpty) {
-
           val dataframe = session.createDataFrame(session.sparkContext.parallelize(rows), schema)
           /*
            * Beat SSE events ship with ArrayType(LongType|StringType) fields,
@@ -63,7 +62,6 @@ class BeatTableWriter(connect:IgniteConnect) extends TableWriter(connect) {
            * Therefore, we intercept the generated dataframe here and serialize
            * all ArrayType fields before writing to Apache Ignite
            */
-          val table = "beat_ " + entity
           save(table, primaryKey, tableParameters, dataframe, SaveMode.Append)
         }
       }

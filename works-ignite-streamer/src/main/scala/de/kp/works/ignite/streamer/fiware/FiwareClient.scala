@@ -63,7 +63,7 @@ object FiwareClient {
    * }
    *
    */
-  def subscribe(subscription:String, system:ActorSystem):Future[HttpResponse] = {
+  def subscribe(subscription:String, service:Option[String], servicePath:Option[String], system:ActorSystem):Future[HttpResponse] = {
 
     try {
 
@@ -75,10 +75,20 @@ object FiwareClient {
       val brokerUrl = WorksConf.getFiwareBrokerUrl
       val endpoint = s"$brokerUrl/v2/subscriptions"
 
-      val headers = List(`Content-Type`(`text/plain(UTF-8)`))
+      /* __MOD__ Content type changed to `application/json` */
+
+     var headers = Seq(RawHeader("Content-Type", "application/json"))
+      if (service.nonEmpty)
+        headers = headers ++ Seq(RawHeader("fiware-service", service.get))
+
+      if (servicePath.nonEmpty)
+        headers = headers ++ Seq(RawHeader("fiware-servicepath", servicePath.get))
+
       val request = HttpRequest(
-        HttpMethods.POST, endpoint,entity = HttpEntity(`application/json`, entity)
-      ).withHeaders(headers)
+        HttpMethods.POST,
+        endpoint,
+        headers = headers,
+        entity = HttpEntity(`application/json`, entity))
 
       val response: Future[HttpResponse] = {
 
@@ -103,7 +113,7 @@ object FiwareClient {
       response
 
     } catch {
-      case t:Throwable => null
+      case _:Throwable => null
     }
 
   }

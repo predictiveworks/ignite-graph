@@ -1,6 +1,7 @@
 package de.kp.works.ignite.streamer.fiware
-/*
- * Copyright (c) 2019 - 2021 Dr. Krusche & Partner PartG. All rights reserved.
+
+/**
+ * Copyright (c) 2019 - 2022 Dr. Krusche & Partner PartG. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,23 +21,15 @@ package de.kp.works.ignite.streamer.fiware
 
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.ContentTypes._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.directives.MethodDirectives.post
-import akka.http.scaladsl.server.directives.PathDirectives.path
-import akka.http.scaladsl.server.directives.RouteDirectives.complete
-import akka.pattern.ask
 import akka.stream.ActorMaterializer
-import akka.util.{ByteString, Timeout}
+import akka.util.Timeout
 import de.kp.works.ignite.conf.WorksConf
-import de.kp.works.ignite.streamer.fiware.FiwareActor._
+import de.kp.works.ignite.streamer.fiware.FiwareRoute._
+import de.kp.works.ignite.streamer.fiware.actors.NotifyActor
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContextExecutor, Future}
-import scala.util.{Failure, Success}
 
 /**
  * The notification endpoint, the Orion Context Broker
@@ -82,60 +75,16 @@ class FiwareServer {
       throw new Exception("[FiwareServer] No callback specified to send notifications to.")
 
     /*
-     * The FiwareActor is used to receive NGSI events and delegate
-     * them to the provided callback
+     * The [NotifyActor] is used to receive NGSI events
+     * and delegate them to the provided callback
      */
-    lazy val fiwareActor = system
-      .actorOf(Props(new FiwareActor(eventHandler.get)), "FiwareActor")
+    val notifyActor = system
+      .actorOf(Props(new NotifyActor(eventHandler.get)), NOTIFY_ACTOR)
 
-    def routes:Route = {
-      path("notifications") {
-        post {
-          /*
-           * Extract (full) HTTP request from POST notification
-           * of the Orion Context Broker
-           */
-          extractRequest { request =>
-            complete {
+    val actors = Map(NOTIFY_ACTOR -> notifyActor)
 
-              val future = fiwareActor ? request
-              Await.result(future, timeout.duration) match {
-                case Response(Failure(e)) =>
-                  /*
-                   * A failure response is sent with 500 and
-                   * the respective exception message
-                   */
-                  val message = e.getMessage + "\n"
-                  val length = message.getBytes.length
-
-                  val headers = List(
-                    `Content-Type`(`text/plain(UTF-8)`),
-                    `Content-Length`(length)
-                  )
-
-                  HttpResponse(
-                    status=StatusCodes.InternalServerError,
-                    headers = headers,
-                    entity = ByteString(message),
-                    protocol = HttpProtocols.`HTTP/1.1`)
-                case Response(Success(_)) =>
-
-                  val headers = List(
-                    `Content-Type`(`text/plain(UTF-8)`),
-                    `Content-Length`(0)
-                  )
-
-                  HttpResponse(
-                    status=StatusCodes.OK,
-                    headers = headers,
-                    entity = ByteString(),
-                    protocol = HttpProtocols.`HTTP/1.1`)
-              }
-            }
-          }
-        }
-      }
-    }
+    val fiwareRoute = new FiwareRoute(actors)
+    val routes:Route = fiwareRoute.buildRoute
     /**
      * The host & port configuration of the HTTP server that
      * is used as a notification endpoint for an Orion Context
@@ -166,21 +115,27 @@ class FiwareServer {
 
     }
 
-    /* STEP #3: Register subscriptions with Orion Context Broker */
+    /* STEP #3: Register subscriptions with Fiware Context Broker */
 
     val subscriptions = FiwareSubscriptions.getSubscriptions
     subscriptions.foreach(subscription => {
 
       try {
+        /*
+         * The current implementation does not support
+         * `service` and `servicepath` specification
+         */
+        val service:Option[String] = None
+        val servicePath:Option[String] = None
 
-        val future = FiwareClient.subscribe(subscription, system)
+        val future = FiwareClient.subscribe(subscription, service, servicePath, system)
         val response = Await.result(future, timeout.duration)
 
         val sid = FiwareClient.getSubscriptionId(response)
         FiwareSubscriptions.register(sid, subscription)
 
       } catch {
-        case t:Throwable =>
+        case _:Throwable =>
           /*
            * The current implementation of the Fiware streaming
            * support is an optimistic approach that focuses on
@@ -199,7 +154,7 @@ class FiwareServer {
   def stop():Unit = {
 
     if (server.isEmpty)
-      throw new Exception("Notification server was not launched.")
+      throw new Exception("Fiware server was not launched.")
 
     server.get
       /*

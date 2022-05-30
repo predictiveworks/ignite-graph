@@ -56,7 +56,7 @@ object FiwareSubscriptions {
           # per subscription. However, you can have several subscriptions on
           # the same context elements (i.e. same entity and attribute).
           #
-          url = "http://localhost:9080/notifications"
+          url = "http://localhost:9080/v2/notify"
         }
         #
         #
