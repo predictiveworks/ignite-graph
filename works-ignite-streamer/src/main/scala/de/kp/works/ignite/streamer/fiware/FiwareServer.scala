@@ -26,7 +26,8 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import de.kp.works.ignite.conf.WorksConf
 import de.kp.works.ignite.streamer.fiware.FiwareRoute._
-import de.kp.works.ignite.streamer.fiware.actors.NotifyActor
+import de.kp.works.ignite.streamer.fiware.actors.{EntitiesActor, EntityActor, NotifyActor}
+import org.apache.ignite.Ignite
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContextExecutor, Future}
@@ -36,6 +37,8 @@ import scala.concurrent.{Await, ExecutionContextExecutor, Future}
  * sends (subscribed) notifications to.
  */
 class FiwareServer {
+
+  private var ignite:Option[Ignite] = None
 
   private var eventHandler:Option[FiwareEventHandler] = None
   private var server:Option[Future[Http.ServerBinding]] = None
@@ -66,6 +69,11 @@ class FiwareServer {
     this.eventHandler = Some(handler)
     this
   }
+
+  def setIgnite(ignite:Ignite):FiwareServer = {
+    this.ignite = Some(ignite)
+    this
+  }
   /**
    * This method launches the Orion notification server and also subscribes
    * to the Orion Context Broker for receiving NGSI event notifications
@@ -75,13 +83,29 @@ class FiwareServer {
       throw new Exception("[FiwareServer] No callback specified to send notifications to.")
 
     /*
+     * The [EntityActor] is used to retrieve a certain
+     * NGSI entity and its registered telemetry data
+     */
+    val entityActor = system
+      .actorOf(Props(new EntityActor(ignite.get)),ENTITY_ACTOR)
+    /*
+     * The [EntitiesActor] is used to retrieved (all)
+     * registered NGSI entities
+     */
+    val entitiesActor = system
+      .actorOf(Props(new EntitiesActor(ignite.get)),ENTITIES_ACTOR)
+
+    /*
      * The [NotifyActor] is used to receive NGSI events
      * and delegate them to the provided callback
      */
     val notifyActor = system
       .actorOf(Props(new NotifyActor(eventHandler.get)), NOTIFY_ACTOR)
 
-    val actors = Map(NOTIFY_ACTOR -> notifyActor)
+    val actors = Map(
+      NOTIFY_ACTOR   -> notifyActor,
+      ENTITY_ACTOR   -> entityActor,
+      ENTITIES_ACTOR -> entitiesActor)
 
     val fiwareRoute = new FiwareRoute(actors)
     val routes:Route = fiwareRoute.buildRoute

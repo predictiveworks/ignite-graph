@@ -41,13 +41,11 @@ class NotifyActor(callback:FiwareEventHandler) extends BaseActor {
   val SERVICE_HEADER = 4
   val SERVICE_PATH_HEADER = 5
 
-  import NotifyActor._
-
   override def receive: Receive = {
 
-    case request: HttpRequest =>
+    case message: HttpRequest =>
       sender ! Response(Try({
-        execute(request)
+        execute(message)
       })
         .recover {
           case e: Exception =>
@@ -60,12 +58,12 @@ class NotifyActor(callback:FiwareEventHandler) extends BaseActor {
    * message into an internal format and to delegate
    * further processing to the provided callback
    */
-  private def execute(request: HttpRequest):Unit = {
+  private def execute(httpReq: HttpRequest):Unit = {
     /*
      * Convert Http request from Orion Broker
      * into internal notification format
      */
-    val notification = toFiwareEvent(request)
+    val notification = toFiwareEvent(httpReq)
     /*
      * Before we continue to delegate the notification
      * to the Ignite streamer, we check whether the
@@ -125,11 +123,5 @@ class NotifyActor(callback:FiwareEventHandler) extends BaseActor {
     FiwareEvent(service, servicePath, payload)
 
   }
-
-}
-
-object NotifyActor {
-
-  case class Response(status: Try[_])
 
 }

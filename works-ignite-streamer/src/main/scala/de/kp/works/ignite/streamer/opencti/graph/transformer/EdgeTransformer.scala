@@ -659,7 +659,12 @@ object EdgeTransformer extends BaseTransformer {
     }
 
   }
-
+  /**
+   * This method transforms a list of kill chain phases
+   * into nodes and edges:
+   *
+   * - Each kill chain phase is described as a vertex
+   */
   def createKillChainPhases(entityId:String, data:Map[String, Any]):
   (Option[Seq[IgnitePut]], Option[Seq[IgnitePut]]) = {
 
@@ -672,7 +677,7 @@ object EdgeTransformer extends BaseTransformer {
       killChainPhases.foreach(killChainPhase => {
         /*
          * The identifier of the respective edge is system
-         * generated
+         * generated: entity (entityId) -- (edge) --> kill chain phase
          */
         val edgeId = s"kill-chain-phase-${java.util.UUID.randomUUID.toString}"
         val edge = initializeEdge(edgeId, HAS_KILL_CHAIN_PHASE, "create")
@@ -698,7 +703,8 @@ object EdgeTransformer extends BaseTransformer {
               /*
                * In this case, the processing of a kill chain phase is
                * restricted to create an [Edge]; the `value` field is
-               * the reference identifier of the Kill Chain object
+               * the reference identifier of the Kill Chain object,
+               * that is required to exist.
                */
               edge.addColumn(
                 IgniteConstants.TO_COL_NAME, "STRING", value("value").asInstanceOf[String])
@@ -709,8 +715,8 @@ object EdgeTransformer extends BaseTransformer {
             }
             else {
               /*
-               * In this case, the processing of the kill chain phase demands
-               * to create the kill chain phase as [Vertex]
+               * In this case, the processing of the kill chain phase
+               * demands to create the kill chain phase as [Vertex]
                */
               val vertexId = s"kill-chain-phase-${java.util.UUID.randomUUID.toString}"
               /*

@@ -26,11 +26,11 @@ import de.kp.works.ignite.conf.WorksConf
 
 import scala.concurrent.Future
 /**
- * The FiwareClient is used to connect to the Orion
+ * The FiwareClient is used to connect to the Fiware
  * Context Broker and subscribe to certain events.
  *
  * The Fiware implementation requires a (public)
- * endpoint, the Orion Context Broker can send its
+ * endpoint, the Fiware Context Broker can send its
  * notifications to.
  */
 object FiwareClient {
@@ -87,7 +87,7 @@ object FiwareClient {
       val request = HttpRequest(
         HttpMethods.POST,
         endpoint,
-        headers = headers,
+        headers = headers.toList,
         entity = HttpEntity(`application/json`, entity))
 
       val response: Future[HttpResponse] = {

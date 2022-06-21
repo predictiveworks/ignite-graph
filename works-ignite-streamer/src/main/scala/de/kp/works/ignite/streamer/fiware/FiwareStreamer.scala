@@ -54,6 +54,7 @@ class FiwareStreamer[K,V]
     server = Some(new FiwareServer())
     server.get.setEventHandler(this)
 
+    server.get.setIgnite(ignite)
     server.get.launch()
 
   }

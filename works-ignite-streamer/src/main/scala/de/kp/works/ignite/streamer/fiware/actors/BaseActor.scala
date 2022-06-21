@@ -21,12 +21,19 @@ package de.kp.works.ignite.streamer.fiware.actors
 
 import akka.actor.SupervisorStrategy.{Escalate, Restart, Resume, Stop}
 import akka.actor.{Actor, ActorLogging, ActorSystem, OneForOneStrategy}
+import akka.http.scaladsl.model.HttpHeader
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import de.kp.works.ignite.conf.WorksConf
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.TimeZone
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.util.Try
+
+case class Response(status: Try[_])
 
 abstract class BaseActor extends Actor with ActorLogging {
   /**
@@ -86,6 +93,29 @@ abstract class BaseActor extends Actor with ActorLogging {
       case _: IllegalArgumentException => Stop
       case _: Exception                => Escalate
     }
+
+  protected val timezone: TimeZone = TimeZone.getTimeZone("UTC")
+
+  protected def toEpochMillis(datetime:String):Long = {
+
+    val localDate = LocalDate
+      .parse(datetime, DateTimeFormatter.ISO_ZONED_DATE_TIME)
+
+    localDate.atStartOfDay(timezone.toZoneId).toInstant.toEpochMilli
+
+  }
+
+  protected def getHeaderValue(name:String, headers:Seq[HttpHeader]):String = {
+    if (headers.isEmpty) null
+    else {
+      val filtered = headers
+        .filter(header => header.name() == name)
+      if (filtered.isEmpty) null
+      else
+        filtered.head.value()
+    }
+
+  }
 
 }
 

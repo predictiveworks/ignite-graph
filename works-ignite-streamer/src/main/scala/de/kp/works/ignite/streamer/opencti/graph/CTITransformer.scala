@@ -59,7 +59,7 @@ object CTITransformer {
        * currently supports `create`, `delete` and `update`
        * operations
        */
-      val event = sseEvent.eventType
+      val ctiEvent = sseEvent.eventType
       /*
        * The current implementation leverages the STIX data
        * as `stixData` for further processing
@@ -85,7 +85,7 @@ object CTITransformer {
         val filter = Seq("id", "type")
         val data = stixData.filterKeys(k => !filter.contains(k))
 
-        val (v, e) = event match {
+        val (v, e) = ctiEvent match {
           case "create" =>
             transformCreate(entityId, entityType, data)
           case "delete" =>
@@ -95,7 +95,7 @@ object CTITransformer {
             transformUpdate(entityId, entityType, data)
           case _ =>
             val now = new java.util.Date().toString
-            throw new Exception(s"[ERROR] $now - Unknown event type detected: $event")
+            throw new Exception(s"[ERROR] $now - Unknown event type detected: $ctiEvent")
         }
 
         if (v.isDefined) vertices ++= v.get

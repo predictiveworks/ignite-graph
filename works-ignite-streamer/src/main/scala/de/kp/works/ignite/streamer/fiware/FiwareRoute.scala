@@ -20,8 +20,8 @@ package de.kp.works.ignite.streamer.fiware
  */
 
 import akka.actor.{ActorRef, ActorSystem}
-import akka.http.scaladsl.model.ContentTypes.`text/plain(UTF-8)`
-import akka.http.scaladsl.model.{HttpProtocols, HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.ContentTypes._
+import akka.http.scaladsl.model.{HttpProtocols, HttpResponse, StatusCode, StatusCodes}
 import akka.http.scaladsl.model.headers.{`Content-Length`, `Content-Type`}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
@@ -30,7 +30,8 @@ import akka.http.scaladsl.server.directives.PathDirectives.path
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.pattern.ask
 import akka.util.{ByteString, Timeout}
-import de.kp.works.ignite.streamer.fiware.actors.NotifyActor.Response
+import com.google.gson.JsonObject
+import de.kp.works.ignite.streamer.fiware.actors.Response
 
 import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -38,7 +39,9 @@ import scala.util.{Failure, Success}
 
 object FiwareRoute {
 
-  val NOTIFY_ACTOR = "notify_actor"
+  val ENTITIES_ACTOR = "entities_actor"
+  val ENTITY_ACTOR   = "entity_actor"
+  val NOTIFY_ACTOR   = "notify_actor"
 
 }
 
@@ -53,7 +56,92 @@ class FiwareRoute(actors:Map[String, ActorRef])(implicit system:ActorSystem) {
   val duration: FiniteDuration = 15.seconds
   implicit val timeout: Timeout = Timeout(duration)
 
-  def buildRoute:Route = notifyRoute
+  def buildRoute:Route =
+    notifyRoute ~
+    entityRoute ~
+    entitiesRoute
+
+  def entityRoute:Route = {
+
+    val actor = actors(ENTITY_ACTOR)
+    path("v2" / "entities" / Segment) {entityId => {
+      get {
+        /*
+         * Extract (full) HTTP request
+         */
+        extractRequest { request =>
+          complete {
+
+            val future = actor ? (entityId, request)
+            Await.result(future, timeout.duration) match {
+              case Response(Failure(e)) =>
+
+                val message =
+                  s"No entity were found for such query: ${e.getLocalizedMessage}"
+
+                val json = new JsonObject()
+                json.addProperty("error", "Not Found")
+                json.addProperty("description", message)
+
+                val response = json.toString
+                buildJsonResponse(response, StatusCodes.NotFound)
+
+              case Response(Success(answer)) =>
+                val response = answer.asInstanceOf[String]
+                buildJsonResponse(response, StatusCodes.OK)
+
+            }
+
+          }
+        }
+      }
+    }}
+
+  }
+  /**
+   * Query registered entities and return as
+   * JSON Array of
+   * {
+   *  entityId: ...,
+   *  entityType: ...
+   * }
+   */
+  def entitiesRoute:Route = {
+
+    val actor = actors(ENTITIES_ACTOR)
+    path("v2" / "entities") {
+      get {
+        /*
+         * Extract (full) HTTP request
+         */
+        extractRequest { httpReq =>
+          complete {
+
+            val future = actor ? httpReq
+            Await.result(future, timeout.duration) match {
+              case Response(Failure(e)) =>
+
+                val message =
+                  s"No entities were found for such query: ${e.getLocalizedMessage}"
+
+                val json = new JsonObject()
+                json.addProperty("error", "Not Found")
+                json.addProperty("description", message)
+
+                val response = json.toString
+                buildJsonResponse(response, StatusCodes.NotFound)
+
+              case Response(Success(answer)) =>
+                val response = answer.asInstanceOf[String]
+                buildJsonResponse(response, StatusCodes.OK)
+
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * The input channel that retrieves `notification`
    * requests from the Fiware Context Broker as a
@@ -68,39 +156,68 @@ class FiwareRoute(actors:Map[String, ActorRef])(implicit system:ActorSystem) {
          * Extract (full) HTTP request from POST notification
          * of the Orion Context Broker
          */
-        extractRequest { request =>
+        extractRequest { httpReq =>
           complete {
-
-            val future = actor ? request
+            val future = actor ? httpReq
             Await.result(future, timeout.duration) match {
               case Response(Failure(e)) =>
+                val message = e.getMessage + "\n"
+                val length = message.getBytes.length
                 /*
                  * A failure response is sent with 500 and
                  * the respective exception message
                  */
-                val message = e.getMessage + "\n"
-                val length = message.getBytes.length
+                buildTextResponse(message, length, StatusCodes.InternalServerError)
 
-                val headers = getTextHeaders(length)
-
-                HttpResponse(
-                  status=StatusCodes.InternalServerError,
-                  headers = headers,
-                  entity = ByteString(message),
-                  protocol = HttpProtocols.`HTTP/1.1`)
               case Response(Success(_)) =>
+                buildTextResponse("", 0, StatusCodes.OK)
 
-                val headers = getTextHeaders(0)
-                HttpResponse(
-                  status=StatusCodes.OK,
-                  headers = headers,
-                  entity = ByteString(),
-                  protocol = HttpProtocols.`HTTP/1.1`)
             }
           }
         }
       }
+
     }
+  }
+
+  private def buildJsonResponse(response:String, status:StatusCode) = {
+
+    val headers = getJsonHeaders
+    HttpResponse(
+      status   = status,
+      headers  = headers,
+      entity   = ByteString(response),
+      protocol = HttpProtocols.`HTTP/1.1`)
+
+  }
+
+  private def buildTextResponse(response:String, length:Int, status:StatusCode) = {
+
+    val headers = getTextHeaders(length)
+
+    if (length == 0) {
+      HttpResponse(
+        status   = status,
+        headers  = headers,
+        entity   = ByteString(),
+        protocol = HttpProtocols.`HTTP/1.1`)
+
+    } else {
+      HttpResponse(
+        status   = status,
+        headers  = headers,
+        entity   = ByteString(response),
+        protocol = HttpProtocols.`HTTP/1.1`)
+
+    }
+
+  }
+
+  private def getJsonHeaders = {
+    val headers = List(
+      `Content-Type`(`application/json`)
+    )
+    headers
   }
   /**
    * Helper method to build plain text headers
